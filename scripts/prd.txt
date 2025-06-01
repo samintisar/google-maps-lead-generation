@@ -1,0 +1,234 @@
+<context>
+# Overview  
+Lead Management Automation Platform - A comprehensive, n8n-powered lead management ecosystem that handles the complete lead lifecycle from capture to conversion. The platform combines intelligent automation, lead enrichment, multi-channel outreach capabilities, advanced SaaS metrics tracking, and a visual workflow builder. It empowers users to create sophisticated automation without coding, targeting businesses that need to deploy lead management systems rapidly across industries (real estate, SaaS, consulting, etc.).
+
+The platform addresses the critical problem of manual, inefficient lead management processes that result in lost opportunities, inconsistent follow-up, and poor lead quality assessment. It provides value through automation of 80% of operations via visual n8n workflows while Python/FastAPI handles complex analytics and SaaS metrics calculations.
+
+# Core Features  
+1. **Automated Lead Enrichment**: Extract domains, validate emails, perform WHOIS lookups, scrape website metadata, use AI for industry classification and lead quality assessment, match social profiles, and enrich geographic data. Critical for improving lead quality and providing sales teams with actionable intelligence.
+
+2. **Lead Scoring & Prioritization**: Implement scoring rules based on data completeness, behavioral tracking, source attribution, and time-decay algorithms. Uses ML-based predictive scoring for conversion probability. Essential for sales teams to focus on highest-value opportunities and optimize resource allocation.
+
+3. **Multi-Channel Outreach Automation**: Email automation with SMTP integration, template management, drip campaigns, A/B testing, and tracking. Includes follow-up sequences with time/behavior-based triggers and multi-channel integration (Slack, SMS, CRM updates). Vital for maintaining consistent communication and nurturing leads through the funnel.
+
+4. **SaaS Metrics Dashboard**: Calculate and visualize MRR/ARR, churn rates, CAC, LTV, conversion funnels, cohort analysis, and channel performance. Provides predictive analytics and attribution modeling. Critical for data-driven decision making and business growth optimization.
+
+5. **Integrations & Extensibility**: Native integrations with CRMs (HubSpot, Salesforce, Pipedrive), communication tools (Gmail, Slack, Teams), marketing tools (Google Ads, Facebook Ads), and data sources (Google Sheets, Airtable). Essential for seamless workflow integration with existing business tools.
+
+6. **User & Team Management**: Role-based access control, lead assignment rules, performance dashboards, quota management, and multi-tenant architecture. Important for scaling teams and maintaining organized lead distribution and accountability.
+
+7. **Workflow Automation Builder**: Visual drag-and-drop n8n interface for creating custom workflows, template library, conditional logic, real-time testing, and version control. Core to the platform's no-code/low-code vision and user empowerment.
+
+# User Experience  
+**Primary User Personas:**
+- Sales Representatives: Need easy lead access, communication tracking, and priority identification
+- Sales Managers: Require team oversight, performance analytics, and lead assignment control
+- Marketing Teams: Focus on campaign management, lead source analysis, and conversion optimization
+- Business Owners: Want comprehensive analytics, ROI visibility, and growth insights
+
+**Key User Flows:**
+1. Lead Capture → Enrichment → Scoring → Assignment → Outreach → Tracking → Conversion
+2. Workflow Creation: Design → Test → Deploy → Monitor → Optimize
+3. Analytics Review: Dashboard Access → Drill-down Analysis → Report Generation → Action Planning
+
+**UI/UX Considerations:**
+- Clean, intuitive dashboard with customizable widgets
+- Mobile-responsive design for on-the-go access
+- Visual workflow builder with drag-and-drop simplicity
+- Real-time notifications and updates
+- Progressive disclosure of complex features
+- Contextual help and onboarding flows
+</context>
+<PRD>
+# Technical Architecture  
+**System Components:**
+- **Frontend**: SvelteKit with TypeScript for high-performance UI, Tailwind CSS for responsive design, built-in Svelte stores for state management, and Apache ECharts for data visualization
+- **Backend API**: Minimal Python FastAPI focused on complex analytics, SaaS metrics calculations, and advanced data processing that cannot be handled by n8n
+- **Primary Automation Layer**: n8n workflow engine handling 80% of operations including lead enrichment, CRUD operations, outreach automation, and CRM integrations via native connectors
+- **Database**: PostgreSQL for structured data storage with Redis for caching and session management
+- **Infrastructure**: Docker containerization with Kubernetes orchestration for scalability and reliability
+
+**Data Models:**
+- **Lead Entity**: contact_info, enrichment_data, scoring_metrics, interaction_history, source_attribution
+- **Workflow Entity**: nodes, connections, triggers, conditions, version_history
+- **User Entity**: authentication, roles, permissions, team_assignments, performance_metrics
+- **Organization Entity**: tenant_isolation, billing_info, custom_settings, integration_configs
+
+**APIs and Integrations:**
+- **CRM APIs**: HubSpot, Salesforce, Pipedrive for bidirectional data sync
+- **Communication APIs**: Gmail, Outlook, Slack, Twilio for outreach and notifications
+- **Enrichment APIs**: WHOIS, social media, geographic data, AI classification services
+- **Analytics APIs**: Google Analytics, Facebook Ads, LinkedIn Ads for attribution tracking
+
+**Infrastructure Requirements:**
+- **Container Orchestration**: Docker containers with Kubernetes for scalability
+- **Cloud Provider**: AWS/Azure with auto-scaling capabilities
+- **CDN**: CloudFront for global performance optimization
+- **Monitoring**: Application performance monitoring with logging and alerting
+- **Security**: SSL/TLS encryption, OAuth 2.0 authentication, data encryption at rest
+
+# Development Roadmap  
+**Phase 1 - Foundation MVP (Core Infrastructure)**
+- Basic FastAPI backend with authentication and user management
+- PostgreSQL database with core data models (User, Lead, Organization)
+- Simple React frontend with login, dashboard shell, and basic navigation
+- n8n integration setup and basic workflow engine connection
+- Simple lead import/export functionality (CSV)
+- Basic lead listing and detail views
+
+**Phase 2 - Lead Management Core**
+- Complete lead CRUD operations with form-based data entry
+- Basic lead scoring implementation (rule-based, no ML)
+- Simple lead enrichment workflows (email validation, domain extraction)
+- Basic search and filtering capabilities
+- Lead assignment and routing functionality
+- Simple notification system (email alerts)
+
+**Phase 3 - Automation Engine**
+- Full n8n workflow integration with visual builder
+- Email automation workflows (SMTP integration, templates)
+- Basic drip campaign functionality
+- Lead enrichment automation (WHOIS, website scraping)
+- CRM integration (starting with HubSpot)
+- Webhook system for external integrations
+
+**Phase 4 - Analytics & Intelligence**
+- SaaS metrics dashboard (MRR, CAC, LTV calculations)
+- Advanced lead scoring with ML models
+- Conversion funnel analytics
+- Performance reporting and export capabilities
+- A/B testing framework for email campaigns
+- Predictive analytics for lead scoring
+
+**Phase 5 - Advanced Features**
+- Multi-channel outreach (SMS, Slack integration)
+- Advanced workflow templates and marketplace
+- Team management and role-based permissions
+- Advanced analytics and cohort analysis
+- Mobile app or progressive web app
+- White-label and multi-tenant capabilities
+
+**Phase 6 - Enterprise Features**
+- Advanced security and compliance features
+- Custom integrations and API marketplace
+- Advanced AI and machine learning capabilities
+- Enterprise reporting and analytics
+- Advanced workflow automation and AI agents
+- Scalability optimizations and performance enhancements
+
+# Optimized Task Execution Order for n8n-First Architecture
+
+**Phase 1 - Infrastructure Foundation (Tasks 1-3):**
+1. **Task 1: Setup Core Infrastructure** - No dependencies
+   - Git, Docker, Kubernetes, CI/CD, monitoring
+   - Foundation for all subsequent development
+
+2. **Task 3: Database Schema Design** - Depends on Task 1
+   - PostgreSQL schema for User, Lead, Organization, Workflow entities
+   - Required before n8n workflows can interact with data
+
+3. **Task 2: Minimal FastAPI Backend** - Depends on Task 1
+   - Analytics-focused API for SaaS metrics calculation
+   - Authentication system for secure access
+
+**Phase 2 - Core Automation Layer (Tasks 5, 4):**
+4. **Task 5: n8n Workflow Engine Integration** - Depends on Tasks 1, 3
+   - Primary automation layer handling 80% of operations
+   - CRUD workflows, webhook system, error handling
+   - Must be established before frontend can connect to workflows
+
+5. **Task 4: SvelteKit Frontend MVP** - Depends on Tasks 1, 5
+   - High-performance UI with Tailwind CSS
+   - Connects to n8n workflows and minimal FastAPI backend
+   - Built-in Svelte stores for state management
+
+**Phase 3 - Business Logic Implementation (Tasks 6, 7, 8, 9):**
+6. **Task 6: Lead Scoring and Enrichment** - Depends on Tasks 3, 5
+   - n8n workflows for automated enrichment
+   - ML-based scoring using FastAPI for complex calculations
+
+7. **Task 7: Multi-Channel Outreach System** - Depends on Tasks 5, 6
+   - Email automation through n8n workflows
+   - Campaign management and analytics
+
+8. **Task 8: SaaS Metrics Dashboard** - Depends on Tasks 2, 4
+   - FastAPI analytics calculations with Apache ECharts visualization
+   - Real-time updates through SvelteKit reactive stores
+
+9. **Task 9: CRM Integrations** - Depends on Task 5
+   - n8n native connectors for Salesforce, HubSpot, Pipedrive
+   - Simplified implementation using pre-built n8n nodes
+
+**Phase 4 - Advanced Features (Task 10):**
+10. **Task 10: User and Team Management** - Depends on Tasks 2, 4
+    - Role-based access control and multi-tenancy
+    - Team collaboration features
+
+**Key Architectural Benefits:**
+- n8n handles 80% of operations reducing complexity
+- FastAPI focused only on complex analytics and SaaS metrics
+- SvelteKit provides better performance than React
+- Native CRM connectors eliminate custom API development
+- Reduced overall development time and maintenance overhead
+
+# Risks and Mitigations  
+**Technical Challenges:**
+- Risk: n8n integration complexity and performance bottlenecks
+  Mitigation: Start with simple workflows, implement caching, use async processing
+- Risk: Database performance with large lead volumes
+  Mitigation: Implement proper indexing, query optimization, database sharding strategies
+- Risk: Third-party API rate limits and reliability
+  Mitigation: Implement retry logic, fallback systems, and API usage monitoring
+
+**MVP Definition Challenges:**
+- Risk: Feature creep leading to delayed MVP
+  Mitigation: Strict scope definition, regular milestone reviews, focus on core user value
+- Risk: Over-engineering early components
+  Mitigation: Build for current needs, implement clean architecture for future scaling
+- Risk: User interface complexity overwhelming users
+  Mitigation: Progressive disclosure, extensive user testing, simple onboarding flows
+
+**Resource Constraints:**
+- Risk: Limited development resources for complex integrations
+  Mitigation: Prioritize high-impact integrations, use existing libraries, phased rollout
+- Risk: Third-party service costs scaling with usage
+  Mitigation: Monitor usage closely, implement cost controls, negotiate volume pricing
+- Risk: Technical debt accumulation in rapid development
+  Mitigation: Regular code reviews, automated testing, refactoring sprints
+
+**Market and Product Risks:**
+- Risk: Competition from established CRM platforms
+  Mitigation: Focus on unique automation and workflow features, target underserved niches
+- Risk: User adoption challenges with complex automation
+  Mitigation: Extensive documentation, tutorial content, template marketplace
+- Risk: Integration maintenance overhead
+  Mitigation: Focus on stable, well-documented APIs, implement monitoring and alerting
+
+# Appendix  
+**Research Findings:**
+- n8n provides robust workflow automation with 400+ integrations
+- FastAPI offers excellent performance for Python backends with automatic API documentation
+- React ecosystem provides mature component libraries for rapid UI development
+- PostgreSQL offers excellent performance for structured data with JSONB for flexible schemas
+
+**Technical Specifications:**
+- Minimum Node.js 18+ for n8n compatibility
+- Python 3.9+ for FastAPI and modern async support
+- PostgreSQL 14+ for advanced JSON features
+- Redis 6+ for improved memory efficiency
+- Docker containers for consistent deployment environments
+
+**Integration Priorities:**
+1. HubSpot (most requested CRM integration)
+2. Gmail/Google Workspace (universal email platform)
+3. Slack (team communication standard)
+4. Google Sheets (ubiquitous data source)
+5. Salesforce (enterprise CRM requirement)
+
+**Performance Targets:**
+- Dashboard load time: <2 seconds
+- Workflow execution: <30 seconds for standard operations
+- API response time: <200ms for standard queries
+- Support for 10,000+ leads per organization
+- 99.9% uptime SLA for production systems
+</PRD>

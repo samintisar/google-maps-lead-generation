@@ -1,0 +1,16 @@
+{
+    "mcpServers": {
+        "task-master-ai": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "--package=task-master-ai",
+                "task-master-ai"
+            ],
+            "env": {
+                "ANTHROPIC_API_KEY": "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",
+                "PERPLEXITY_API_KEY": "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"
+            }
+        }
+    }
+}
