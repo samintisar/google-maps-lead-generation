@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lma-backend
+  namespace: lma
+  labels:
+    app: lma-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lma-backend
+  template:
+    metadata:
+      labels:
+        app: lma-backend
+    spec:
+      containers:
+      - name: lma-backend
+        image: lma-backend:latest
+        imagePullPolicy: Never  # Use local image
+        ports:
+        - containerPort: 8000
+        env:
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: lma-config
+              key: ENVIRONMENT
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: lma-secrets
+              key: secret-key
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: lma-secrets
+              key: jwt-secret
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lma-backend-service
+  namespace: lma
+spec:
+  selector:
+    app: lma-backend
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lma-frontend
+  namespace: lma
+  labels:
+    app: lma-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lma-frontend
+  template:
+    metadata:
+      labels:
+        app: lma-frontend
+    spec:
+      containers:
+      - name: lma-frontend
+        image: lma-frontend:latest
+        imagePullPolicy: Never  # Use local image
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: lma-config
+              key: NODE_ENV
+        - name: VITE_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: lma-config
+              key: API_URL
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lma-frontend-service
+  namespace: lma
+spec:
+  selector:
+    app: lma-frontend
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+  type: LoadBalancer  # For external access

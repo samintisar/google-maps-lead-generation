@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lma
+  labels:
+    name: lma
+    app: lead-management-automation
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lma-config
+  namespace: lma
+data:
+  ENVIRONMENT: "production"
+  POSTGRES_DB: "lma_db"
+  POSTGRES_USER: "lma_user"
+  API_URL: "http://lma-backend-service:8000"
+  NODE_ENV: "production"
