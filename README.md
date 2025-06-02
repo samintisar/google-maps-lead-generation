@@ -12,7 +12,7 @@ This platform is designed with an **n8n-first approach**, where 80% of business 
 - **Backend**: FastAPI (Python) - Analytics focus only
 - **Automation**: n8n (Primary business logic layer)
 - **Database**: PostgreSQL + Redis
-- **Orchestration**: Kubernetes
+- **Orchestration**: Docker Compose
 - **Monitoring**: Prometheus + Grafana
 - **CI/CD**: GitHub Actions
 
@@ -23,7 +23,6 @@ This platform is designed with an **n8n-first approach**, where 80% of business 
 ├── backend/           # FastAPI analytics backend
 ├── n8n-workflows/     # n8n workflow templates and configurations
 ├── docker/            # Docker configurations for all services
-├── kubernetes/        # Kubernetes manifests
 ├── ci-cd/             # CI/CD pipeline configurations
 ├── monitoring/        # Prometheus and Grafana configurations
 ├── docs/              # Project documentation
@@ -38,7 +37,6 @@ This platform is designed with an **n8n-first approach**, where 80% of business 
 - Docker & Docker Compose
 - Node.js 18+
 - Python 3.11+
-- kubectl (for Kubernetes deployment)
 
 ### Development Setup
 
@@ -109,9 +107,9 @@ uvicorn main:app --reload
 docker-compose up -d
 ```
 
-### Production (Kubernetes)
+### Production
 ```bash
-kubectl apply -f kubernetes/
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
 ## 📊 Monitoring

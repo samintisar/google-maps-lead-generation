@@ -5,17 +5,17 @@
     "totalTasks": 10,
     "analysisCount": 10,
     "thresholdScore": 5,
-    "projectName": "Taskmaster",
+    "projectName": "Lead Management Automation Platform",
     "usedResearch": false
   },
   "complexityAnalysis": [
     {
       "taskId": 1,
       "taskTitle": "Setup Core Infrastructure for SvelteKit and n8n Platform",
-      "complexityScore": 7,
-      "recommendedSubtasks": 5,
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
       "expansionPrompt": "Break down the setup of each infrastructure component (Git, Docker with SvelteKit, n8n, PostgreSQL, Redis, CI/CD, monitoring) into detailed steps",
-      "reasoning": "Moderate to high complexity due to SvelteKit and n8n integration setup; requires careful planning for development environment"
+      "reasoning": "Reduced complexity with Docker Compose instead of Kubernetes; simpler orchestration for single-host deployment"
     },
     {
       "taskId": 2,
@@ -44,10 +44,10 @@
     {
       "taskId": 5,
       "taskTitle": "Integrate n8n Workflow Engine as Primary Automation Layer",
-      "complexityScore": 9,
+      "complexityScore": 8,
       "recommendedSubtasks": 5,
       "expansionPrompt": "Divide the comprehensive n8n integration into workflow templates, CRUD operations, webhook system, and monitoring subtasks",
-      "reasoning": "Increased complexity due to n8n handling 80% of operations; requires extensive workflow design and integration planning"
+      "reasoning": "High complexity due to n8n handling 80% of operations; simplified deployment with Docker Compose reduces infrastructure overhead"
     },
     {
       "taskId": 6,

@@ -1,7 +1,27 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+import time
 import os
+
+# Import database and models
+from database import engine, Base
+from models import User, Organization, Lead, WorkflowExecution, ActivityLog
+
+# Import routers
+from routers.auth import router as auth_router
+from routers.leads import router as leads_router
+from routers.organizations import router as organizations_router
+
+# Create tables
+Base.metadata.create_all(bind=engine)
+
+# Prometheus metrics
+REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])
+REQUEST_DURATION = Histogram('http_request_duration_seconds', 'HTTP request duration')
+ACTIVE_CONNECTIONS = Gauge('active_connections', 'Active connections')
+APP_INFO = Gauge('app_info', 'Application info', ['version', 'environment'])
 
 # Create FastAPI instance
 app = FastAPI(
@@ -12,6 +32,9 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+# Set app info metric
+APP_INFO.labels(version="1.0.0", environment=os.getenv("ENVIRONMENT", "development")).set(1)
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -20,6 +43,36 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(auth_router, prefix="/api")
+app.include_router(leads_router, prefix="/api")
+app.include_router(organizations_router, prefix="/api")
+
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    """Middleware to collect Prometheus metrics"""
+    start_time = time.time()
+    ACTIVE_CONNECTIONS.inc()
+    
+    response = await call_next(request)
+    
+    # Record metrics
+    duration = time.time() - start_time
+    REQUEST_DURATION.observe(duration)
+    REQUEST_COUNT.labels(
+        method=request.method,
+        endpoint=request.url.path,
+        status=response.status_code
+    ).inc()
+    ACTIVE_CONNECTIONS.dec()
+    
+    return response
+
+@app.get("/metrics")
+async def get_prometheus_metrics():
+    """Prometheus metrics endpoint"""
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 @app.get("/")
 async def root():
