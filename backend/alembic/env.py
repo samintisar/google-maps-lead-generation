@@ -11,7 +11,12 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from database import Base
-from models import User, Organization, Lead, WorkflowExecution, ActivityLog
+# Import ALL models for autogeneration to work properly
+from models import (
+    User, Organization, Lead, WorkflowExecution, ActivityLog,
+    Workflow, LeadScoringRule, LeadScoreHistory, Communication,
+    Campaign, CampaignLead, Integration, LeadNote, LeadAssignment
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
