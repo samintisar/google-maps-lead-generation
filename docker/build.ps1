@@ -47,7 +47,7 @@ docker-compose -f $ComposeFile up -d
 if ($LASTEXITCODE -eq 0) {
     Write-Host "Successfully started LMA Platform!" -ForegroundColor Green
     Write-Host "Services available at:" -ForegroundColor Cyan
-    Write-Host "  - Frontend: http://localhost:5173 (dev) / http://localhost:3000 (prod)" -ForegroundColor White
+    Write-Host "  - Frontend: http://localhost:5173 (dev) / http://localhost:5174 (prod)" -ForegroundColor White
     Write-Host "  - Backend API: http://localhost:8000" -ForegroundColor White
     Write-Host "  - n8n: http://localhost:5678" -ForegroundColor White
     Write-Host "  - API Docs: http://localhost:8000/docs" -ForegroundColor White

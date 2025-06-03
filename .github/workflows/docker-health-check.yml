@@ -58,7 +58,7 @@ jobs:
         timeout 30 bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
         
         # Check frontend accessibility
-        curl -I http://localhost:3000 || echo "Frontend not ready yet"
+        curl -I http://localhost:5173 || echo "Frontend not ready yet"
     
     - name: Run container resource check
       run: |

@@ -72,9 +72,6 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5678/healthz"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   # FastAPI Backend (Analytics only)
   backend:
@@ -110,26 +107,20 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-      target: production
+      dockerfile: Dockerfile.prod
     container_name: lma-frontend-prod
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${FRONTEND_PORT:-5173}:5173"
     environment:
-      - VITE_API_URL=${API_URL:-http://localhost:8000}
-      - VITE_N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678/webhook}
       - NODE_ENV=production
+      - VITE_API_URL=${API_URL:-http://localhost:8000}
+      - VITE_N8N_URL=${N8N_URL:-http://localhost:5678}
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     networks:
       - lma-network
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5173"]
 
 volumes:
   postgres_data:

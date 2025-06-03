@@ -150,10 +150,10 @@ services:
       dockerfile: Dockerfile
     container_name: lma-frontend
     ports:
-      - "3000:3000"
+      - "5173:5173"
     environment:
       - NODE_ENV=development
-      - PORT=3000
+      - PORT=5173
       - VITE_API_URL=http://localhost:8000
       - VITE_N8N_URL=http://localhost:5678
     depends_on:
@@ -311,6 +311,29 @@ services:
     privileged: true
     devices:
       - /dev/kmsg
+    networks:
+      - lma-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # SvelteKit Frontend (Production)
+  frontend-prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: lma-frontend-prod
+    ports:
+      - "5174:5173"
+    environment:
+      - NODE_ENV=production
+      - PORT=5173
+      - VITE_API_URL=http://localhost:8000
+      - VITE_N8N_URL=http://localhost:5678
+    depends_on:
+      - backend
     networks:
       - lma-network
     logging:

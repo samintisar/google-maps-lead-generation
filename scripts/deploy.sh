@@ -249,7 +249,7 @@ if [[ "$HEALTH_CHECK_FLAG" == "true" ]]; then
     fi
     
     # Check frontend
-    if curl -I http://localhost:3000 >/dev/null 2>&1; then
+    if curl -I http://localhost:5173 >/dev/null 2>&1; then
         log_success "Frontend is accessible"
     else
         log_warning "Frontend health check failed (may still be starting)"
@@ -272,7 +272,7 @@ echo ""
 log_success "LMA Platform deployed successfully!"
 echo ""
 echo "Access URLs:"
-echo "  Frontend:    http://localhost:3000"
+echo "  Frontend:    http://localhost:5173"
 echo "  Backend API: http://localhost:8000"
 echo "  n8n:         http://localhost:5678"
 echo "  API Docs:    http://localhost:8000/docs"

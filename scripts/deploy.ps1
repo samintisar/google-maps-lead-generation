@@ -226,7 +226,7 @@ if ($HealthCheck) {
     
     # Check frontend
     try {
-        Invoke-WebRequest -Uri "http://localhost:3000" -Method Head -UseBasicParsing | Out-Null
+        Invoke-WebRequest -Uri "http://localhost:5173" -Method Head -UseBasicParsing | Out-Null
         Write-Success "Frontend is accessible"
     } catch {
         Write-Warning "Frontend health check failed (may still be starting)"
@@ -250,7 +250,7 @@ Write-Host ""
 Write-Success "LMA Platform deployed successfully!"
 Write-Host ""
 Write-Host "Access URLs:"
-Write-Host "  Frontend:    http://localhost:3000"
+Write-Host "  Frontend:    http://localhost:5173"
 Write-Host "  Backend API: http://localhost:8000"
 Write-Host "  n8n:         http://localhost:5678"
 Write-Host "  API Docs:    http://localhost:8000/docs"

@@ -50,7 +50,7 @@ scrape_configs:
   # Frontend (if metrics endpoint is available)
   - job_name: 'frontend'
     static_configs:
-      - targets: ['frontend:3000']
+      - targets: ['frontend:5173']
     metrics_path: '/metrics'
     scrape_interval: 60s
 
