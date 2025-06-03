@@ -1,7 +1,7 @@
 """
 Database models for the Lead Management Automation Platform.
 """
-from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, ForeignKey, Enum, JSON, Date, ARRAY
+from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, ForeignKey, Enum, JSON, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -338,7 +338,7 @@ class LeadNote(Base):
     note_type = Column(String(50), default='general', nullable=False, index=True)  # general, meeting, call, research, reminder
     content = Column(Text, nullable=False)
     is_private = Column(Boolean, default=False, nullable=False)  # Private to the user who created it
-    mentioned_users = Column(ARRAY(Integer), nullable=True)  # Array of user IDs mentioned in the note
+    mentioned_users = Column(JSON, default=[], nullable=False)  # Array of user IDs mentioned in the note (stored as JSON)
     attachments = Column(JSON, default=[], nullable=False)  # Array of attachment metadata
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

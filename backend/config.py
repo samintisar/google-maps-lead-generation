@@ -17,7 +17,9 @@ class Settings(BaseSettings):
     
     # n8n settings
     n8n_webhook_url: str = "http://n8n:5678/webhook"
-    n8n_api_base_url: str = "http://n8n:5678/api/v1"
+    n8n_api_base_url: str = "http://n8n:5678/rest"
+    n8n_email: str = "admin@lma.com"  # Default fallback
+    n8n_password: str = "Admin123"    # Default fallback
     
     # Security settings
     secret_key: str = "your-secret-key-here-change-in-production"

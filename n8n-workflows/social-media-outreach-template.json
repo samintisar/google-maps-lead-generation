@@ -1,0 +1,559 @@
+{
+  "name": "Social Media Outreach Automation",
+  "meta": {
+    "templateId": "social-media-outreach",
+    "templateCredsSetupCompleted": false
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "linkedin-outreach",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "LinkedIn Outreach Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "linkedin-outreach-webhook",
+      "id": "linkedin-trigger"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyDay",
+              "hour": 9,
+              "minute": 0
+            }
+          ]
+        }
+      },
+      "name": "Daily Outreach Scheduler",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [200, 480],
+      "id": "daily-scheduler"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM leads WHERE linkedin_url IS NOT NULL AND linkedin_connection_status = 'pending' AND lead_temperature IN ('hot', 'warm') ORDER BY score DESC LIMIT 10"
+      },
+      "name": "Get High-Score Leads",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [420, 480],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "LMA Database"
+        }
+      },
+      "id": "get-leads-for-outreach"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate personalized LinkedIn connection message\nconst lead = $json;\nconst templates = {\n  hot: [\n    `Hi {{firstName}}, I noticed you're at {{company}} and thought our automation solutions might be valuable for your team. Would love to connect!`,\n    `{{firstName}}, your background at {{company}} caught my attention. I'd like to share some insights on {{industry}} automation trends.`,\n    `Hello {{firstName}}! Saw your role at {{company}} - we've helped similar {{industry}} companies streamline their processes. Let's connect!`\n  ],\n  warm: [\n    `Hi {{firstName}}, I see you work at {{company}}. We help {{industry}} businesses like yours improve efficiency through automation.`,\n    `{{firstName}}, would love to connect and share some insights that might be relevant to {{company}}'s growth.`,\n    `Hello {{firstName}}! Noticed your position at {{company}}. Happy to connect and discuss automation opportunities.`\n  ],\n  cold: [\n    `Hi {{firstName}}, I'd like to connect and share some valuable insights for professionals in {{industry}}.`,\n    `{{firstName}}, would love to expand my network with {{industry}} professionals. Hope to connect!`,\n    `Hello {{firstName}}! Always interested in connecting with talented people from {{company}}.`\n  ]\n};\n\nconst temperature = lead.lead_temperature || 'cold';\nconst messageTemplates = templates[temperature] || templates.cold;\nconst randomTemplate = messageTemplates[Math.floor(Math.random() * messageTemplates.length)];\n\n// Replace placeholders\nlet personalizedMessage = randomTemplate\n  .replace(/{{firstName}}/g, lead.first_name || 'there')\n  .replace(/{{company}}/g, lead.company || 'your company')\n  .replace(/{{industry}}/g, lead.industry || 'your industry');\n\n// Ensure message is under 200 characters (LinkedIn limit)\nif (personalizedMessage.length > 200) {\n  personalizedMessage = personalizedMessage.substring(0, 197) + '...';\n}\n\nreturn {\n  json: {\n    ...lead,\n    connection_message: personalizedMessage,\n    outreach_type: 'linkedin_connection',\n    scheduled_time: new Date().toISOString()\n  }\n};"
+      },
+      "name": "Generate Connection Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 400],
+      "id": "generate-message"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "person",
+        "operation": "sendConnectionRequest",
+        "profileUrl": "={{$json.linkedin_url}}",
+        "message": "={{$json.connection_message}}"
+      },
+      "name": "Send LinkedIn Connection",
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [860, 320],
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "6",
+          "name": "LinkedIn API"
+        }
+      },
+      "id": "send-linkedin-connection"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "leads",
+        "updateKey": "id",
+        "columns": "linkedin_connection_status,last_linkedin_outreach,linkedin_connection_message",
+        "additionalFields": {}
+      },
+      "name": "Update Connection Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1080, 320],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "LMA Database"
+        }
+      },
+      "id": "update-connection-status"
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "days"
+      },
+      "name": "Wait 3 Days",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1300, 320],
+      "id": "wait-3-days"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM leads WHERE id = {{$json.id}} AND linkedin_connection_status = 'connected'"
+      },
+      "name": "Check Connection Accepted",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1520, 320],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "LMA Database"
+        }
+      },
+      "id": "check-connection"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.length}}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Connection Accepted?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1740, 320],
+      "id": "connection-accepted-check"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate follow-up message after connection\nconst lead = $json;\nconst followUpTemplates = {\n  hot: [\n    `Thanks for connecting, {{firstName}}! I'd love to learn more about {{company}}'s current automation challenges. Would you be open to a brief 15-minute call this week?`,\n    `Hi {{firstName}}, appreciate the connection! I have some insights that could help {{company}} streamline operations. Mind if I send over a quick case study?`,\n    `{{firstName}}, thanks for connecting! We've helped {{industry}} companies like {{company}} increase efficiency by 40%. Would love to share how.`\n  ],\n  warm: [\n    `Hi {{firstName}}, great to connect! I'd be happy to share some automation insights that might be valuable for {{company}}.`,\n    `Thanks for connecting, {{firstName}}! Would love to learn more about your role at {{company}} and see if our solutions align.`,\n    `{{firstName}}, appreciate the connection! Happy to discuss how automation could benefit {{company}}'s workflow.`\n  ],\n  cold: [\n    `Thanks for connecting, {{firstName}}! Always great to expand my network with {{industry}} professionals.`,\n    `Hi {{firstName}}, appreciate the connection! Hope to learn more about your work at {{company}}.`,\n    `{{firstName}}, great to connect! Looking forward to staying in touch and sharing valuable insights.`\n  ]\n};\n\nconst temperature = lead.lead_temperature || 'cold';\nconst messageTemplates = followUpTemplates[temperature] || followUpTemplates.cold;\nconst randomTemplate = messageTemplates[Math.floor(Math.random() * messageTemplates.length)];\n\nlet followUpMessage = randomTemplate\n  .replace(/{{firstName}}/g, lead.first_name || 'there')\n  .replace(/{{company}}/g, lead.company || 'your company')\n  .replace(/{{industry}}/g, lead.industry || 'your industry');\n\nreturn {\n  json: {\n    ...lead,\n    follow_up_message: followUpMessage,\n    outreach_type: 'linkedin_follow_up',\n    scheduled_time: new Date().toISOString()\n  }\n};"
+      },
+      "name": "Generate Follow-up Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1960, 240],
+      "id": "generate-followup"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "recipientProfileUrl": "={{$json.linkedin_url}}",
+        "messageText": "={{$json.follow_up_message}}"
+      },
+      "name": "Send Follow-up Message",
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [2180, 240],
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "6",
+          "name": "LinkedIn API"
+        }
+      },
+      "id": "send-followup-message"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "leads",
+        "updateKey": "id",
+        "columns": "last_linkedin_followup,linkedin_messages_sent,linkedin_follow_up_message",
+        "additionalFields": {}
+      },
+      "name": "Update Follow-up Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [2400, 240],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "LMA Database"
+        }
+      },
+      "id": "update-followup-status"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "table": "social_outreach_logs",
+        "columns": "lead_id,platform,outreach_type,message_sent,status,sent_at",
+        "additionalFields": {}
+      },
+      "name": "Log Outreach Activity",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1300, 160],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "LMA Database"
+        }
+      },
+      "id": "log-outreach"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.lead_temperature}}",
+              "operation": "equal",
+              "value2": "hot"
+            }
+          ]
+        }
+      },
+      "name": "Is Hot Lead",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [860, 480],
+      "id": "hot-lead-check-social"
+    },
+    {
+      "parameters": {
+        "subject": "🔗 LinkedIn Outreach Update: {{$json.first_name}} {{$json.last_name}}",
+        "emailType": "html",
+        "html": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <title>LinkedIn Outreach Update</title>\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">\n  <div style=\"max-width: 600px; margin: 0 auto; padding: 20px;\">\n    <h1 style=\"color: #0077b5;\">LinkedIn Outreach Update</h1>\n    \n    <div style=\"background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;\">\n      <h2 style=\"margin-top: 0;\">Hot Lead Connected!</h2>\n      <p><strong>Name:</strong> {{$json.first_name}} {{$json.last_name}}</p>\n      <p><strong>Company:</strong> {{$json.company}}</p>\n      <p><strong>Title:</strong> {{$json.job_title}}</p>\n      <p><strong>Score:</strong> {{$json.score}}/100</p>\n      <p><strong>LinkedIn:</strong> <a href=\"{{$json.linkedin_url}}\">View Profile</a></p>\n    </div>\n    \n    <div style=\"background-color: #e8f5e8; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;\">\n      <h3 style=\"margin-top: 0;\">Connection Message Sent:</h3>\n      <p style=\"font-style: italic;\">\"{{$json.connection_message}}\"</p>\n    </div>\n    \n    <p style=\"margin-top: 20px;\">This high-value lead should be prioritized for personal follow-up.</p>\n  </div>\n</body>\n</html>",
+        "toEmail": "sales-team@leadmanagement.com",
+        "fromEmail": "outreach@leadmanagement.com",
+        "fromName": "LMA Social Outreach"
+      },
+      "name": "Notify Sales of Hot Lead",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1080, 480],
+      "credentials": {
+        "smtp": {
+          "id": "2",
+          "name": "SMTP Email"
+        }
+      },
+      "id": "notify-hot-lead"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "linkedin-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "LinkedIn Response Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 660],
+      "webhookId": "linkedin-response-webhook",
+      "id": "linkedin-response-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process LinkedIn webhook response\nconst webhookData = $json;\nlet processedData = {};\n\n// Handle different LinkedIn webhook events\nif (webhookData.eventType === 'connection_accepted') {\n  processedData = {\n    leadEmail: webhookData.lead_email,\n    connectionStatus: 'connected',\n    connectedAt: new Date().toISOString(),\n    responseType: 'connection_accepted'\n  };\n} else if (webhookData.eventType === 'message_received') {\n  processedData = {\n    leadEmail: webhookData.lead_email,\n    messageReceived: webhookData.message,\n    receivedAt: new Date().toISOString(),\n    responseType: 'message_received',\n    engagement: true\n  };\n} else if (webhookData.eventType === 'profile_view') {\n  processedData = {\n    leadEmail: webhookData.lead_email,\n    profileViewed: true,\n    viewedAt: new Date().toISOString(),\n    responseType: 'profile_view'\n  };\n}\n\nreturn { json: processedData };"
+      },
+      "name": "Process LinkedIn Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 660],
+      "id": "process-linkedin-response"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM leads WHERE email = '{{$json.leadEmail}}' LIMIT 1"
+      },
+      "name": "Find Lead by Email",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [640, 660],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "LMA Database"
+        }
+      },
+      "id": "find-lead-by-email"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "leads",
+        "updateKey": "email",
+        "columns": "linkedin_connection_status,linkedin_last_interaction,linkedin_engagement_score",
+        "additionalFields": {}
+      },
+      "name": "Update LinkedIn Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [860, 660],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "LMA Database"
+        }
+      },
+      "id": "update-linkedin-status"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Social media outreach completed\",\n  \"outreach_type\": \"{{$json.outreach_type}}\",\n  \"lead_name\": \"{{$json.first_name}} {{$json.last_name}}\",\n  \"platform\": \"linkedin\",\n  \"timestamp\": \"{{$now.toISO()}}\"\n}"
+      },
+      "name": "Return Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2620, 320],
+      "id": "return-success-response"
+    }
+  ],
+  "connections": {
+    "LinkedIn Outreach Trigger": {
+      "main": [
+        [
+          {
+            "node": "Generate Connection Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Outreach Scheduler": {
+      "main": [
+        [
+          {
+            "node": "Get High-Score Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get High-Score Leads": {
+      "main": [
+        [
+          {
+            "node": "Generate Connection Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Connection Message": {
+      "main": [
+        [
+          {
+            "node": "Send LinkedIn Connection",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Hot Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send LinkedIn Connection": {
+      "main": [
+        [
+          {
+            "node": "Update Connection Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Connection Status": {
+      "main": [
+        [
+          {
+            "node": "Log Outreach Activity",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Wait 3 Days",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 3 Days": {
+      "main": [
+        [
+          {
+            "node": "Check Connection Accepted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Connection Accepted": {
+      "main": [
+        [
+          {
+            "node": "Connection Accepted?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Connection Accepted?": {
+      "main": [
+        [
+          {
+            "node": "Generate Follow-up Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Generate Follow-up Message": {
+      "main": [
+        [
+          {
+            "node": "Send Follow-up Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Follow-up Message": {
+      "main": [
+        [
+          {
+            "node": "Update Follow-up Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Follow-up Status": {
+      "main": [
+        [
+          {
+            "node": "Return Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Outreach Activity": {
+      "main": [
+        [
+          {
+            "node": "Return Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Hot Lead": {
+      "main": [
+        [
+          {
+            "node": "Notify Sales of Hot Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "LinkedIn Response Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process LinkedIn Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process LinkedIn Response": {
+      "main": [
+        [
+          {
+            "node": "Find Lead by Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Lead by Email": {
+      "main": [
+        [
+          {
+            "node": "Update LinkedIn Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "America/New_York",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "social-media",
+      "name": "Social Media"
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn"
+    },
+    {
+      "id": "outreach",
+      "name": "Outreach Automation"
+    }
+  ],
+  "triggerCount": 3,
+  "updatedAt": "2024-01-15T10:30:00.000Z",
+  "versionId": "1"
+} 

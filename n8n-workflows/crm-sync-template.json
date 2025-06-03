@@ -1,0 +1,441 @@
+{
+  "name": "CRM Lead Synchronization",
+  "meta": {
+    "templateId": "crm-sync-bidirectional",
+    "templateCredsSetupCompleted": false
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute",
+              "minute": 15
+            }
+          ]
+        }
+      },
+      "name": "Check for New Leads",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "id": "cron-trigger-leads"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crm-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "CRM Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 480],
+      "webhookId": "crm-webhook-sync",
+      "id": "webhook-crm-trigger"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM leads WHERE synced_to_crm = false OR updated_at > last_crm_sync ORDER BY updated_at DESC LIMIT 50"
+      },
+      "name": "Get Unsynced Leads",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [420, 300],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "LMA Database"
+        }
+      },
+      "id": "get-unsynced-leads"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.length}}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Check If Leads Exist",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [640, 300],
+      "id": "check-leads-exist"
+    },
+    {
+      "parameters": {
+        "jsCode": "const leads = $input.all();\nconst formattedLeads = [];\n\nfor (const lead of leads) {\n  formattedLeads.push({\n    // CRM format mapping\n    firstName: lead.json.first_name,\n    lastName: lead.json.last_name,\n    email: lead.json.email,\n    company: lead.json.company,\n    phone: lead.json.phone,\n    source: lead.json.source,\n    status: lead.json.status,\n    score: lead.json.score,\n    \n    // Custom fields\n    customFields: {\n      lma_id: lead.json.id,\n      lead_temperature: lead.json.lead_temperature,\n      last_activity: lead.json.last_activity_at,\n      tags: lead.json.tags\n    },\n    \n    // Metadata\n    createdAt: lead.json.created_at,\n    updatedAt: lead.json.updated_at\n  });\n}\n\nreturn formattedLeads.map(lead => ({ json: lead }));"
+      },
+      "name": "Format for CRM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [860, 220],
+      "id": "format-for-crm"
+    },
+    {
+      "parameters": {
+        "resource": "contact",
+        "operation": "upsert",
+        "properties": {
+          "email": "={{$json.email}}",
+          "firstname": "={{$json.firstName}}",
+          "lastname": "={{$json.lastName}}",
+          "company": "={{$json.company}}",
+          "phone": "={{$json.phone}}",
+          "lifecyclestage": "lead",
+          "lead_status": "={{$json.status}}",
+          "hs_lead_status": "={{$json.status}}"
+        },
+        "additionalFields": {
+          "customProperties": {
+            "property": [
+              {
+                "name": "lma_lead_id",
+                "value": "={{$json.customFields.lma_id}}"
+              },
+              {
+                "name": "lead_score",
+                "value": "={{$json.score}}"
+              },
+              {
+                "name": "lead_source_detail",
+                "value": "={{$json.source}}"
+              },
+              {
+                "name": "lead_temperature",
+                "value": "={{$json.customFields.lead_temperature}}"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Sync to HubSpot",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 1,
+      "position": [1080, 140],
+      "credentials": {
+        "hubspotApi": {
+          "id": "3",
+          "name": "HubSpot CRM"
+        }
+      },
+      "id": "sync-to-hubspot"
+    },
+    {
+      "parameters": {
+        "resource": "lead",
+        "operation": "create",
+        "firstName": "={{$json.firstName}}",
+        "lastName": "={{$json.lastName}}",
+        "email": "={{$json.email}}",
+        "additionalFields": {
+          "company": "={{$json.company}}",
+          "phone": "={{$json.phone}}",
+          "leadSource": "={{$json.source}}",
+          "status": "={{$json.status}}",
+          "rating": "={{$json.customFields.lead_temperature}}",
+          "customFields": {
+            "LMA_Lead_ID__c": "={{$json.customFields.lma_id}}",
+            "Lead_Score__c": "={{$json.score}}",
+            "Last_LMA_Activity__c": "={{$json.customFields.last_activity}}"
+          }
+        }
+      },
+      "name": "Sync to Salesforce",
+      "type": "n8n-nodes-base.salesforce",
+      "typeVersion": 1,
+      "position": [1080, 300],
+      "credentials": {
+        "salesforceOAuth2Api": {
+          "id": "4",
+          "name": "Salesforce CRM"
+        }
+      },
+      "id": "sync-to-salesforce"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "leads",
+        "updateKey": "id",
+        "columns": "synced_to_crm,last_crm_sync,crm_id",
+        "additionalFields": {}
+      },
+      "name": "Update Sync Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1300, 220],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "LMA Database"
+        }
+      },
+      "id": "update-sync-status"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process incoming CRM webhook data\nconst webhookData = $json;\nlet processedData = {};\n\n// Handle different CRM webhook formats\nif (webhookData.subscriptionType) {\n  // HubSpot webhook format\n  processedData = {\n    crmType: 'hubspot',\n    leadId: webhookData.objectId,\n    changeType: webhookData.changeType,\n    email: webhookData.email,\n    firstName: webhookData.firstName,\n    lastName: webhookData.lastName,\n    company: webhookData.company,\n    status: webhookData.hs_lead_status,\n    updatedAt: new Date().toISOString()\n  };\n} else if (webhookData.sobject) {\n  // Salesforce webhook format\n  const sobject = webhookData.sobject;\n  processedData = {\n    crmType: 'salesforce',\n    leadId: sobject.Id,\n    changeType: 'updated',\n    email: sobject.Email,\n    firstName: sobject.FirstName,\n    lastName: sobject.LastName,\n    company: sobject.Company,\n    status: sobject.Status,\n    updatedAt: sobject.LastModifiedDate\n  };\n}\n\nreturn { json: processedData };"
+      },
+      "name": "Process CRM Webhook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 480],
+      "id": "process-crm-webhook"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id FROM leads WHERE email = '{{$json.email}}' OR crm_id = '{{$json.leadId}}' LIMIT 1"
+      },
+      "name": "Find Existing Lead",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [640, 480],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "LMA Database"
+        }
+      },
+      "id": "find-existing-lead"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.length}}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Lead Exists Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [860, 480],
+      "id": "lead-exists-check"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "leads",
+        "updateKey": "email",
+        "columns": "first_name,last_name,company,status,crm_id,last_crm_sync",
+        "additionalFields": {}
+      },
+      "name": "Update Existing Lead",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1080, 420],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "LMA Database"
+        }
+      },
+      "id": "update-existing-lead"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "table": "leads",
+        "columns": "email,first_name,last_name,company,status,source,crm_id,synced_to_crm,created_at",
+        "additionalFields": {}
+      },
+      "name": "Create New Lead",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1080, 540],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "LMA Database"
+        }
+      },
+      "id": "create-new-lead"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"CRM sync completed\",\n  \"syncedLeads\": {{$json.length || 0}},\n  \"timestamp\": \"{{$now.toISO()}}\"\n}"
+      },
+      "name": "Return Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1520, 220],
+      "id": "return-success"
+    }
+  ],
+  "connections": {
+    "Check for New Leads": {
+      "main": [
+        [
+          {
+            "node": "Get Unsynced Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Process CRM Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Unsynced Leads": {
+      "main": [
+        [
+          {
+            "node": "Check If Leads Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Leads Exist": {
+      "main": [
+        [
+          {
+            "node": "Format for CRM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Format for CRM": {
+      "main": [
+        [
+          {
+            "node": "Sync to HubSpot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sync to Salesforce",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync to HubSpot": {
+      "main": [
+        [
+          {
+            "node": "Update Sync Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync to Salesforce": {
+      "main": [
+        [
+          {
+            "node": "Update Sync Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sync Status": {
+      "main": [
+        [
+          {
+            "node": "Return Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process CRM Webhook": {
+      "main": [
+        [
+          {
+            "node": "Find Existing Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Existing Lead": {
+      "main": [
+        [
+          {
+            "node": "Lead Exists Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Exists Check": {
+      "main": [
+        [
+          {
+            "node": "Update Existing Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create New Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "America/New_York",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "crm-integration",
+      "name": "CRM Integration"
+    },
+    {
+      "id": "data-sync",
+      "name": "Data Synchronization"
+    },
+    {
+      "id": "automation",
+      "name": "Automation"
+    }
+  ],
+  "triggerCount": 2,
+  "updatedAt": "2024-01-15T10:30:00.000Z",
+  "versionId": "1"
+} 

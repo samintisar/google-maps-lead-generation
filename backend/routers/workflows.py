@@ -9,12 +9,16 @@ import logging
 from datetime import datetime
 
 from database import get_db
-from models import Workflow, WorkflowExecution, Organization, User
+from models import Workflow, WorkflowExecution, Organization, User, Lead
 from schemas import WorkflowCreate, WorkflowUpdate, WorkflowResponse, WorkflowExecutionResponse
 from auth import get_current_user
 from n8n_client import N8nClient, get_n8n_client, LEAD_NURTURING_WORKFLOW_TEMPLATE
+from services.n8n_service import N8nService
+from services.workflow_service import WorkflowService
+from utils.logging_config import get_n8n_logger, check_logging_health, LoggingConfig
+from utils.error_handling import get_error_handling_health, error_metrics, error_recovery_manager
 
-logger = logging.getLogger(__name__)
+logger = get_n8n_logger("workflows_router")
 router = APIRouter(prefix="/workflows", tags=["workflows"])
 
 # Background task for syncing workflow executions
@@ -619,4 +623,503 @@ async def create_workflow_from_template(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create workflow from template"
+        )
+
+# Service-based endpoints using the new service layer
+@router.get("/service/health")
+async def check_n8n_health(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Check n8n service health using the service layer."""
+    try:
+        n8n_service = N8nService(db)
+        health_status = await n8n_service.health_check()
+        await n8n_service.close()
+        
+        return {
+            "status": "healthy" if health_status else "unhealthy",
+            "n8n_service": health_status,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Health check failed"
+        )
+
+@router.post("/service/sync")
+async def sync_workflows_with_service(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Sync workflows using the enhanced service layer."""
+    try:
+        n8n_service = N8nService(db)
+        sync_result = await n8n_service.sync_workflows_from_n8n(current_user.organization_id)
+        await n8n_service.close()
+        
+        return sync_result
+        
+    except Exception as e:
+        logger.error(f"Service-based workflow sync failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to sync workflows"
+        )
+
+@router.post("/service/templates/{template_name}")
+async def create_workflow_from_template_service(
+    template_name: str,
+    workflow_name: str,
+    configuration: Dict[str, Any] = {},
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create workflow from template using the service layer."""
+    try:
+        n8n_service = N8nService(db)
+        db_workflow, n8n_workflow = await n8n_service.create_workflow_from_template(
+            organization_id=current_user.organization_id,
+            template_name=template_name,
+            workflow_name=workflow_name,
+            configuration=configuration,
+            created_by=current_user.id
+        )
+        await n8n_service.close()
+        
+        return {
+            "workflow_id": db_workflow.id,
+            "n8n_workflow_id": n8n_workflow.id,
+            "name": workflow_name,
+            "template": template_name,
+            "message": "Workflow created successfully from template"
+        }
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to create workflow from template: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create workflow from template"
+        )
+
+@router.post("/{workflow_id}/execute-for-lead/{lead_id}")
+async def execute_workflow_for_lead(
+    workflow_id: int,
+    lead_id: int,
+    execution_data: Dict[str, Any] = {},
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Execute a workflow for a specific lead using the service layer."""
+    try:
+        n8n_service = N8nService(db)
+        execution = await n8n_service.execute_workflow_for_lead(
+            workflow_id=workflow_id,
+            lead_id=lead_id,
+            execution_data=execution_data
+        )
+        await n8n_service.close()
+        
+        return {
+            "execution_id": execution.execution_id,
+            "workflow_id": execution.workflow_id,
+            "lead_id": execution.lead_id,
+            "status": execution.status,
+            "started_at": execution.started_at.isoformat(),
+            "message": "Workflow execution started successfully"
+        }
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to execute workflow for lead: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to execute workflow"
+        )
+
+@router.get("/service/statistics")
+async def get_workflow_statistics_service(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get comprehensive workflow statistics using the service layer."""
+    try:
+        n8n_service = N8nService(db)
+        stats = await n8n_service.get_workflow_statistics(current_user.organization_id)
+        await n8n_service.close()
+        
+        return stats
+        
+    except Exception as e:
+        logger.error(f"Failed to get workflow statistics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve workflow statistics"
+        )
+
+@router.post("/{workflow_id}/validate")
+async def validate_workflow_configuration(
+    workflow_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Validate workflow configuration and connectivity."""
+    try:
+        n8n_service = N8nService(db)
+        validation_result = await n8n_service.validate_workflow_configuration(workflow_id)
+        await n8n_service.close()
+        
+        return validation_result
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to validate workflow: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to validate workflow"
+        )
+
+# Workflow service endpoints for business logic
+@router.post("/lead/{lead_id}/auto-assign")
+async def auto_assign_workflows_to_lead(
+    lead_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Automatically assign appropriate workflows to a lead."""
+    try:
+        workflow_service = WorkflowService(db)
+        assignments = await workflow_service.auto_assign_workflows_to_lead(lead_id)
+        await workflow_service.close()
+        
+        return {
+            "lead_id": lead_id,
+            "assigned_workflows": assignments,
+            "total_assigned": len(assignments)
+        }
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to auto-assign workflows: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to auto-assign workflows"
+        )
+
+@router.post("/lead/{lead_id}/nurturing-sequence")
+async def execute_lead_nurturing_sequence(
+    lead_id: int,
+    sequence_type: str = "new_lead",
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Execute a lead nurturing sequence."""
+    try:
+        workflow_service = WorkflowService(db)
+        result = await workflow_service.execute_lead_nurturing_sequence(lead_id, sequence_type)
+        await workflow_service.close()
+        
+        return result
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to execute nurturing sequence: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to execute nurturing sequence"
+        )
+
+@router.get("/performance-metrics")
+async def get_workflow_performance_metrics(
+    workflow_id: Optional[int] = Query(None, description="Specific workflow ID (optional)"),
+    days_back: int = Query(30, ge=1, le=365, description="Number of days to look back"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get workflow performance metrics."""
+    try:
+        workflow_service = WorkflowService(db)
+        metrics = await workflow_service.get_workflow_performance_metrics(
+            organization_id=current_user.organization_id,
+            workflow_id=workflow_id,
+            days_back=days_back
+        )
+        await workflow_service.close()
+        
+        return metrics
+        
+    except Exception as e:
+        logger.error(f"Failed to get performance metrics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve performance metrics"
+        )
+
+@router.post("/validate-and-sync-all")
+async def validate_and_sync_all_workflows(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Validate and sync all workflows for the organization."""
+    try:
+        workflow_service = WorkflowService(db)
+        result = await workflow_service.validate_and_sync_all_workflows(current_user.organization_id)
+        await workflow_service.close()
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to validate and sync all workflows: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to validate and sync workflows"
+        )
+
+# Enhanced error handling and logging endpoints
+@router.get("/monitoring/health")
+async def get_monitoring_health(
+    current_user: User = Depends(get_current_user)
+):
+    """Get comprehensive health status of error handling and logging systems."""
+    try:
+        health_status = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "overall_status": "healthy",
+            "components": {
+                "logging_system": check_logging_health(),
+                "error_handling": get_error_handling_health(),
+                "n8n_service": None
+            }
+        }
+        
+        # Test n8n service health
+        try:
+            n8n_service = N8nService(db=None)  # Temporary service for health check
+            n8n_healthy = await n8n_service.health_check()
+            health_status["components"]["n8n_service"] = {
+                "status": "healthy" if n8n_healthy else "unhealthy",
+                "n8n_reachable": n8n_healthy
+            }
+            await n8n_service.close()
+        except Exception as e:
+            health_status["components"]["n8n_service"] = {
+                "status": "unhealthy",
+                "error": str(e)
+            }
+        
+        # Determine overall status
+        unhealthy_components = [
+            name for name, component in health_status["components"].items()
+            if component and component.get("status") == "unhealthy"
+        ]
+        
+        if unhealthy_components:
+            health_status["overall_status"] = "degraded"
+            health_status["unhealthy_components"] = unhealthy_components
+        
+        logger.info(
+            "Monitoring health check completed",
+            extra_fields={
+                "overall_status": health_status["overall_status"],
+                "unhealthy_components": unhealthy_components
+            }
+        )
+        
+        return health_status
+        
+    except Exception as e:
+        logger.error(
+            "Failed to get monitoring health status",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            extra_fields={"error": str(e)}
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve monitoring health status"
+        )
+
+@router.get("/monitoring/error-metrics")
+async def get_error_metrics(
+    current_user: User = Depends(get_current_user)
+):
+    """Get error metrics and statistics."""
+    try:
+        metrics = error_metrics.get_error_summary()
+        
+        logger.info(
+            "Error metrics retrieved",
+            extra_fields={
+                "total_errors": metrics.get("total_errors", 0),
+                "categories_count": len(metrics.get("error_categories", {}))
+            }
+        )
+        
+        return {
+            "timestamp": datetime.utcnow().isoformat(),
+            "metrics": metrics
+        }
+        
+    except Exception as e:
+        logger.error(
+            "Failed to retrieve error metrics",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            extra_fields={"error": str(e)}
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve error metrics"
+        )
+
+@router.post("/monitoring/test-error-handling")
+async def test_error_handling(
+    error_type: str = Query(..., description="Type of error to simulate: connection, authentication, timeout, validation"),
+    current_user: User = Depends(get_current_user)
+):
+    """Test error handling mechanisms by simulating different error types."""
+    try:
+        logger.info(
+            f"Testing error handling for type: {error_type}",
+            extra_fields={"error_type": error_type, "user_id": current_user.id}
+        )
+        
+        # Simulate different error types for testing
+        test_context = WorkflowLogContext(
+            workflow_id="test_workflow",
+            execution_id="test_execution",
+            organization_id=current_user.organization_id
+        )
+        
+        if error_type == "connection":
+            test_error = N8nConnectionError(
+                "Simulated connection error for testing",
+                context=test_context
+            )
+        elif error_type == "authentication":
+            test_error = N8nAuthenticationError(
+                "Simulated authentication error for testing",
+                context=test_context
+            )
+        elif error_type == "timeout":
+            test_error = N8nTimeoutError(
+                "Simulated timeout error for testing",
+                timeout_duration=30.0,
+                context=test_context
+            )
+        elif error_type == "validation":
+            test_error = N8nValidationError(
+                "Simulated validation error for testing",
+                context=test_context
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unsupported error type: {error_type}"
+            )
+        
+        # Test error recovery
+        recovery_result = await error_recovery_manager.handle_error(test_error)
+        
+        logger.info(
+            "Error handling test completed",
+            extra_fields={
+                "error_type": error_type,
+                "recovery_successful": recovery_result["recovery_successful"]
+            }
+        )
+        
+        return {
+            "test_type": error_type,
+            "error_details": test_error.to_dict(),
+            "recovery_result": recovery_result,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Error handling test failed for type {error_type}",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            extra_fields={"error_type": error_type, "error": str(e)}
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error handling test failed"
+        )
+
+@router.post("/monitoring/setup-logging")
+async def setup_logging_configuration(
+    log_level: str = Query("INFO", description="Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL"),
+    enable_structured: bool = Query(True, description="Enable structured JSON logging"),
+    current_user: User = Depends(get_current_user)
+):
+    """Configure logging system settings."""
+    try:
+        # Validate log level
+        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        if log_level.upper() not in valid_levels:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid log level. Must be one of: {valid_levels}"
+            )
+        
+        # Setup logging with new configuration
+        LoggingConfig.setup_logging(
+            log_level=log_level.upper(),
+            enable_structured=enable_structured
+        )
+        
+        logger.info(
+            "Logging configuration updated",
+            extra_fields={
+                "log_level": log_level.upper(),
+                "structured_logging": enable_structured,
+                "updated_by": current_user.id
+            }
+        )
+        
+        return {
+            "message": "Logging configuration updated successfully",
+            "configuration": {
+                "log_level": log_level.upper(),
+                "structured_logging": enable_structured
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "Failed to update logging configuration",
+            error_category=ErrorCategory.CONFIGURATION_ERROR,
+            extra_fields={"log_level": log_level, "error": str(e)}
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update logging configuration"
         ) 

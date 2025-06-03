@@ -1,0 +1,181 @@
+{
+  "templateIndex": {
+    "version": "1.0.0",
+    "lastUpdated": "2024-01-15T10:30:00.000Z",
+    "totalTemplates": 4,
+    "categories": [
+      "Lead Management",
+      "CRM Integration", 
+      "Email Automation",
+      "Social Media",
+      "Lead Scoring",
+      "Data Synchronization"
+    ],
+    "templates": [
+      {
+        "id": "lead-nurturing-sequence",
+        "name": "Lead Nurturing Email Sequence",
+        "description": "Automated email sequence that nurtures leads with personalized content based on their behavior and engagement",
+        "category": "Lead Management",
+        "tags": ["email-automation", "nurturing", "lead-management"],
+        "difficulty": "intermediate",
+        "setupTime": "15-30 minutes",
+        "fileName": "lead-nurturing-template.json",
+        "triggers": [
+          "Webhook (lead data input)",
+          "Manual trigger (testing)"
+        ],
+        "keyFeatures": [
+          "Lead data validation",
+          "PostgreSQL database integration",
+          "Personalized email templates",
+          "Time-based delays",
+          "Status tracking",
+          "Error handling with proper responses"
+        ],
+        "requiredCredentials": [
+          "PostgreSQL Database",
+          "SMTP Email Server"
+        ],
+        "useCase": "Perfect for automatically engaging new leads with a structured email sequence that includes welcome messages and follow-ups",
+        "businessValue": "Increases lead engagement and conversion rates through automated, personalized communication",
+        "estimatedROI": "25-40% improvement in lead-to-customer conversion"
+      },
+      {
+        "id": "crm-sync-bidirectional",
+        "name": "CRM Lead Synchronization", 
+        "description": "Bidirectional synchronization between LMA platform and external CRM systems (HubSpot, Salesforce)",
+        "category": "CRM Integration",
+        "tags": ["crm-integration", "data-sync", "automation"],
+        "difficulty": "advanced",
+        "setupTime": "45-60 minutes",
+        "fileName": "crm-sync-template.json",
+        "triggers": [
+          "Cron schedule (every 15 minutes)",
+          "CRM webhook (incoming changes)"
+        ],
+        "keyFeatures": [
+          "HubSpot and Salesforce integration",
+          "Bidirectional data synchronization",
+          "Custom field mapping",
+          "Conflict resolution",
+          "Webhook processing for real-time updates",
+          "Data transformation and validation"
+        ],
+        "requiredCredentials": [
+          "PostgreSQL Database",
+          "HubSpot API",
+          "Salesforce OAuth2"
+        ],
+        "useCase": "Essential for businesses using multiple CRM platforms that need to keep lead data synchronized across systems",
+        "businessValue": "Eliminates data silos and ensures consistent lead information across all sales tools",
+        "estimatedROI": "30-50% reduction in data management overhead"
+      },
+      {
+        "id": "lead-scoring-automation",
+        "name": "Automated Lead Scoring & Qualification",
+        "description": "Advanced lead scoring system that calculates lead quality based on demographic, behavioral, and engagement data",
+        "category": "Lead Scoring",
+        "tags": ["lead-scoring", "qualification", "automation"],
+        "difficulty": "advanced",
+        "setupTime": "30-45 minutes",
+        "fileName": "lead-scoring-template.json",
+        "triggers": [
+          "Lead activity webhook",
+          "Hourly score update schedule"
+        ],
+        "keyFeatures": [
+          "Multi-factor scoring algorithm",
+          "Real-time score calculation",
+          "Temperature classification (hot/warm/cold/frozen)",
+          "Automated sales alerts for hot leads",
+          "Score breakdown and analytics",
+          "Trigger-based workflow automation"
+        ],
+        "requiredCredentials": [
+          "PostgreSQL Database",
+          "SMTP Email Server",
+          "Backend API authentication"
+        ],
+        "useCase": "Automatically identifies and prioritizes the highest-value leads for sales team focus",
+        "businessValue": "Improves sales efficiency by focusing efforts on leads most likely to convert",
+        "estimatedROI": "40-60% improvement in sales team productivity"
+      },
+      {
+        "id": "social-media-outreach",
+        "name": "Social Media Outreach Automation",
+        "description": "Automated LinkedIn outreach system with personalized connection requests and follow-up messaging",
+        "category": "Social Media",
+        "tags": ["social-media", "linkedin", "outreach"],
+        "difficulty": "advanced",
+        "setupTime": "45-60 minutes",
+        "fileName": "social-media-outreach-template.json",
+        "triggers": [
+          "LinkedIn outreach webhook",
+          "Daily outreach scheduler",
+          "LinkedIn response webhook"
+        ],
+        "keyFeatures": [
+          "Personalized LinkedIn messaging",
+          "Temperature-based message templates",
+          "Connection acceptance tracking",
+          "Automated follow-up sequences",
+          "Sales team notifications for hot leads",
+          "Response processing and engagement tracking"
+        ],
+        "requiredCredentials": [
+          "PostgreSQL Database",
+          "LinkedIn OAuth2 API",
+          "SMTP Email Server"
+        ],
+        "useCase": "Scales personal outreach efforts on LinkedIn with intelligent, personalized messaging",
+        "businessValue": "Expands network reach and generates more qualified leads through social selling",
+        "estimatedROI": "20-35% increase in qualified leads from social channels"
+      }
+    ],
+    "quickStart": {
+      "recommended": "lead-nurturing-sequence",
+      "beginnerFriendly": ["lead-nurturing-sequence"],
+      "businessCritical": ["crm-sync-bidirectional", "lead-scoring-automation"],
+      "highROI": ["lead-scoring-automation", "crm-sync-bidirectional"]
+    },
+    "integration": {
+      "platformSupport": {
+        "n8n": "5.0+",
+        "postgres": "12.0+",
+        "node": "18.0+"
+      },
+      "apiEndpoints": [
+        "/api/workflows/templates/",
+        "/api/workflows/templates/{templateId}",
+        "/api/workflows/import-template"
+      ]
+    },
+    "setupInstructions": {
+      "prerequisites": [
+        "n8n instance running and accessible",
+        "PostgreSQL database configured", 
+        "Required API credentials for external services",
+        "SMTP server for email functionality"
+      ],
+      "steps": [
+        "1. Choose template based on your business needs",
+        "2. Download template JSON file",
+        "3. Import template into n8n",
+        "4. Configure required credentials",
+        "5. Update database connection settings",
+        "6. Customize template parameters",
+        "7. Test workflow with sample data",
+        "8. Activate workflow for production use"
+      ],
+      "troubleshooting": {
+        "commonIssues": [
+          "Database connection errors - verify PostgreSQL credentials",
+          "Email sending failures - check SMTP configuration",
+          "API authentication errors - verify external service credentials",
+          "Template import errors - ensure n8n version compatibility"
+        ]
+      }
+    }
+  }
+} 
