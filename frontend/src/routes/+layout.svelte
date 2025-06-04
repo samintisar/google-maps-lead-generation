@@ -2,7 +2,7 @@
 	import '../app.css';
 	
 	// Accept the form prop to prevent SvelteKit warnings
-	export let form = null;
+	export const form = null;
 </script>
 
 <main>

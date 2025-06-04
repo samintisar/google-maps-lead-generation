@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY . .
@@ -25,7 +25,7 @@ COPY --from=builder /app/.svelte-kit/output .svelte-kit/output/
 COPY --from=builder /app/package*.json ./
 
 # Install only production dependencies
-RUN npm install --omit dev
+RUN npm install --omit dev --legacy-peer-deps
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
@@ -49,7 +49,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY . .

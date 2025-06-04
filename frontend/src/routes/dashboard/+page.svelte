@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Layout, Card, Button } from '$lib/components';
-	import { auth, leads, leadStats, type User } from '$lib/stores';
+	import SignedIn from 'clerk-sveltekit/client/SignedIn.svelte';
+	import SignedOut from 'clerk-sveltekit/client/SignedOut.svelte';
+	import ClerkLoading from 'clerk-sveltekit/client/ClerkLoading.svelte';
+	import ClerkLoaded from 'clerk-sveltekit/client/ClerkLoaded.svelte';
+	import { leads, leadStats } from '$lib/stores';
 	import { api } from '$lib/api';
-	import { goto } from '$app/navigation';
 	import toast from 'svelte-french-toast';
 	
-	let user: User | null = null;
 	let isLoading = true;
 	let stats = {
 		totalLeads: 0,
@@ -19,33 +21,20 @@
 		try {
 			isLoading = true;
 			
-			// Load leads data
-			const response = await api.leads.list({ limit: 100 });
-			leads.setLeads(response.leads, response.total);
+			// Load leads data using the store method
+			await leads.loadLeads({ limit: 100 });
 			
 		} catch (error) {
 			console.error('Failed to load dashboard data:', error);
-			toast.error('Failed to load dashboard data');
+			// Error is already handled by the store with toast
 		} finally {
 			isLoading = false;
 		}
 	}
 	
-	// Initialize and check authentication
+	// Initialize dashboard data
 	onMount(() => {
-		auth.init();
-		
-		const unsubscribe = auth.subscribe(async ($auth) => {
-			if (!$auth.isAuthenticated && !$auth.isLoading) {
-				goto('/login');
-				return;
-			}
-			
-			if ($auth.isAuthenticated && $auth.user) {
-				user = $auth.user;
-				await loadDashboardData();
-			}
-		});
+		loadDashboardData();
 		
 		// Subscribe to lead stats for reactive updates
 		const unsubscribeLeadStats = leadStats.subscribe(($stats) => {
@@ -56,7 +45,6 @@
 		});
 		
 		return () => {
-			unsubscribe();
 			unsubscribeLeadStats();
 		};
 	});
@@ -83,160 +71,186 @@
 	];
 </script>
 
-<Layout {user} title="Dashboard">
-	{#if isLoading}
-		<div class="flex items-center justify-center h-64">
-			<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-		</div>
-	{:else}
-		<!-- Welcome Section -->
-		<div class="mb-8">
-			<h2 class="text-2xl font-bold text-gray-900">
-				{getGreeting()}, {user?.name || 'User'}! 👋
-			</h2>
-			<p class="mt-1 text-gray-600">
-				Here's what's happening with your leads today.
-			</p>
-		</div>
-		
-		<!-- Statistics Cards -->
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-			<Card hover>
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-							<span class="text-white text-sm font-medium">📊</span>
-						</div>
-					</div>
-					<div class="ml-5 w-0 flex-1">
-						<dl>
-							<dt class="text-sm font-medium text-gray-500 truncate">Total Leads</dt>
-							<dd class="text-lg font-medium text-gray-900">{stats.totalLeads}</dd>
-						</dl>
-					</div>
+<ClerkLoading>
+	<div class="flex items-center justify-center h-64">
+		<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+	</div>
+</ClerkLoading>
+
+<ClerkLoaded>
+	<SignedIn let:user>
+		<Layout title="Dashboard">
+			{#if isLoading}
+				<div class="flex items-center justify-center h-64">
+					<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
 				</div>
-			</Card>
-			
-			<Card hover>
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-							<span class="text-white text-sm font-medium">🆕</span>
-						</div>
-					</div>
-					<div class="ml-5 w-0 flex-1">
-						<dl>
-							<dt class="text-sm font-medium text-gray-500 truncate">New Leads</dt>
-							<dd class="text-lg font-medium text-gray-900">{stats.newLeads}</dd>
-						</dl>
-					</div>
+			{:else}
+				<!-- Welcome Section -->
+				<div class="mb-8">
+					<h2 class="text-2xl font-bold text-gray-900">
+						{getGreeting()}, {user?.firstName || 'User'}! 👋
+					</h2>
+					<p class="mt-1 text-gray-600">
+						Here's what's happening with your leads today.
+					</p>
 				</div>
-			</Card>
-			
-			<Card hover>
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
-							<span class="text-white text-sm font-medium">✅</span>
-						</div>
-					</div>
-					<div class="ml-5 w-0 flex-1">
-						<dl>
-							<dt class="text-sm font-medium text-gray-500 truncate">Qualified</dt>
-							<dd class="text-lg font-medium text-gray-900">{stats.qualifiedLeads}</dd>
-						</dl>
-					</div>
-				</div>
-			</Card>
-			
-			<Card hover>
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
-							<span class="text-white text-sm font-medium">🎉</span>
-						</div>
-					</div>
-					<div class="ml-5 w-0 flex-1">
-						<dl>
-							<dt class="text-sm font-medium text-gray-500 truncate">Closed Won</dt>
-							<dd class="text-lg font-medium text-gray-900">{stats.closedWon}</dd>
-						</dl>
-					</div>
-				</div>
-			</Card>
-		</div>
-		
-		<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-			<!-- Quick Actions -->
-			<div>
-				<h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-					{#each quickActions as action}
-						<Card hover padding="medium">
-							<a href={action.href} class="block">
-								<div class="flex items-start">
-									<span class="text-2xl mr-3">{action.icon}</span>
-									<div>
-										<h4 class="text-sm font-medium text-gray-900">{action.title}</h4>
-										<p class="text-sm text-gray-500 mt-1">{action.description}</p>
-									</div>
+				
+				<!-- Statistics Cards -->
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+					<Card hover>
+						<div class="flex items-center">
+							<div class="flex-shrink-0">
+								<div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+									<span class="text-white text-sm font-medium">📊</span>
 								</div>
-							</a>
-						</Card>
-					{/each}
+							</div>
+							<div class="ml-5 w-0 flex-1">
+								<dl>
+									<dt class="text-sm font-medium text-gray-500 truncate">Total Leads</dt>
+									<dd class="text-lg font-medium text-gray-900">{stats.totalLeads}</dd>
+								</dl>
+							</div>
+						</div>
+					</Card>
+					
+					<Card hover>
+						<div class="flex items-center">
+							<div class="flex-shrink-0">
+								<div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+									<span class="text-white text-sm font-medium">🆕</span>
+								</div>
+							</div>
+							<div class="ml-5 w-0 flex-1">
+								<dl>
+									<dt class="text-sm font-medium text-gray-500 truncate">New Leads</dt>
+									<dd class="text-lg font-medium text-gray-900">{stats.newLeads}</dd>
+								</dl>
+							</div>
+						</div>
+					</Card>
+					
+					<Card hover>
+						<div class="flex items-center">
+							<div class="flex-shrink-0">
+								<div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+									<span class="text-white text-sm font-medium">✅</span>
+								</div>
+							</div>
+							<div class="ml-5 w-0 flex-1">
+								<dl>
+									<dt class="text-sm font-medium text-gray-500 truncate">Qualified</dt>
+									<dd class="text-lg font-medium text-gray-900">{stats.qualifiedLeads}</dd>
+								</dl>
+							</div>
+						</div>
+					</Card>
+					
+					<Card hover>
+						<div class="flex items-center">
+							<div class="flex-shrink-0">
+								<div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+									<span class="text-white text-sm font-medium">🎉</span>
+								</div>
+							</div>
+							<div class="ml-5 w-0 flex-1">
+								<dl>
+									<dt class="text-sm font-medium text-gray-500 truncate">Closed Won</dt>
+									<dd class="text-lg font-medium text-gray-900">{stats.closedWon}</dd>
+								</dl>
+							</div>
+						</div>
+					</Card>
 				</div>
-			</div>
-			
-			<!-- Recent Activity -->
-			<div>
-				<h3 class="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
-				<Card>
-					<div class="flow-root">
-						<ul class="-my-5 divide-y divide-gray-200">
-							{#each recentActivities as activity}
-								<li class="py-4">
-									<div class="flex items-center space-x-4">
-										<div class="flex-shrink-0">
-											<div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-												{#if activity.type === 'lead'}
-													<span class="text-gray-600">👤</span>
-												{:else if activity.type === 'workflow'}
-													<span class="text-gray-600">⚡</span>
-												{:else if activity.type === 'report'}
-													<span class="text-gray-600">📊</span>
-												{:else}
-													<span class="text-gray-600">📝</span>
-												{/if}
+				
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+					<!-- Quick Actions -->
+					<div>
+						<h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+							{#each quickActions as action}
+								<Card hover padding="medium">
+									<a href={action.href} class="block">
+										<div class="flex items-start">
+											<span class="text-2xl mr-3">{action.icon}</span>
+											<div>
+												<h4 class="text-sm font-medium text-gray-900">{action.title}</h4>
+												<p class="text-sm text-gray-500 mt-1">{action.description}</p>
 											</div>
 										</div>
-										<div class="flex-1 min-w-0">
-											<p class="text-sm text-gray-900">{activity.text}</p>
-											<p class="text-sm text-gray-500">{activity.time}</p>
-										</div>
-									</div>
-								</li>
+									</a>
+								</Card>
 							{/each}
-						</ul>
+						</div>
 					</div>
-				</Card>
-			</div>
-		</div>
-		
-		<!-- Call to Action -->
-		{#if stats.totalLeads === 0}
-			<div class="mt-8">
-				<Card padding="large">
-					<div class="text-center">
-						<h3 class="text-lg font-medium text-gray-900 mb-2">Get Started with Your First Lead</h3>
-						<p class="text-gray-600 mb-6">
-							Add your first lead to begin building your sales pipeline and see the power of automation.
-						</p>
-						<Button variant="primary" href="/leads/new">
-							Add Your First Lead
-						</Button>
+					
+					<!-- Recent Activity -->
+					<div>
+						<h3 class="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
+						<Card>
+							<div class="flow-root">
+								<ul class="-my-5 divide-y divide-gray-200">
+									{#each recentActivities as activity}
+										<li class="py-4">
+											<div class="flex items-center space-x-4">
+												<div class="flex-shrink-0">
+													<div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+														{#if activity.type === 'lead'}
+															<span class="text-gray-600">👤</span>
+														{:else if activity.type === 'workflow'}
+															<span class="text-gray-600">⚡</span>
+														{:else if activity.type === 'report'}
+															<span class="text-gray-600">📊</span>
+														{:else}
+															<span class="text-gray-600">📝</span>
+														{/if}
+													</div>
+												</div>
+												<div class="flex-1 min-w-0">
+													<p class="text-sm text-gray-900">{activity.text}</p>
+													<p class="text-sm text-gray-500">{activity.time}</p>
+												</div>
+											</div>
+										</li>
+									{/each}
+								</ul>
+							</div>
+						</Card>
 					</div>
-				</Card>
-			</div>
-		{/if}
-	{/if}
-</Layout> 
+				</div>
+				
+				<!-- Call to Action -->
+				{#if stats.totalLeads === 0}
+					<div class="mt-8">
+						<Card padding="large">
+							<div class="text-center">
+								<h3 class="text-lg font-medium text-gray-900 mb-2">Get Started with Your First Lead</h3>
+								<p class="text-gray-600 mb-6">
+									Add your first lead to begin building your sales pipeline and see the power of automation.
+								</p>
+								<Button variant="primary" href="/leads/new">
+									Add Your First Lead
+								</Button>
+							</div>
+						</Card>
+					</div>
+				{/if}
+			{/if}
+		</Layout>
+	</SignedIn>
+	
+	<SignedOut>
+		<Layout title="Access Denied">
+			<Card padding="large">
+				<div class="text-center">
+					<h3 class="text-lg font-medium text-gray-900 mb-2">Authentication Required</h3>
+					<p class="text-gray-600 mb-6">
+						You need to be signed in to access the dashboard.
+					</p>
+					<Button variant="primary" href="/sign-in">
+						Sign In
+					</Button>
+				</div>
+			</Card>
+		</Layout>
+	</SignedOut>
+</ClerkLoaded> 

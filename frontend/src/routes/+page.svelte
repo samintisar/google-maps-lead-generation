@@ -15,7 +15,7 @@
 		if (authState.isAuthenticated) {
 			await goto('/dashboard');
 		} else {
-			await goto('/login');
+			await goto('/sign-in');
 		}
 		
 		isLoading = false;
@@ -42,10 +42,10 @@
 			<h1 class="text-3xl font-bold text-gray-900 mb-4">Welcome to LMA Platform</h1>
 			<p class="text-gray-600 mb-8">Your comprehensive lead management solution</p>
 			<div class="space-x-4">
-				<a href="/login" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+				<a href="/sign-in" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
 					Sign In
 				</a>
-				<a href="/register" class="bg-white text-indigo-600 px-6 py-2 rounded-lg border border-indigo-600 hover:bg-indigo-50 transition-colors">
+				<a href="/sign-up" class="bg-white text-indigo-600 px-6 py-2 rounded-lg border border-indigo-600 hover:bg-indigo-50 transition-colors">
 					Sign Up
 				</a>
 			</div>

@@ -67,7 +67,8 @@ def get_current_active_user(current_user: User = Depends(get_current_user)) -> U
 @router.post("/register", response_model=APIResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(
     user_data: UserCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    redis = Depends(get_redis)
 ):
     """Register a new user."""
     # Check if user already exists
@@ -103,11 +104,29 @@ async def register_user(
     db.commit()
     db.refresh(db_user)
     
-    return APIResponse(
-        success=True,
-        data=UserResponse.from_orm(db_user),
-        message="User registered successfully"
+    # Create access token for automatic login
+    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+    access_token = create_access_token(
+        data={"sub": db_user.username}, 
+        expires_delta=access_token_expires
     )
+    
+    # Store token in Redis for session management
+    redis.setex(
+        f"token:{db_user.id}",
+        int(access_token_expires.total_seconds()),
+        access_token
+    )
+    
+    # Return user data with access token
+    response_data = {
+        "success": True,
+        "data": UserResponse.from_orm(db_user),
+        "message": "User registered successfully",
+        "access_token": access_token
+    }
+    
+    return response_data
 
 
 @router.post("/login", response_model=Token)

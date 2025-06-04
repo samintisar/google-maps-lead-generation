@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Layout, Card, Button, Input } from '$lib/components';
-	import { auth, leads, type User, type Lead } from '$lib/stores';
-	import { api } from '$lib/api';
+	import SignedIn from 'clerk-sveltekit/client/SignedIn.svelte';
+	import SignedOut from 'clerk-sveltekit/client/SignedOut.svelte';
+	import ClerkLoading from 'clerk-sveltekit/client/ClerkLoading.svelte';
+	import ClerkLoaded from 'clerk-sveltekit/client/ClerkLoaded.svelte';
+	import { leads, leadStats, type Lead } from '$lib/stores';
 	import { goto } from '$app/navigation';
 	import toast from 'svelte-french-toast';
 	
-	let user: User | null = null;
-	let isLoading = true;
 	let searchTerm = '';
 	let statusFilter = 'all';
 	let currentPage = 1;
@@ -17,6 +18,13 @@
 	let allLeads: Lead[] = [];
 	let filteredLeads: Lead[] = [];
 	let totalLeads = 0;
+	let isLoading = false;
+	let error: string | null = null;
+	let operationStates = {
+		creating: false,
+		updating: {} as Record<string, boolean>,
+		deleting: {} as Record<string, boolean>
+	};
 	
 	// Available status options
 	const statusOptions = [
@@ -31,47 +39,34 @@
 	];
 	
 	onMount(() => {
-		auth.init();
-		
-		const unsubscribe = auth.subscribe(async ($auth) => {
-			if (!$auth.isAuthenticated && !$auth.isLoading) {
-				goto('/login');
-				return;
-			}
-			
-			if ($auth.isAuthenticated && $auth.user) {
-				user = $auth.user;
-				await loadLeads();
-			}
-		});
-		
 		// Subscribe to leads store for reactive updates
 		const unsubscribeLeads = leads.subscribe(($leads) => {
 			allLeads = $leads.leads;
 			totalLeads = $leads.pagination.total;
+			isLoading = $leads.isLoading;
+			error = $leads.error;
+			operationStates = $leads.operations;
 			filterLeads();
 		});
 		
+		// Initial load
+		loadLeads();
+		
 		return () => {
-			unsubscribe();
 			unsubscribeLeads();
 		};
 	});
 	
 	async function loadLeads() {
 		try {
-			isLoading = true;
-			const response = await api.leads.list({ 
+			await leads.loadLeads({ 
 				limit: 100,
 				search: searchTerm || undefined,
-				status: statusFilter !== 'all' ? statusFilter : undefined
+				status_filter: statusFilter !== 'all' ? statusFilter : undefined
 			});
-			leads.setLeads(response.leads, response.total);
 		} catch (error) {
+			// Error handling is done in the store
 			console.error('Failed to load leads:', error);
-			toast.error('Failed to load leads');
-		} finally {
-			isLoading = false;
 		}
 	}
 	
@@ -112,12 +107,10 @@
 		}
 		
 		try {
-			await api.leads.delete(leadId);
-			await loadLeads(); // Reload the list
-			toast.success('Lead deleted successfully');
+			await leads.deleteLead(leadId);
 		} catch (error) {
+			// Error handling is done in the store with toast
 			console.error('Failed to delete lead:', error);
-			toast.error('Failed to delete lead');
 		}
 	}
 	
@@ -153,243 +146,315 @@
 	}
 </script>
 
-<Layout {user} title="Leads">
-	<div class="mb-6">
-		<div class="flex items-center justify-between">
-			<h2 class="text-2xl font-bold text-gray-900">Leads</h2>
-			<Button variant="primary" href="/leads/new">
-				Add New Lead
-			</Button>
-		</div>
-		<p class="mt-1 text-gray-600">
-			Manage your lead database and track sales progress.
-		</p>
+<svelte:head>
+	<title>Leads - LMA Platform</title>
+</svelte:head>
+
+<ClerkLoading>
+	<div class="flex items-center justify-center h-64">
+		<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
 	</div>
-	
-	<!-- Filters -->
-	<div class="mb-6">
-		<Card padding="medium">
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<div>
-					<label for="search" class="block text-sm font-medium text-gray-700 mb-1">
-						Search Leads
-					</label>
-					<Input
-						id="search"
-						type="text"
-						placeholder="Search by name, email, or company..."
-						bind:value={searchTerm}
-						on:input={handleSearch}
-					/>
-				</div>
-				
-				<div>
-					<label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">
-						Filter by Status
-					</label>
-					<select
-						id="status-filter"
-						bind:value={statusFilter}
-						on:change={handleStatusChange}
-						class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-					>
-						{#each statusOptions as option}
-							<option value={option.value}>{option.label}</option>
-						{/each}
-					</select>
-				</div>
-				
-				<div class="flex items-end">
-					<Button variant="outline" on:click={loadLeads} disabled={isLoading}>
-						{#if isLoading}
+</ClerkLoading>
+
+<ClerkLoaded>
+	<SignedIn>
+		<Layout title="Leads">
+			<div class="mb-6">
+				<div class="flex items-center justify-between">
+					<h2 class="text-2xl font-bold text-gray-900">Leads</h2>
+					<Button variant="primary" href="/leads/new" disabled={operationStates.creating}>
+						{#if operationStates.creating}
 							<span class="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></span>
 						{/if}
-						Refresh
+						Add New Lead
 					</Button>
 				</div>
+				<p class="mt-1 text-gray-600">
+					Manage your lead database and track sales progress.
+				</p>
 			</div>
-		</Card>
-	</div>
-	
-	{#if isLoading}
-		<div class="flex items-center justify-center h-64">
-			<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-		</div>
-	{:else if filteredLeads.length === 0}
+			
+			<!-- Error Message -->
+			{#if error}
+				<div class="mb-6">
+					<Card padding="medium">
+						<div class="flex items-center p-4 text-red-800 bg-red-50 rounded-lg">
+							<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+								<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+							</svg>
+							<span class="font-medium">{error}</span>
+							<button on:click={() => leads.setError(null)} class="ml-auto text-red-600 hover:text-red-800">
+								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+									<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+								</svg>
+							</button>
+						</div>
+					</Card>
+				</div>
+			{/if}
+			
+			<!-- Filters -->
+			<div class="mb-6">
+				<Card padding="medium">
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div>
+							<label for="search" class="block text-sm font-medium text-gray-700 mb-1">
+								Search Leads
+							</label>
+							<Input
+								id="search"
+								type="text"
+								placeholder="Search by name, email, or company..."
+								bind:value={searchTerm}
+								on:input={handleSearch}
+							/>
+						</div>
+						
+						<div>
+							<label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">
+								Filter by Status
+							</label>
+							<select
+								id="status-filter"
+								bind:value={statusFilter}
+								on:change={handleStatusChange}
+								class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+							>
+								{#each statusOptions as option}
+									<option value={option.value}>{option.label}</option>
+								{/each}
+							</select>
+						</div>
+						
+						<div class="flex items-end">
+							<Button variant="outline" on:click={loadLeads} disabled={isLoading}>
+								{#if isLoading}
+									<span class="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></span>
+								{/if}
+								Refresh
+							</Button>
+						</div>
+					</div>
+				</Card>
+			</div>
+			
+			{#if isLoading && allLeads.length === 0}
+				<div class="flex items-center justify-center h-64">
+					<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+				</div>
+			{:else if allLeads.length === 0}
+				<!-- Empty state -->
+				<Card padding="large">
+					<div class="text-center">
+						<svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+							<path d="M34 40h10v-4a6 6 0 00-10.712-3.714M34 40H14m20 0v-4a9.971 9.971 0 00-.712-3.714M14 40H4v-4a6 6 0 0110.713-3.714M14 40v-4c0-1.313.253-2.566.713-3.714m0 0A10.003 10.003 0 0124 26c4.21 0 7.813 2.602 9.288 6.286M30 14a6 6 0 11-12 0 6 6 0 0112 0zm12 6a4 4 0 11-8 0 4 4 0 018 0zm-28 0a4 4 0 11-8 0 4 4 0 018 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+						</svg>
+						<h3 class="mt-2 text-sm font-medium text-gray-900">No leads yet</h3>
+						<p class="mt-1 text-sm text-gray-500">
+							Get started by creating your first lead.
+						</p>
+						<div class="mt-6">
+							<Button variant="primary" href="/leads/new">
+								Add New Lead
+							</Button>
+						</div>
+					</div>
+				</Card>
+			{:else}
+				<!-- Leads table -->
+				<Card>
+					<div class="overflow-hidden">
+						<div class="overflow-x-auto">
+							<table class="min-w-full divide-y divide-gray-200">
+								<thead class="bg-gray-50">
+									<tr>
+										<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+											Lead
+										</th>
+										<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+											Contact
+										</th>
+										<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+											Status
+										</th>
+										<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+											Score
+										</th>
+										<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+											Created
+										</th>
+										<th scope="col" class="relative px-6 py-3">
+											<span class="sr-only">Actions</span>
+										</th>
+									</tr>
+								</thead>
+								<tbody class="bg-white divide-y divide-gray-200">
+									{#each paginatedLeads as lead (lead.id)}
+										<tr class="hover:bg-gray-50 {operationStates.deleting[lead.id] ? 'opacity-50' : ''}">
+											<td class="px-6 py-4 whitespace-nowrap">
+												<div class="flex items-center">
+													<div class="flex-shrink-0 h-10 w-10">
+														<div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+															<span class="text-sm font-medium text-gray-700">
+																{lead.first_name.charAt(0)}{lead.last_name.charAt(0)}
+															</span>
+														</div>
+													</div>
+													<div class="ml-4">
+														<div class="text-sm font-medium text-gray-900">
+															{getFullName(lead)}
+														</div>
+														{#if lead.company}
+															<div class="text-sm text-gray-500">
+																{lead.company}
+															</div>
+														{/if}
+													</div>
+												</div>
+											</td>
+											<td class="px-6 py-4 whitespace-nowrap">
+												<div class="text-sm text-gray-900">{lead.email}</div>
+												{#if lead.phone}
+													<div class="text-sm text-gray-500">{lead.phone}</div>
+												{/if}
+											</td>
+											<td class="px-6 py-4 whitespace-nowrap">
+												<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {getStatusColor(lead.status)}">
+													{lead.status.replace('_', ' ')}
+												</span>
+											</td>
+											<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+												{lead.score}
+											</td>
+											<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{formatDate(lead.created_at)}
+											</td>
+											<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+												<div class="flex justify-end space-x-2">
+													<Button variant="ghost" size="small" href="/leads/{lead.id}">
+														View
+													</Button>
+													<Button 
+														variant="ghost" 
+														size="small" 
+														href="/leads/{lead.id}/edit"
+														disabled={operationStates.updating[lead.id]}
+													>
+														{#if operationStates.updating[lead.id]}
+															<span class="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-1"></span>
+														{/if}
+														Edit
+													</Button>
+													<Button 
+														variant="ghost" 
+														size="small" 
+														on:click={() => deleteLead(lead.id)}
+														disabled={operationStates.deleting[lead.id]}
+													>
+														{#if operationStates.deleting[lead.id]}
+															<span class="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-1"></span>
+														{/if}
+														Delete
+													</Button>
+												</div>
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					</div>
+					
+					<!-- Pagination -->
+					{#if totalPages > 1}
+						<div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+							<div class="flex-1 flex justify-between sm:hidden">
+								<Button 
+									variant="outline" 
+									disabled={currentPage === 1}
+									on:click={() => goToPage(currentPage - 1)}
+								>
+									Previous
+								</Button>
+								<Button 
+									variant="outline" 
+									disabled={currentPage === totalPages}
+									on:click={() => goToPage(currentPage + 1)}
+								>
+									Next
+								</Button>
+							</div>
+							<div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+								<div>
+									<p class="text-sm text-gray-700">
+										Showing
+										<span class="font-medium">{startIndex + 1}</span>
+										to
+										<span class="font-medium">{Math.min(endIndex, filteredLeads.length)}</span>
+										of
+										<span class="font-medium">{filteredLeads.length}</span>
+										results
+									</p>
+								</div>
+								<div>
+									<nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+										<button
+											class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+											disabled={currentPage === 1}
+											on:click={() => goToPage(currentPage - 1)}
+										>
+											Previous
+										</button>
+										
+										{#each Array.from({ length: totalPages }, (_, i) => i + 1) as page}
+											{#if page === currentPage}
+												<span class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 text-sm font-medium text-blue-600">
+													{page}
+												</span>
+											{:else if page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)}
+												<button
+													class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+													on:click={() => goToPage(page)}
+												>
+													{page}
+												</button>
+											{:else if page === currentPage - 2 || page === currentPage + 2}
+												<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+													...
+												</span>
+											{/if}
+										{/each}
+										
+										<button
+											class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+											disabled={currentPage === totalPages}
+											on:click={() => goToPage(currentPage + 1)}
+										>
+											Next
+										</button>
+									</nav>
+								</div>
+							</div>
+						</div>
+					{/if}
+				</Card>
+			{/if}
+		</Layout>
+	</SignedIn>
+</ClerkLoaded>
+
+<SignedOut>
+	<Layout title="Access Denied">
 		<Card padding="large">
 			<div class="text-center">
-				<h3 class="text-lg font-medium text-gray-900 mb-2">No leads found</h3>
+				<h3 class="text-lg font-medium text-gray-900 mb-2">Authentication Required</h3>
 				<p class="text-gray-600 mb-6">
-					{#if searchTerm || statusFilter !== 'all'}
-						Try adjusting your search criteria or clearing filters.
-					{:else}
-						Get started by adding your first lead to the database.
-					{/if}
+					You need to be signed in to access the leads page.
 				</p>
-				{#if !searchTerm && statusFilter === 'all'}
-					<Button variant="primary" href="/leads/new">
-						Add Your First Lead
-					</Button>
-				{/if}
+				<Button variant="primary" href="/sign-in">
+					Sign In
+				</Button>
 			</div>
 		</Card>
-	{:else}
-		<!-- Results Count -->
-		<div class="mb-4">
-			<p class="text-sm text-gray-700">
-				Showing {paginatedLeads.length} of {filteredLeads.length} leads
-				{#if totalLeads !== filteredLeads.length}
-					(filtered from {totalLeads} total)
-				{/if}
-			</p>
-		</div>
-		
-		<!-- Leads Table -->
-		<Card>
-			<div class="overflow-x-auto">
-				<table class="min-w-full divide-y divide-gray-200">
-					<thead class="bg-gray-50">
-						<tr>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Lead
-							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Company
-							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Status
-							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Created
-							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Actions
-							</th>
-						</tr>
-					</thead>
-					<tbody class="bg-white divide-y divide-gray-200">
-						{#each paginatedLeads as lead}
-							<tr class="hover:bg-gray-50">
-								<td class="px-6 py-4 whitespace-nowrap">
-									<div class="flex items-center">
-										<div class="flex-shrink-0 h-10 w-10">
-											<div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-												<span class="text-sm font-medium text-gray-700">
-													{lead.first_name.charAt(0).toUpperCase()}{lead.last_name.charAt(0).toUpperCase()}
-												</span>
-											</div>
-										</div>
-										<div class="ml-4">
-											<div class="text-sm font-medium text-gray-900">{getFullName(lead)}</div>
-											<div class="text-sm text-gray-500">{lead.email}</div>
-										</div>
-									</div>
-								</td>
-								<td class="px-6 py-4 whitespace-nowrap">
-									<div class="text-sm text-gray-900">{lead.company || 'N/A'}</div>
-								</td>
-								<td class="px-6 py-4 whitespace-nowrap">
-									<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {getStatusColor(lead.status)}">
-										{statusOptions.find(opt => opt.value === lead.status)?.label || lead.status}
-									</span>
-								</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-									{formatDate(lead.created_at)}
-								</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-									<div class="flex space-x-2">
-										<a href="/leads/{lead.id}" class="text-blue-600 hover:text-blue-900">
-											View
-										</a>
-										<a href="/leads/{lead.id}/edit" class="text-indigo-600 hover:text-indigo-900">
-											Edit
-										</a>
-										<button
-											on:click={() => deleteLead(lead.id)}
-											class="text-red-600 hover:text-red-900"
-										>
-											Delete
-										</button>
-									</div>
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
-		</Card>
-		
-		<!-- Pagination -->
-		{#if totalPages > 1}
-			<div class="mt-6 flex items-center justify-between">
-				<div class="flex-1 flex justify-between sm:hidden">
-					<Button
-						variant="outline"
-						disabled={currentPage === 1}
-						on:click={() => goToPage(currentPage - 1)}
-					>
-						Previous
-					</Button>
-					<Button
-						variant="outline"
-						disabled={currentPage === totalPages}
-						on:click={() => goToPage(currentPage + 1)}
-					>
-						Next
-					</Button>
-				</div>
-				<div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-					<div>
-						<p class="text-sm text-gray-700">
-							Showing page <span class="font-medium">{currentPage}</span> of <span class="font-medium">{totalPages}</span>
-						</p>
-					</div>
-					<div>
-						<nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-							<Button
-								variant="outline"
-								disabled={currentPage === 1}
-								on:click={() => goToPage(currentPage - 1)}
-								class="rounded-r-none"
-							>
-								Previous
-							</Button>
-							{#each Array(totalPages) as _, i}
-								{#if i + 1 === currentPage}
-									<button
-										class="bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium"
-									>
-										{i + 1}
-									</button>
-								{:else if i + 1 === 1 || i + 1 === totalPages || Math.abs(i + 1 - currentPage) <= 1}
-									<button
-										on:click={() => goToPage(i + 1)}
-										class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium"
-									>
-										{i + 1}
-									</button>
-								{:else if i + 1 === 2 && currentPage > 4}
-									<span class="bg-white border-gray-300 text-gray-500 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-										...
-									</span>
-								{:else if i + 1 === totalPages - 1 && currentPage < totalPages - 3}
-									<span class="bg-white border-gray-300 text-gray-500 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-										...
-									</span>
-								{/if}
-							{/each}
-							<Button
-								variant="outline"
-								disabled={currentPage === totalPages}
-								on:click={() => goToPage(currentPage + 1)}
-								class="rounded-l-none"
-							>
-								Next
-							</Button>
-						</nav>
-					</div>
-				</div>
-			</div>
-		{/if}
-	{/if}
-</Layout> 
+	</Layout>
+</SignedOut> 
