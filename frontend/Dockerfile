@@ -1,13 +1,14 @@
-FROM node:18-alpine as builder
+# Use Node.js 20 Alpine for smaller image size
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Install all dependencies (including devDependencies for build)
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -15,47 +16,9 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Production stage
-FROM node:18-alpine as production
-
-WORKDIR /app
-
-# Copy built application
-COPY --from=builder /app/.svelte-kit/output .svelte-kit/output/
-COPY --from=builder /app/package*.json ./
-
-# Install only production dependencies
-RUN npm install --omit dev --legacy-peer-deps
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S svelte -u 1001
-USER svelte
-
-# Expose port
+# Expose port 5173 for development
 EXPOSE 5173
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:5173 || exit 1
-
-# Start the application
-CMD ["node", ".svelte-kit/output/server/index.js"]
-
-# Development stage
-FROM node:18-alpine as development
-
-WORKDIR /app
-
-# Install dependencies
-COPY package*.json ./
-RUN npm install --legacy-peer-deps
-
-# Copy source code
-COPY . .
-
-# Expose port for development
-EXPOSE 5173
-
-# Start development server
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# For development, start dev server with host binding
+# For production, you would use npm run preview or a production server
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"] 

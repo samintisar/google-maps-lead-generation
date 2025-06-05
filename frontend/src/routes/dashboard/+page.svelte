@@ -1,256 +1,226 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { Layout, Card, Button } from '$lib/components';
-	import SignedIn from 'clerk-sveltekit/client/SignedIn.svelte';
-	import SignedOut from 'clerk-sveltekit/client/SignedOut.svelte';
-	import ClerkLoading from 'clerk-sveltekit/client/ClerkLoading.svelte';
-	import ClerkLoaded from 'clerk-sveltekit/client/ClerkLoaded.svelte';
-	import { leads, leadStats } from '$lib/stores';
-	import { api } from '$lib/api';
-	import toast from 'svelte-french-toast';
-	
-	let isLoading = true;
-	let stats = {
-		totalLeads: 0,
-		newLeads: 0,
-		qualifiedLeads: 0,
-		closedWon: 0
-	};
-	
-	async function loadDashboardData() {
-		try {
-			isLoading = true;
-			
-			// Load leads data using the store method
-			await leads.loadLeads({ limit: 100 });
-			
-		} catch (error) {
-			console.error('Failed to load dashboard data:', error);
-			// Error is already handled by the store with toast
-		} finally {
-			isLoading = false;
-		}
-	}
-	
-	// Initialize dashboard data
-	onMount(() => {
-		loadDashboardData();
-		
-		// Subscribe to lead stats for reactive updates
-		const unsubscribeLeadStats = leadStats.subscribe(($stats) => {
-			stats.totalLeads = $stats.total;
-			stats.newLeads = $stats.byStatus.new || 0;
-			stats.qualifiedLeads = $stats.byStatus.qualified || 0;
-			stats.closedWon = $stats.byStatus.closed_won || 0;
-		});
-		
-		return () => {
-			unsubscribeLeadStats();
-		};
+	import { onMount, onDestroy } from 'svelte';
+	import { 
+		metricsStore, 
+		dashboardMetrics, 
+		metricsLoading, 
+		metricsError,
+		formatCurrency,
+		formatPercentage,
+		cleanupMetricsAutoRefresh
+	} from '$lib/stores/metrics';
+	import { authStore } from '$lib/stores/auth';
+
+	// Load metrics when component mounts
+	onMount(async () => {
+		await metricsStore.loadDashboardMetrics();
 	});
-	
-	function getGreeting() {
-		const hour = new Date().getHours();
-		if (hour < 12) return 'Good morning';
-		if (hour < 18) return 'Good afternoon';
-		return 'Good evening';
-	}
-	
-	const quickActions = [
-		{ title: 'Add New Lead', description: 'Quickly add a new lead to your pipeline', href: '/leads/new', icon: '👤' },
-		{ title: 'View All Leads', description: 'Browse and manage your lead database', href: '/leads', icon: '📋' },
-		{ title: 'Run Workflow', description: 'Execute automation workflows', href: '/workflows', icon: '⚡' },
-		{ title: 'View Analytics', description: 'Check your performance metrics', href: '/analytics', icon: '📊' }
-	];
-	
-	const recentActivities = [
-		{ text: 'New lead John Smith was added to the database', time: '2 minutes ago', type: 'lead' },
-		{ text: 'Email campaign "Welcome Series" was executed', time: '15 minutes ago', type: 'workflow' },
-		{ text: 'Lead Jane Doe moved to "Qualified" status', time: '1 hour ago', type: 'lead' },
-		{ text: 'Weekly report generated successfully', time: '2 hours ago', type: 'report' }
-	];
+
+	// Clean up auto-refresh when component unmounts
+	onDestroy(() => {
+		cleanupMetricsAutoRefresh();
+	});
 </script>
 
-<ClerkLoading>
-	<div class="flex items-center justify-center h-64">
-		<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-	</div>
-</ClerkLoading>
+<svelte:head>
+	<title>Dashboard - LMA Platform</title>
+</svelte:head>
 
-<ClerkLoaded>
-	<SignedIn let:user>
-		<Layout title="Dashboard">
-			{#if isLoading}
-				<div class="flex items-center justify-center h-64">
-					<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-				</div>
-			{:else}
-				<!-- Welcome Section -->
-				<div class="mb-8">
-					<h2 class="text-2xl font-bold text-gray-900">
-						{getGreeting()}, {user?.firstName || 'User'}! 👋
+<div class="py-6">
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+		<!-- Page header -->
+		<h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+	</div>
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+		<!-- Dashboard content -->
+		<div class="py-4">
+			<!-- Welcome section -->
+			<div class="bg-white overflow-hidden shadow rounded-lg mb-6">
+				<div class="px-4 py-5 sm:p-6">
+					<h2 class="text-lg font-medium text-gray-900 mb-2">
+						Welcome back, {$authStore.user?.username || 'User'}!
 					</h2>
-					<p class="mt-1 text-gray-600">
-						Here's what's happening with your leads today.
+					<p class="text-sm text-gray-600">
+						Here's an overview of your lead management activity.
 					</p>
 				</div>
-				
-				<!-- Statistics Cards -->
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-					<Card hover>
+			</div>
+
+			<!-- Error message -->
+			{#if $metricsError}
+				<div class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+					<div class="flex">
+						<div class="flex-shrink-0">
+							<svg class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+							</svg>
+						</div>
+						<div class="ml-3">
+							<p class="text-sm text-red-800">{$metricsError}</p>
+						</div>
+					</div>
+				</div>
+			{/if}
+
+			<!-- Stats grid -->
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+				<div class="bg-white overflow-hidden shadow rounded-lg">
+					<div class="p-5">
 						<div class="flex items-center">
 							<div class="flex-shrink-0">
-								<div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-									<span class="text-white text-sm font-medium">📊</span>
-								</div>
+								<svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+								</svg>
 							</div>
 							<div class="ml-5 w-0 flex-1">
 								<dl>
 									<dt class="text-sm font-medium text-gray-500 truncate">Total Leads</dt>
-									<dd class="text-lg font-medium text-gray-900">{stats.totalLeads}</dd>
+									<dd class="text-lg font-medium text-gray-900">
+										{#if $metricsLoading.dashboard}
+											<div class="animate-pulse bg-gray-200 h-6 w-16 rounded"></div>
+										{:else if $dashboardMetrics}
+											{$dashboardMetrics.overview.total_leads.toLocaleString()}
+										{:else}
+											--
+										{/if}
+									</dd>
 								</dl>
 							</div>
 						</div>
-					</Card>
-					
-					<Card hover>
+					</div>
+				</div>
+
+				<div class="bg-white overflow-hidden shadow rounded-lg">
+					<div class="p-5">
 						<div class="flex items-center">
 							<div class="flex-shrink-0">
-								<div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-									<span class="text-white text-sm font-medium">🆕</span>
-								</div>
+								<svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+								</svg>
 							</div>
 							<div class="ml-5 w-0 flex-1">
 								<dl>
-									<dt class="text-sm font-medium text-gray-500 truncate">New Leads</dt>
-									<dd class="text-lg font-medium text-gray-900">{stats.newLeads}</dd>
+									<dt class="text-sm font-medium text-gray-500 truncate">New This Period</dt>
+									<dd class="text-lg font-medium text-gray-900">
+										{#if $metricsLoading.dashboard}
+											<div class="animate-pulse bg-gray-200 h-6 w-16 rounded"></div>
+										{:else if $dashboardMetrics}
+											{$dashboardMetrics.overview.new_leads.toLocaleString()}
+										{:else}
+											--
+										{/if}
+									</dd>
 								</dl>
 							</div>
 						</div>
-					</Card>
-					
-					<Card hover>
+					</div>
+				</div>
+
+				<div class="bg-white overflow-hidden shadow rounded-lg">
+					<div class="p-5">
 						<div class="flex items-center">
 							<div class="flex-shrink-0">
-								<div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
-									<span class="text-white text-sm font-medium">✅</span>
-								</div>
+								<svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+								</svg>
 							</div>
 							<div class="ml-5 w-0 flex-1">
 								<dl>
-									<dt class="text-sm font-medium text-gray-500 truncate">Qualified</dt>
-									<dd class="text-lg font-medium text-gray-900">{stats.qualifiedLeads}</dd>
+									<dt class="text-sm font-medium text-gray-500 truncate">Won Deals</dt>
+									<dd class="text-lg font-medium text-gray-900">
+										{#if $metricsLoading.dashboard}
+											<div class="animate-pulse bg-gray-200 h-6 w-16 rounded"></div>
+										{:else if $dashboardMetrics}
+											{$dashboardMetrics.overview.won_leads.toLocaleString()}
+										{:else}
+											--
+										{/if}
+									</dd>
 								</dl>
 							</div>
 						</div>
-					</Card>
-					
-					<Card hover>
+					</div>
+				</div>
+
+				<div class="bg-white overflow-hidden shadow rounded-lg">
+					<div class="p-5">
 						<div class="flex items-center">
 							<div class="flex-shrink-0">
-								<div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
-									<span class="text-white text-sm font-medium">🎉</span>
-								</div>
+								<svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+								</svg>
 							</div>
 							<div class="ml-5 w-0 flex-1">
 								<dl>
-									<dt class="text-sm font-medium text-gray-500 truncate">Closed Won</dt>
-									<dd class="text-lg font-medium text-gray-900">{stats.closedWon}</dd>
+									<dt class="text-sm font-medium text-gray-500 truncate">Revenue</dt>
+									<dd class="text-lg font-medium text-gray-900">
+										{#if $metricsLoading.dashboard}
+											<div class="animate-pulse bg-gray-200 h-6 w-16 rounded"></div>
+										{:else if $dashboardMetrics}
+											{formatCurrency($dashboardMetrics.overview.total_revenue)}
+										{:else}
+											--
+										{/if}
+									</dd>
 								</dl>
 							</div>
 						</div>
-					</Card>
-				</div>
-				
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-					<!-- Quick Actions -->
-					<div>
-						<h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-						<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-							{#each quickActions as action}
-								<Card hover padding="medium">
-									<a href={action.href} class="block">
-										<div class="flex items-start">
-											<span class="text-2xl mr-3">{action.icon}</span>
-											<div>
-												<h4 class="text-sm font-medium text-gray-900">{action.title}</h4>
-												<p class="text-sm text-gray-500 mt-1">{action.description}</p>
-											</div>
-										</div>
-									</a>
-								</Card>
-							{/each}
-						</div>
 					</div>
-					
-					<!-- Recent Activity -->
-					<div>
-						<h3 class="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
-						<Card>
-							<div class="flow-root">
-								<ul class="-my-5 divide-y divide-gray-200">
-									{#each recentActivities as activity}
-										<li class="py-4">
-											<div class="flex items-center space-x-4">
-												<div class="flex-shrink-0">
-													<div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-														{#if activity.type === 'lead'}
-															<span class="text-gray-600">👤</span>
-														{:else if activity.type === 'workflow'}
-															<span class="text-gray-600">⚡</span>
-														{:else if activity.type === 'report'}
-															<span class="text-gray-600">📊</span>
-														{:else}
-															<span class="text-gray-600">📝</span>
-														{/if}
-													</div>
-												</div>
-												<div class="flex-1 min-w-0">
-													<p class="text-sm text-gray-900">{activity.text}</p>
-													<p class="text-sm text-gray-500">{activity.time}</p>
-												</div>
-											</div>
-										</li>
-									{/each}
-								</ul>
+				</div>
+			</div>
+
+			<!-- Quick actions -->
+			<div class="bg-white shadow rounded-lg">
+				<div class="px-4 py-5 sm:p-6">
+					<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
+					<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+						<a
+							href="/dashboard/leads"
+							class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+						>
+							<div class="flex-shrink-0">
+								<svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+								</svg>
 							</div>
-						</Card>
-					</div>
-				</div>
-				
-				<!-- Call to Action -->
-				{#if stats.totalLeads === 0}
-					<div class="mt-8">
-						<Card padding="large">
-							<div class="text-center">
-								<h3 class="text-lg font-medium text-gray-900 mb-2">Get Started with Your First Lead</h3>
-								<p class="text-gray-600 mb-6">
-									Add your first lead to begin building your sales pipeline and see the power of automation.
-								</p>
-								<Button variant="primary" href="/leads/new">
-									Add Your First Lead
-								</Button>
+							<div class="flex-1 min-w-0">
+								<p class="text-sm font-medium text-gray-900">View All Leads</p>
+								<p class="text-sm text-gray-500">Manage your lead pipeline</p>
 							</div>
-						</Card>
+						</a>
+
+						<a
+							href="/dashboard/leads/new"
+							class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+						>
+							<div class="flex-shrink-0">
+								<svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+								</svg>
+							</div>
+							<div class="flex-1 min-w-0">
+								<p class="text-sm font-medium text-gray-900">Add New Lead</p>
+								<p class="text-sm text-gray-500">Capture a new prospect</p>
+							</div>
+						</a>
+
+						<a
+							href="/dashboard/analytics"
+							class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+						>
+							<div class="flex-shrink-0">
+								<svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+								</svg>
+							</div>
+							<div class="flex-1 min-w-0">
+								<p class="text-sm font-medium text-gray-900">View Analytics</p>
+								<p class="text-sm text-gray-500">Track performance metrics</p>
+							</div>
+						</a>
 					</div>
-				{/if}
-			{/if}
-		</Layout>
-	</SignedIn>
-	
-	<SignedOut>
-		<Layout title="Access Denied">
-			<Card padding="large">
-				<div class="text-center">
-					<h3 class="text-lg font-medium text-gray-900 mb-2">Authentication Required</h3>
-					<p class="text-gray-600 mb-6">
-						You need to be signed in to access the dashboard.
-					</p>
-					<Button variant="primary" href="/sign-in">
-						Sign In
-					</Button>
 				</div>
-			</Card>
-		</Layout>
-	</SignedOut>
-</ClerkLoaded> 
+			</div>
+		</div>
+	</div>
+</div> 

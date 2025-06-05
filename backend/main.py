@@ -14,6 +14,8 @@ from routers.auth import router as auth_router
 from routers.leads import router as leads_router
 from routers.organizations import router as organizations_router
 from routers.workflows import router as workflows_router
+from routers.enrichment import router as enrichment_router
+from routers.metrics import router as metrics_router
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -39,9 +41,15 @@ APP_INFO.labels(version="1.0.0", environment=os.getenv("ENVIRONMENT", "developme
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173",  # Frontend dev server
+        "http://localhost:5174",  # Frontend prod build
+        "http://localhost:3000",  # Alternative frontend port
+        "http://127.0.0.1:5173",  # Alternative localhost format
+        "http://127.0.0.1:5174",  # Alternative localhost format
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
 )
 
@@ -50,6 +58,8 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(leads_router, prefix="/api")
 app.include_router(organizations_router, prefix="/api")
 app.include_router(workflows_router, prefix="/api")
+app.include_router(enrichment_router)
+app.include_router(metrics_router, prefix="/api")
 
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):

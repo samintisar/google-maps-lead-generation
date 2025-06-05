@@ -13,6 +13,7 @@ from schemas import (
     APIResponse, ListResponse
 )
 from routers.auth import get_current_active_user
+from services import LeadScoringService
 
 router = APIRouter(prefix="/leads", tags=["leads"])
 
@@ -219,13 +220,14 @@ async def update_lead_status(
             detail="Lead not found"
         )
     
+    old_status = lead.status
     lead.status = new_status
     db.commit()
     
     return APIResponse(
         success=True,
-        data=LeadResponse.model_validate(lead),
-        message=f"Lead status updated to {new_status.value}"
+        data={"old_status": old_status.value, "new_status": new_status.value},
+        message="Lead status updated successfully"
     )
 
 
@@ -248,7 +250,7 @@ async def assign_lead(
             detail="Lead not found"
         )
     
-    # Verify user exists and belongs to same organization
+    # Validate user exists and belongs to the same organization
     user = db.query(User).filter(
         User.id == user_id,
         User.organization_id == current_user.organization_id,
@@ -266,6 +268,180 @@ async def assign_lead(
     
     return APIResponse(
         success=True,
-        data=LeadResponse.model_validate(lead),
-        message=f"Lead assigned to {user.first_name} {user.last_name}"
-    ) 
+        data={"assigned_to": user.full_name},
+        message="Lead assigned successfully"
+    )
+
+
+# Lead Scoring Endpoints
+
+@router.get("/{lead_id}/score/calculate", response_model=APIResponse)
+async def calculate_lead_score(
+    lead_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Calculate lead score without updating it."""
+    lead = db.query(Lead).filter(
+        Lead.id == lead_id,
+        Lead.organization_id == current_user.organization_id
+    ).first()
+    
+    if not lead:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lead not found"
+        )
+    
+    try:
+        scoring_service = LeadScoringService(db)
+        score_result = await scoring_service.calculate_lead_score(lead_id)
+        
+        return APIResponse(
+            success=True,
+            data=score_result,
+            message="Lead score calculated successfully"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to calculate lead score: {str(e)}"
+        )
+
+
+@router.post("/{lead_id}/score/update", response_model=APIResponse)
+async def update_lead_score(
+    lead_id: int,
+    reason: Optional[str] = Query("Manual score update", description="Reason for score update"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Update lead score and track the change."""
+    lead = db.query(Lead).filter(
+        Lead.id == lead_id,
+        Lead.organization_id == current_user.organization_id
+    ).first()
+    
+    if not lead:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lead not found"
+        )
+    
+    try:
+        scoring_service = LeadScoringService(db)
+        update_result = await scoring_service.update_lead_score(lead_id, reason)
+        
+        return APIResponse(
+            success=True,
+            data=update_result,
+            message="Lead score updated successfully"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update lead score: {str(e)}"
+        )
+
+
+@router.get("/{lead_id}/score/history", response_model=APIResponse)
+async def get_lead_score_history(
+    lead_id: int,
+    limit: int = Query(10, ge=1, le=50, description="Number of history records to return"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get lead score change history."""
+    lead = db.query(Lead).filter(
+        Lead.id == lead_id,
+        Lead.organization_id == current_user.organization_id
+    ).first()
+    
+    if not lead:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lead not found"
+        )
+    
+    try:
+        scoring_service = LeadScoringService(db)
+        history = await scoring_service.get_lead_score_history(lead_id, limit)
+        
+        return APIResponse(
+            success=True,
+            data={
+                "lead_id": lead_id,
+                "current_score": lead.score,
+                "history": history
+            },
+            message="Lead score history retrieved successfully"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get lead score history: {str(e)}"
+        )
+
+
+@router.post("/score/bulk-update", response_model=APIResponse)
+async def bulk_update_lead_scores(
+    lead_ids: Optional[List[int]] = Query(None, description="Specific lead IDs to update, if empty all leads in organization will be updated"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Bulk update lead scores for organization."""
+    if not current_user.organization_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User must belong to an organization"
+        )
+    
+    try:
+        scoring_service = LeadScoringService(db)
+        results = await scoring_service.bulk_update_scores(
+            current_user.organization_id, 
+            lead_ids
+        )
+        
+        return APIResponse(
+            success=True,
+            data=results,
+            message=f"Bulk score update completed: {results['summary']['successful_updates']} successful, {results['summary']['failed_updates']} failed"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to bulk update scores: {str(e)}"
+        )
+
+
+@router.get("/score/analytics", response_model=APIResponse)
+async def get_scoring_analytics(
+    days_back: int = Query(30, ge=1, le=365, description="Number of days to look back for analytics"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get scoring analytics for the organization."""
+    if not current_user.organization_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User must belong to an organization"
+        )
+    
+    try:
+        scoring_service = LeadScoringService(db)
+        analytics = await scoring_service.get_scoring_analytics(
+            current_user.organization_id,
+            days_back
+        )
+        
+        return APIResponse(
+            success=True,
+            data=analytics,
+            message="Scoring analytics retrieved successfully"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get scoring analytics: {str(e)}"
+        ) 

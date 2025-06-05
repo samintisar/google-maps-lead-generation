@@ -17,6 +17,7 @@ from auth import (
     create_access_token, 
     verify_token
 )
+
 from config import settings
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -61,6 +62,9 @@ def get_current_active_user(current_user: User = Depends(get_current_user)) -> U
             detail="Inactive user"
         )
     return current_user
+
+
+
 
 
 # Authentication endpoints

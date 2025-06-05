@@ -541,4 +541,168 @@ class APIResponse(BaseSchema):
     success: bool = True
     data: Optional[Any] = None
     message: Optional[str] = None
-    errors: Optional[List[str]] = None 
+    errors: Optional[List[str]] = None
+
+
+# Lead Enrichment schemas
+class LeadEnrichmentRequest(BaseSchema):
+    """Schema for lead enrichment requests."""
+    enrichment_types: Optional[List[str]] = None
+
+
+class ValidationResult(BaseSchema):
+    """Schema for validation results."""
+    is_valid: bool
+    error: Optional[str] = None
+    normalized_email: Optional[str] = None
+    domain: Optional[str] = None
+    local_part: Optional[str] = None
+    ascii_email: Optional[str] = None
+    ascii_domain: Optional[str] = None
+    digits_only: Optional[str] = None
+
+
+class FormattedData(BaseSchema):
+    """Schema for formatted data results."""
+    national: Optional[str] = None
+    international: Optional[str] = None
+    e164: Optional[str] = None
+
+
+class EnrichmentData(BaseSchema):
+    """Schema for individual enrichment data."""
+    original_email: Optional[str] = None
+    original_phone: Optional[str] = None
+    original_company: Optional[str] = None
+    original_website: Optional[str] = None
+    validation: Optional[ValidationResult] = None
+    formatted: Optional[FormattedData] = None
+    domain_info: Optional[Dict[str, Any]] = None
+    reputation: Optional[Dict[str, Any]] = None
+    normalized_company: Optional[str] = None
+    industry: Optional[str] = None
+    size_estimate: Optional[str] = None
+    social_profiles: Optional[Dict[str, Any]] = None
+    sources: Optional[List[str]] = None
+    errors: Optional[List[str]] = None
+
+
+class NormalizationData(BaseSchema):
+    """Schema for data normalization results."""
+    original_data: Optional[Dict[str, Any]] = None
+    normalized_data: Optional[Dict[str, Any]] = None
+    changes: Optional[List[Dict[str, Any]]] = None
+    errors: Optional[List[str]] = None
+
+
+class DuplicateMatch(BaseSchema):
+    """Schema for duplicate match information."""
+    lead_id: int
+    match_type: str
+    score: int
+    matched_field: str
+    matched_value: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+    company: Optional[str] = None
+    phone: Optional[str] = None
+
+
+class DeduplicationData(BaseSchema):
+    """Schema for deduplication results."""
+    potential_duplicates: List[DuplicateMatch] = []
+    duplicate_score: int = 0
+    matching_criteria: List[str] = []
+    errors: Optional[List[str]] = None
+
+
+class EnrichmentMetadata(BaseSchema):
+    """Schema for enrichment metadata."""
+    enriched_at: str
+    processing_time_ms: float
+
+
+class LeadEnrichmentResponse(BaseSchema):
+    """Schema for lead enrichment responses."""
+    lead_id: int
+    enrichment_types: List[str]
+    original_data: Dict[str, Any]
+    enriched_data: Dict[str, Any]
+    data_sources: List[str]
+    validation_results: Dict[str, Any]
+    errors: List[str]
+    metadata: EnrichmentMetadata
+
+
+class BulkEnrichmentRequest(BaseSchema):
+    """Schema for bulk enrichment requests."""
+    lead_ids: Optional[List[int]] = None
+    enrichment_types: Optional[List[str]] = None
+    batch_size: int = 10
+    async_mode: bool = False
+
+
+class BulkEnrichmentResult(BaseSchema):
+    """Schema for individual bulk enrichment result."""
+    lead_id: int
+    success: bool
+    error: Optional[str] = None
+    enrichment_data: Optional[LeadEnrichmentResponse] = None
+
+
+class BulkEnrichmentResponse(BaseSchema):
+    """Schema for bulk enrichment responses."""
+    total_leads: int
+    enriched_leads: int
+    failed_leads: int
+    results: List[BulkEnrichmentResult] = []
+    errors: List[Dict[str, Any]] = []
+
+
+class EnrichmentStatusResponse(BaseSchema):
+    """Schema for enrichment status responses."""
+    lead_id: int
+    has_been_enriched: bool
+    last_enriched: Optional[str] = None
+    enrichment_types: List[str] = []
+    data_sources: List[str] = []
+    validation_results: Dict[str, Any] = {}
+    duplicate_check: Dict[str, Any] = {}
+    enriched_fields: Dict[str, Any] = {}
+
+
+class ValidationRequest(BaseSchema):
+    """Schema for validation requests."""
+    validation_types: Optional[List[str]] = None
+
+
+class ValidationResponse(BaseSchema):
+    """Schema for validation responses."""
+    lead_id: int
+    validation_types: List[str]
+    validation_results: Dict[str, Any]
+    validated_at: str
+
+
+class DuplicateSearchResponse(BaseSchema):
+    """Schema for duplicate search responses."""
+    lead_id: int
+    duplicate_score: int
+    potential_duplicates_count: int
+    potential_duplicates: List[DuplicateMatch]
+    matching_criteria: List[str]
+
+
+class EnrichmentType(BaseSchema):
+    """Schema for enrichment type information."""
+    name: str
+    description: str
+    data_sources: List[str]
+
+
+class EnrichmentTypesResponse(BaseSchema):
+    """Schema for available enrichment types response."""
+    enrichment_types: Dict[str, EnrichmentType]
+    default_types: List[str]
+    total_types: int 

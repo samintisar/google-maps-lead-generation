@@ -65,13 +65,13 @@ The platform addresses the critical problem of manual, inefficient lead manageme
 - **Cloud Provider**: AWS/Azure or single-server deployment with backup strategies
 - **CDN**: CloudFront for global performance optimization (optional for MVP)
 - **Monitoring**: Application performance monitoring with logging and alerting
-- **Security**: SSL/TLS encryption, OAuth 2.0 authentication, data encryption at rest
+- **Security**: SSL/TLS encryption, Lucia authentication library for secure session management and user authentication, data encryption at rest
 
 # Development Roadmap  
 **Phase 1 - Foundation MVP (Core Infrastructure)**
-- Basic FastAPI backend with authentication and user management
+- Basic FastAPI backend with Lucia authentication integration
 - PostgreSQL database with core data models (User, Lead, Organization)
-- SvelteKit frontend with login, dashboard shell, and basic navigation
+- SvelteKit frontend with Lucia authentication (login/signup), dashboard shell, and basic navigation
 - n8n integration setup and basic workflow engine connection
 - Simple lead import/export functionality (CSV)
 - Basic lead listing and detail views
@@ -129,7 +129,7 @@ The platform addresses the critical problem of manual, inefficient lead manageme
 
 3. **Task 2: Minimal FastAPI Backend** - Depends on Task 1
    - Analytics-focused API for SaaS metrics calculation
-   - Authentication system for secure access
+   - Lucia authentication integration for secure access
 
 **Phase 2 - Core Automation Layer (Tasks 5, 4):**
 4. **Task 5: n8n Workflow Engine Integration** - Depends on Tasks 1, 3
@@ -138,9 +138,9 @@ The platform addresses the critical problem of manual, inefficient lead manageme
    - Must be established before frontend can connect to workflows
 
 5. **Task 4: SvelteKit Frontend MVP** - Depends on Tasks 1, 5
-   - High-performance UI with Tailwind CSS
+   - High-performance UI with Tailwind CSS and Lucia authentication integration
    - Connects to n8n workflows and minimal FastAPI backend
-   - Built-in Svelte stores for state management
+   - Built-in Svelte stores for state management with Lucia session handling
 
 **Phase 3 - Business Logic Implementation (Tasks 6, 7, 8, 9):**
 6. **Task 6: Lead Scoring and Enrichment** - Depends on Tasks 3, 5
