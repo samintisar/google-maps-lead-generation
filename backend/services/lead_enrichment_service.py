@@ -172,7 +172,11 @@ class LeadEnrichmentService:
             
             # Email validation
             try:
-                valid = validate_email(lead.email)
+                # Configure email validator with more permissive settings
+                valid = validate_email(
+                    lead.email,
+                    check_deliverability=False  # Don't check actual deliverability to avoid network issues
+                )
                 result["validation"] = {
                     "is_valid": True,
                     "normalized_email": valid.email,
@@ -189,15 +193,35 @@ class LeadEnrichmentService:
             except EmailNotValidError as e:
                 result["validation"] = {
                     "is_valid": False,
-                    "error": str(e)
+                    "error": str(e),
+                    "error_code": e.code if hasattr(e, 'code') else 'unknown'
                 }
                 result["errors"].append(f"Email validation failed: {e}")
+                
+                # For test environments, try basic regex validation as fallback
+                if self._is_valid_email_format(lead.email):
+                    result["validation"]["basic_format_valid"] = True
+                    result["validation"]["normalized_email"] = lead.email.lower().strip()
+                    parts = lead.email.split('@')
+                    if len(parts) == 2:
+                        result["validation"]["local_part"] = parts[0]
+                        result["validation"]["domain"] = parts[1]
+                        result["domain_info"] = await self._get_domain_info(parts[1])
             
         except Exception as e:
             result["errors"].append(f"Email enrichment error: {e}")
             logger.error(f"Email enrichment failed for lead {lead.id}: {e}")
         
         return result
+    
+    def _is_valid_email_format(self, email: str) -> bool:
+        """Basic email format validation using regex as fallback."""
+        if not email:
+            return False
+        
+        # Basic email regex pattern
+        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        return bool(re.match(pattern, email))
     
     async def _enrich_phone(self, lead: Lead) -> Dict[str, Any]:
         """Validate and format phone numbers."""

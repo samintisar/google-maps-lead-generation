@@ -5,6 +5,7 @@ Simple test script for Lead Enrichment Service
 import asyncio
 import sys
 import os
+import uuid
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -17,17 +18,26 @@ from services.lead_enrichment_service import LeadEnrichmentService
 
 def create_test_db():
     """Create a test database in memory."""
-    engine = create_engine("sqlite:///test_enrichment.db", echo=True)
+    # Clean up any existing test database
+    db_path = "test_enrichment.db"
+    if os.path.exists(db_path):
+        try:
+            os.remove(db_path)
+        except:
+            pass  # Ignore if file is locked
+    
+    engine = create_engine(f"sqlite:///{db_path}", echo=True)
     Base.metadata.create_all(bind=engine)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return SessionLocal()
 
 def create_test_data(db):
     """Create test organization and lead data."""
-    # Create organization
+    # Create organization with unique slug
+    unique_id = str(uuid.uuid4())[:8]
     org = Organization(
         name="Test Company",
-        slug="test-company"
+        slug=f"test-company-{unique_id}"
     )
     db.add(org)
     db.commit()
@@ -35,8 +45,8 @@ def create_test_data(db):
     
     # Create user
     user = User(
-        email="test@example.com",
-        username="testuser",
+        email=f"test-{unique_id}@example.com",
+        username=f"testuser-{unique_id}",
         first_name="Test",
         last_name="User",
         hashed_password="hashed_password",
