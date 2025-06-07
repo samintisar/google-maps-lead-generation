@@ -19,13 +19,14 @@ class Settings(BaseSettings):
     redis_url: str = "redis://redis:6379"
     
     # n8n settings
-    n8n_webhook_url: str = "http://n8n:5678/webhook"
-    n8n_api_base_url: str = "http://n8n:5678/rest"
-    n8n_email: str = "admin@lma.com"  # Default fallback
-    n8n_password: str = "Admin123"    # Default fallback
+    n8n_webhook_url: str = "https://your-n8n-cloud-instance.app.n8n.cloud/webhook"
+    n8n_api_base_url: str = "https://your-n8n-cloud-instance.app.n8n.cloud/api/v1"
+    n8n_email: str = "admin@lma.com"  # Default fallback - update with your n8n Cloud email
+    n8n_password: str = "Admin123"    # Default fallback - update with your n8n Cloud password
     n8n_basic_auth_user: Optional[str] = None
     n8n_basic_auth_password: Optional[str] = None
     n8n_encryption_key: Optional[str] = None
+    n8n_api_key: Optional[str] = None  # Add API key for n8n Cloud authentication
     
     # Security settings
     secret_key: str = "your-secret-key-here-change-in-production"

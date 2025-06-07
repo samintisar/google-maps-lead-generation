@@ -18,7 +18,8 @@ def create_sample_data():
             org = Organization(
                 id=1,
                 name="Sample Organization",
-                domain="example.com",
+                slug="sample-organization",
+                website="https://example.com",
                 is_active=True,
                 created_at=datetime.datetime.utcnow()
             )
@@ -38,7 +39,8 @@ def create_sample_data():
                 "status": LeadStatus.NEW,
                 "source": LeadSource.WEBSITE,
                 "organization_id": 1,
-                "score": 75
+                "score": 75,
+                "value": 5000  # $50.00 in cents
             },
             {
                 "first_name": "Jane",
@@ -48,9 +50,10 @@ def create_sample_data():
                 "job_title": "UX Designer",
                 "phone": "+1-555-0102",
                 "status": LeadStatus.CONTACTED,
-                "source": LeadSource.LINKEDIN,
+                "source": LeadSource.SOCIAL_MEDIA,
                 "organization_id": 1,
-                "score": 85
+                "score": 85,
+                "value": 7500  # $75.00 in cents
             },
             {
                 "first_name": "Mike",
@@ -60,9 +63,10 @@ def create_sample_data():
                 "job_title": "Marketing Manager",
                 "phone": "+1-555-0103",
                 "status": LeadStatus.QUALIFIED,
-                "source": LeadSource.EMAIL_CAMPAIGN,
+                "source": LeadSource.EMAIL,
                 "organization_id": 1,
-                "score": 90
+                "score": 90,
+                "value": 12000  # $120.00 in cents
             },
             {
                 "first_name": "Sarah",
@@ -71,10 +75,11 @@ def create_sample_data():
                 "company": "Sales Solutions",
                 "job_title": "Sales Director",
                 "phone": "+1-555-0104",
-                "status": LeadStatus.NEW,
+                "status": LeadStatus.CLOSED_WON,
                 "source": LeadSource.REFERRAL,
                 "organization_id": 1,
-                "score": 80
+                "score": 80,
+                "value": 15000  # $150.00 in cents
             },
             {
                 "first_name": "David",
@@ -83,10 +88,11 @@ def create_sample_data():
                 "company": "Consulting Group",
                 "job_title": "Business Consultant",
                 "phone": "+1-555-0105",
-                "status": LeadStatus.NURTURING,
-                "source": LeadSource.WEBINAR,
+                "status": LeadStatus.CONTACTED,
+                "source": LeadSource.EVENT,
                 "organization_id": 1,
-                "score": 70
+                "score": 70,
+                "value": 8000  # $80.00 in cents
             }
         ]
         

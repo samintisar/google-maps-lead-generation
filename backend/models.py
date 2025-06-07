@@ -30,14 +30,14 @@ class LeadStatus(enum.Enum):
 
 class LeadSource(enum.Enum):
     """Lead source enum."""
-    WEBSITE = "WEBSITE"
-    EMAIL = "EMAIL"
-    SOCIAL_MEDIA = "SOCIAL_MEDIA"
-    REFERRAL = "REFERRAL"
-    ADVERTISING = "ADVERTISING"
-    COLD_OUTREACH = "COLD_OUTREACH"
-    EVENT = "EVENT"
-    OTHER = "OTHER"
+    WEBSITE = "website"
+    EMAIL = "email"
+    SOCIAL_MEDIA = "social_media"
+    REFERRAL = "referral"
+    ADVERTISING = "advertising"
+    COLD_OUTREACH = "cold_outreach"
+    EVENT = "event"
+    OTHER = "other"
 
 
 class LeadTemperature(enum.Enum):

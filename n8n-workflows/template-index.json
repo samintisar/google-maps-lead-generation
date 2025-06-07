@@ -20,21 +20,21 @@
         "tags": ["email-automation", "nurturing", "lead-management"],
         "difficulty": "intermediate",
         "setupTime": "15-30 minutes",
-        "fileName": "lead-nurturing-template.json",
+        "fileName": "lead-nurturing-template-api.json",
         "triggers": [
           "Webhook (lead data input)",
           "Manual trigger (testing)"
         ],
         "keyFeatures": [
           "Lead data validation",
-          "PostgreSQL database integration",
+          "API-based lead management",
           "Personalized email templates",
           "Time-based delays",
           "Status tracking",
           "Error handling with proper responses"
         ],
         "requiredCredentials": [
-          "PostgreSQL Database",
+          "Backend API Authentication",
           "SMTP Email Server"
         ],
         "useCase": "Perfect for automatically engaging new leads with a structured email sequence that includes welcome messages and follow-ups",
@@ -49,7 +49,7 @@
         "tags": ["crm-integration", "data-sync", "automation"],
         "difficulty": "advanced",
         "setupTime": "45-60 minutes",
-        "fileName": "crm-sync-template.json",
+        "fileName": "crm-sync-template-api.json",
         "triggers": [
           "Cron schedule (every 15 minutes)",
           "CRM webhook (incoming changes)"
@@ -60,10 +60,10 @@
           "Custom field mapping",
           "Conflict resolution",
           "Webhook processing for real-time updates",
-          "Data transformation and validation"
+          "API-based data transformation and validation"
         ],
         "requiredCredentials": [
-          "PostgreSQL Database",
+          "Backend API Authentication",
           "HubSpot API",
           "Salesforce OAuth2"
         ],
@@ -79,7 +79,7 @@
         "tags": ["lead-scoring", "qualification", "automation"],
         "difficulty": "advanced",
         "setupTime": "30-45 minutes",
-        "fileName": "lead-scoring-template.json",
+        "fileName": "lead-scoring-template-api.json",
         "triggers": [
           "Lead activity webhook",
           "Hourly score update schedule"
@@ -93,9 +93,8 @@
           "Trigger-based workflow automation"
         ],
         "requiredCredentials": [
-          "PostgreSQL Database",
-          "SMTP Email Server",
-          "Backend API authentication"
+          "Backend API Authentication",
+          "SMTP Email Server"
         ],
         "useCase": "Automatically identifies and prioritizes the highest-value leads for sales team focus",
         "businessValue": "Improves sales efficiency by focusing efforts on leads most likely to convert",
@@ -109,7 +108,7 @@
         "tags": ["social-media", "linkedin", "outreach"],
         "difficulty": "advanced",
         "setupTime": "45-60 minutes",
-        "fileName": "social-media-outreach-template.json",
+        "fileName": "social-media-outreach-template-api.json",
         "triggers": [
           "LinkedIn outreach webhook",
           "Daily outreach scheduler",
@@ -124,8 +123,8 @@
           "Response processing and engagement tracking"
         ],
         "requiredCredentials": [
-          "PostgreSQL Database",
-          "LinkedIn OAuth2 API",
+          "Backend API Authentication",
+          "LinkedIn OAuth2 API", 
           "SMTP Email Server"
         ],
         "useCase": "Scales personal outreach efforts on LinkedIn with intelligent, personalized messaging",
@@ -153,8 +152,8 @@
     },
     "setupInstructions": {
       "prerequisites": [
-        "n8n instance running and accessible",
-        "PostgreSQL database configured", 
+        "n8n Cloud or self-hosted instance",
+        "LMA Backend API accessible via public IP", 
         "Required API credentials for external services",
         "SMTP server for email functionality"
       ],

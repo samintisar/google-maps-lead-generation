@@ -1,0 +1,360 @@
+{
+  "name": "Lead Nurturing Email Sequence (API Version)",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "When clicking \"Test workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [720, 300],
+      "id": "manual-trigger"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-nurturing",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Lead Data Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "webhookId": "lead-nurturing-webhook",
+      "id": "lead-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.email}}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{$json.firstName || $json.first_name}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "name": "Validate Lead Data",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [940, 300],
+      "id": "validate-lead"
+    },
+    {
+      "parameters": {
+        "url": "={{$parameter.BACKEND_URL}}/api/workflows/leads/create",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{$json.email}}"
+            },
+            {
+              "name": "firstName",
+              "value": "={{$json.firstName || $json.first_name}}"
+            },
+            {
+              "name": "lastName",
+              "value": "={{$json.lastName || $json.last_name || ''}}"
+            },
+            {
+              "name": "company",
+              "value": "={{$json.company || ''}}"
+            },
+            {
+              "name": "source",
+              "value": "={{$json.source || 'website'}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Create Lead Record",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1180, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1",
+          "name": "LMA API Auth"
+        }
+      },
+      "id": "create-lead-api"
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "hours"
+      },
+      "name": "Wait 2 Hours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1400, 300],
+      "id": "wait-2-hours"
+    },
+    {
+      "parameters": {
+        "subject": "Welcome to our platform, {{$json.data.first_name || 'there'}}!",
+        "emailType": "html",
+        "html": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <title>Welcome Email</title>\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">\n  <div style=\"max-width: 600px; margin: 0 auto; padding: 20px;\">\n    <h1 style=\"color: #2c3e50;\">Welcome {{$json.data.first_name || 'there'}}!</h1>\n    \n    <p>Thank you for your interest in our Lead Management Automation platform. We're excited to help you streamline your sales process and boost your conversion rates.</p>\n    \n    <div style=\"background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;\">\n      <h3 style=\"margin-top: 0;\">What's Next?</h3>\n      <ul>\n        <li>Our team will review your information</li>\n        <li>You'll receive a personalized demo invitation</li>\n        <li>We'll set up your custom automation workflows</li>\n      </ul>\n    </div>\n    \n    <p>If you have any questions, feel free to reply to this email or contact our support team.</p>\n    \n    <p>Best regards,<br>\n    The LMA Team</p>\n    \n    <hr style=\"border: none; border-top: 1px solid #eee; margin: 30px 0;\">\n    <p style=\"font-size: 12px; color: #666;\">This is an automated message from Lead Management Automation. Lead Source: {{$json.data.source || 'Website'}}</p>\n  </div>\n</body>\n</html>",
+        "toEmail": "={{$json.data.email}}",
+        "fromEmail": "noreply@leadmanagement.com",
+        "fromName": "LMA Team"
+      },
+      "name": "Send Welcome Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1620, 300],
+      "credentials": {
+        "smtp": {
+          "id": "2",
+          "name": "SMTP Email"
+        }
+      },
+      "id": "send-welcome-email"
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "days"
+      },
+      "name": "Wait 3 Days",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1840, 300],
+      "id": "wait-3-days"
+    },
+    {
+      "parameters": {
+        "subject": "How are you finding our platform, {{$json.data.first_name || 'there'}}?",
+        "emailType": "html",
+        "html": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <title>Follow-up Email</title>\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">\n  <div style=\"max-width: 600px; margin: 0 auto; padding: 20px;\">\n    <h1 style=\"color: #2c3e50;\">Hi {{$json.data.first_name || 'there'}},</h1>\n    \n    <p>It's been a few days since you showed interest in our Lead Management Automation platform. I wanted to check in and see if you have any questions about how we can help streamline your sales process.</p>\n    \n    <div style=\"background-color: #e8f5e8; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #28a745;\">\n      <h3 style=\"margin-top: 0; color: #155724;\">Quick Benefits Recap:</h3>\n      <ul style=\"margin-bottom: 0;\">\n        <li><strong>80% Automation:</strong> Let n8n handle routine tasks</li>\n        <li><strong>Real-time Analytics:</strong> Track every lead interaction</li>\n        <li><strong>Smart Scoring:</strong> Prioritize your best prospects</li>\n        <li><strong>Multi-channel Outreach:</strong> Email, LinkedIn, and more</li>\n      </ul>\n    </div>\n    \n    <p>Would you like to schedule a quick 15-minute demo to see the platform in action? I can show you exactly how it would work for {{$json.data.company || 'your business'}}.</p>\n    \n    <div style=\"text-align: center; margin: 30px 0;\">\n      <a href=\"https://calendly.com/lma-demo\" style=\"background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;\">Schedule Demo</a>\n    </div>\n    \n    <p>Best regards,<br>\n    Sarah Johnson<br>\n    Customer Success Manager</p>\n    \n    <hr style=\"border: none; border-top: 1px solid #eee; margin: 30px 0;\">\n    <p style=\"font-size: 12px; color: #666;\">Lead ID: {{$json.data.lead_id || 'N/A'}} | Company: {{$json.data.company || 'Not specified'}}</p>\n  </div>\n</body>\n</html>",
+        "toEmail": "={{$json.data.email}}",
+        "fromEmail": "sarah@leadmanagement.com",
+        "fromName": "Sarah Johnson - LMA Team"
+      },
+      "name": "Send Follow-up Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [2060, 300],
+      "credentials": {
+        "smtp": {
+          "id": "2",
+          "name": "SMTP Email"
+        }
+      },
+      "id": "send-followup-email"
+    },
+    {
+      "parameters": {
+        "url": "={{$parameter.BACKEND_URL}}/api/workflows/leads/{{$json.data.lead_id}}/update-status",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "nurturing"
+            },
+            {
+              "name": "last_contacted_at",
+              "value": "={{$now.toISO()}}"
+            },
+            {
+              "name": "notes",
+              "value": "Lead nurturing sequence completed - welcome and follow-up emails sent"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Update Lead Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2280, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1",
+          "name": "LMA API Auth"
+        }
+      },
+      "id": "update-lead-status-api"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Lead nurturing sequence completed\",\n  \"leadEmail\": \"{{$json.data.email}}\",\n  \"leadId\": \"{{$json.data.lead_id}}\",\n  \"sequenceSteps\": 3,\n  \"completedAt\": \"{{$now.toISO()}}\"\n}"
+      },
+      "name": "Return Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2500, 300],
+      "id": "return-success"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"message\": \"Invalid lead data - missing required fields\",\n  \"required\": [\"email\", \"firstName\"],\n  \"received\": {{JSON.stringify($json)}}\n}",
+        "responseCode": 400
+      },
+      "name": "Return Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1180, 480],
+      "id": "return-error"
+    }
+  ],
+  "connections": {
+    "When clicking \"Test workflow\"": {
+      "main": [
+        [
+          {
+            "node": "Validate Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Data Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Lead Data": {
+      "main": [
+        [
+          {
+            "node": "Create Lead Record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Lead Record": {
+      "main": [
+        [
+          {
+            "node": "Wait 2 Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 Hours": {
+      "main": [
+        [
+          {
+            "node": "Send Welcome Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Welcome Email": {
+      "main": [
+        [
+          {
+            "node": "Wait 3 Days",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 3 Days": {
+      "main": [
+        [
+          {
+            "node": "Send Follow-up Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Follow-up Email": {
+      "main": [
+        [
+          {
+            "node": "Update Lead Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Lead Status": {
+      "main": [
+        [
+          {
+            "node": "Return Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "timezone": "America/New_York"
+  },
+  "createdAt": "2024-01-15T10:30:00.000Z",
+  "updatedAt": "2024-01-15T10:30:00.000Z",
+  "id": "lead-nurturing-api",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "parameters": {
+    "BACKEND_URL": {
+      "displayName": "Backend URL",
+      "name": "BACKEND_URL",
+      "type": "string",
+      "default": "http://192.168.1.106:8000",
+      "description": "The base URL of your LMA backend API (e.g., http://192.168.1.106:8000)"
+    }
+  }
+} 

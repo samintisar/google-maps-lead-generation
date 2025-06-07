@@ -3,19 +3,27 @@
 # Status: in-progress
 # Dependencies: 3, 5
 # Priority: medium
-# Description: Develop lead scoring algorithm and enrichment processes
+# Description: Develop a flexible, industry-agnostic lead scoring algorithm, enrichment processes, and configurable classification system
 # Details:
-1. Implement rule-based lead scoring system
-2. Develop API integrations for lead enrichment (WHOIS, email validation)
-3. Create n8n workflows for automated enrichment
-4. Implement ML-based predictive scoring (Phase 1)
+1. Implement configurable rule-based lead scoring system with customizable temperature classification
+2. Develop core API integrations for basic lead enrichment (email validation, domain analysis, social profiles)
+3. Create n8n workflows for industry-specific automated enrichment
+4. Implement ML-based predictive scoring with configurable time-decay algorithms
 5. Develop API endpoints for scoring and enrichment operations
+6. Implement configurable behavioral tracking metrics
+7. Develop source attribution analysis for lead sources
+8. Implement lead scoring distribution analysis for conversion probability modeling
 
 # Test Strategy:
-1. Validate scoring accuracy with test data sets
-2. Test enrichment processes for various lead types
-3. Verify ML model performance and accuracy
+1. Validate scoring accuracy with test data sets across multiple industries
+2. Test enrichment processes for various lead types and industries
+3. Verify ML model performance and accuracy for predictions
 4. Conduct end-to-end testing of scoring and enrichment workflows
+5. Test temperature classification system configurability
+6. Validate time-decay algorithms for activity freshness
+7. Verify behavioral tracking metrics configurability
+8. Test source attribution analysis for various lead sources
+9. Validate lead scoring distribution analysis for conversion probability
 
 # Subtasks:
 ## 1. Implement Scoring System [done]
@@ -166,19 +174,49 @@ Issues and Next Steps:
 
 ## 3. Integrate Machine Learning Models [in-progress]
 ### Dependencies: 6.1, 6.2
-### Description: Incorporate machine learning models into the system for advanced analysis and predictions
+### Description: Incorporate machine learning models into the system for advanced lead analysis and predictions
 ### Details:
-Select appropriate ML algorithms, train models on enriched data, and implement model deployment and updating processes
+Select appropriate ML algorithms for lead scoring, train models on enriched data, and implement model deployment and updating processes. Implement ML-based predictive scoring with configurable time-decay algorithms for activity freshness. Develop conversion probability modeling based on lead scoring distribution analysis.
 
 ## 4. Develop API for Data Access [pending]
 ### Dependencies: 6.1, 6.2, 6.3
-### Description: Create a RESTful API for accessing scored and enriched data
+### Description: Create a RESTful API for accessing scored and enriched lead data
 ### Details:
-Design API endpoints, implement authentication and authorization, and ensure efficient data retrieval and filtering capabilities
+Design API endpoints for lead data, implement authentication and authorization, and ensure efficient data retrieval and filtering capabilities. Include endpoints for accessing configurable lead temperature classifications and behavioral tracking metrics.
 
 ## 5. Implement System Integration and Testing [pending]
 ### Dependencies: 6.1, 6.2, 6.3, 6.4
 ### Description: Integrate all components and perform comprehensive testing
 ### Details:
-Combine scoring, enrichment, ML, and API components; conduct unit, integration, and system tests; perform load testing and optimize performance
+Combine scoring, enrichment, ML, and API components; conduct unit, integration, and system tests; perform load testing and optimize performance. Include testing for configurable temperature classification, time-decay algorithms, behavioral tracking, and source attribution analysis.
+
+## 6. Implement Configurable Temperature Classification System [pending]
+### Dependencies: 6.1, 6.2
+### Description: Develop a flexible lead temperature classification system based on configurable engagement metrics and quality factors
+### Details:
+Design and implement a system to classify leads based on configurable engagement metrics and lead quality factors. Allow for customizable classification levels (e.g., hot, warm, cold) and integrate this classification with the existing scoring system. Ensure the system can be easily adapted to different industries through workflow configuration.
+
+## 7. Develop Configurable Behavioral Tracking Metrics [pending]
+### Dependencies: 6.1, 6.2
+### Description: Implement a flexible system for tracking and analyzing behavioral metrics
+### Details:
+Create a configurable system to track and analyze behavioral metrics. Allow for custom definition of tracked behaviors and their importance. Integrate these metrics into the scoring and classification systems for leads, ensuring adaptability across different industries.
+
+## 8. Implement Source Attribution Analysis [pending]
+### Dependencies: 6.1, 6.2
+### Description: Develop a flexible system for analyzing and attributing lead sources
+### Details:
+Create a configurable mechanism to track and analyze the sources of leads. Design the system to accommodate various source types and attribution models. Integrate this information into the scoring system and use it for conversion probability modeling, ensuring adaptability across different industries.
+
+## 9. Develop n8n Workflows for Industry-Specific Enrichment [pending]
+### Dependencies: 6.1, 6.2
+### Description: Create configurable n8n workflows for industry-specific lead enrichment processes
+### Details:
+Design and implement a set of n8n workflows that can be customized for industry-specific lead enrichment. Create a framework for easily adding new data sources and enrichment processes through workflow configuration. Ensure these workflows can integrate seamlessly with the core enrichment system.
+
+## 10. Implement Configurable Scoring Factors [pending]
+### Dependencies: 6.1, 6.6
+### Description: Create a system for defining and integrating custom scoring factors
+### Details:
+Enhance the existing lead scoring system to allow for the definition and integration of custom scoring factors. Develop a user interface or configuration system that allows administrators to define new scoring factors, set their weights, and integrate them into the overall lead score calculation. Ensure the system can adapt to various industries and use cases through this configuration.
 

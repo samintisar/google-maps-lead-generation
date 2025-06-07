@@ -54,6 +54,51 @@ def get_current_user(
     return user
 
 
+def get_dev_user(db: Session = Depends(get_db)) -> User:
+    """Get development user for testing - only works in development environment."""
+    if settings.environment != "development":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Development auth only available in development environment"
+        )
+    
+    # Create or get development user
+    dev_user = db.query(User).filter(User.email == "dev@example.com").first()
+    if not dev_user:
+        from auth import get_password_hash
+        # Create development organization first
+        from models import Organization
+        dev_org = db.query(Organization).filter(Organization.id == 1).first()
+        if not dev_org:
+            dev_org = Organization(
+                id=1,
+                name="Development Organization",
+                domain="example.com",
+                is_active=True
+            )
+            db.add(dev_org)
+            db.commit()
+            db.refresh(dev_org)
+        
+        # Create development user
+        from models import UserRole
+        dev_user = User(
+            email="dev@example.com",
+            username="devuser",
+            first_name="Dev",
+            last_name="User",
+            hashed_password=get_password_hash("password"),
+            role=UserRole.ADMIN,
+            organization_id=1,
+            is_active=True
+        )
+        db.add(dev_user)
+        db.commit()
+        db.refresh(dev_user)
+    
+    return dev_user
+
+
 def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     """Get current active user."""
     if not current_user.is_active:

@@ -16,6 +16,7 @@ from routers.organizations import router as organizations_router
 from routers.workflows import router as workflows_router
 from routers.enrichment import router as enrichment_router
 from routers.metrics import router as metrics_router
+from routers.sales import router as sales_router
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -60,6 +61,7 @@ app.include_router(organizations_router, prefix="/api")
 app.include_router(workflows_router, prefix="/api")
 app.include_router(enrichment_router)
 app.include_router(metrics_router, prefix="/api")
+app.include_router(sales_router, prefix="/api")
 
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):

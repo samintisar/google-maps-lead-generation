@@ -1,35 +1,43 @@
 <context>
 # Overview  
-Lead Management Automation Platform - A comprehensive, n8n-powered lead management ecosystem that handles the complete lead lifecycle from capture to conversion. The platform combines intelligent automation, lead enrichment, multi-channel outreach capabilities, advanced SaaS metrics tracking, and a visual workflow builder. It empowers users to create sophisticated automation without coding, targeting businesses that need to deploy lead management systems rapidly across industries (real estate, SaaS, consulting, etc.).
+Modular Lead Management Automation Platform - A comprehensive, n8n-powered lead management ecosystem designed to serve multiple industries through customizable workflow packages. The platform provides a flexible foundation with industry-specific customization delivered entirely through n8n workflows, eliminating the need for custom code development for each business type. It combines intelligent automation, configurable lead enrichment, multi-channel outreach capabilities, adaptable metrics tracking, and a tiered visual workflow builder.
 
-The platform addresses the critical problem of manual, inefficient lead management processes that result in lost opportunities, inconsistent follow-up, and poor lead quality assessment. It provides value through automation of 80% of operations via visual n8n workflows while Python/FastAPI handles complex analytics and SaaS metrics calculations.
+The platform addresses the critical problem of manual, inefficient lead management processes across industries that result in lost opportunities, inconsistent follow-up, and poor lead qualification. Businesses typically lose 30-40% of leads due to slow response times and inadequate follow-up systems. It provides value through automation of 80% of operations via industry-specific n8n workflow packages while Python/FastAPI handles universal analytics calculations and metrics processing. Industry customization happens at the workflow layer, not the code layer, enabling rapid deployment across different business types.
 
 # Core Features  
-1. **Automated Lead Enrichment**: Extract domains, validate emails, perform WHOIS lookups, scrape website metadata, use AI for industry classification and lead quality assessment, match social profiles, and enrich geographic data. Critical for improving lead quality and providing sales teams with actionable intelligence.
+1. **Universal Lead Enrichment Engine**: Configurable data enrichment system that adapts to any industry through n8n workflows. Core enrichment includes email validation, domain analysis, social profile matching, and geographic data. Industry-specific enrichment (property data, company firmographics, patient records) delivered through specialized workflow packages. Critical for improving lead quality across all business types.
 
-2. **Lead Scoring & Prioritization**: Implement scoring rules based on data completeness, behavioral tracking, source attribution, and time-decay algorithms. Uses ML-based predictive scoring for conversion probability. Essential for sales teams to focus on highest-value opportunities and optimize resource allocation.
+2. **Adaptive Lead Scoring & Prioritization**: Flexible hot/warm/cold lead temperature classification system configurable through workflow parameters. Features ML-based predictive scoring with industry-agnostic algorithms that adapt to different conversion patterns. Scoring rules, weighting factors, and qualification criteria all configured through n8n workflows rather than code changes. Essential for any business to focus on highest-value opportunities.
 
-3. **Multi-Channel Outreach Automation**: Email automation with SMTP integration, template management, drip campaigns, A/B testing, and tracking. Includes follow-up sequences with time/behavior-based triggers and multi-channel integration (Slack, SMS, CRM updates). Vital for maintaining consistent communication and nurturing leads through the funnel.
+3. **Multi-Channel Outreach Automation**: Universal communication system supporting email, SMS, voice, and social media outreach. Industry-specific templates, drip campaigns, and follow-up sequences delivered through workflow packages. Core platform handles delivery infrastructure while n8n workflows define messaging, timing, and channel selection. Vital for maintaining consistent communication across any industry.
 
-4. **SaaS Metrics Dashboard**: Calculate and visualize MRR/ARR, churn rates, CAC, LTV, conversion funnels, cohort analysis, and channel performance. Provides predictive analytics and attribution modeling. Critical for data-driven decision making and business growth optimization.
+4. **Configurable Business Metrics Dashboard**: Universal analytics framework that calculates and visualizes industry-specific KPIs through workflow configuration. Core metrics (conversion rates, lead source ROI, team performance) with industry-specific overlays (commissions for real estate, MRR for SaaS, patient volume for healthcare) defined in workflow packages. Provides data-driven insights for any business type.
 
-5. **Integrations & Extensibility**: Native integrations with CRMs (HubSpot, Salesforce, Pipedrive), communication tools (Gmail, Slack, Teams), marketing tools (Google Ads, Facebook Ads), and data sources (Google Sheets, Airtable). Essential for seamless workflow integration with existing business tools.
+5. **Industry-Agnostic Intelligence Engine**: ML-powered analytics system with universal prediction algorithms that adapt to different business models through workflow parameters. Core features include conversion probability, lead freshness decay, and behavioral tracking. Industry-specific intelligence (property trends, software adoption patterns, patient compliance) delivered through specialized workflow logic.
 
-6. **User & Team Management**: Role-based access control, lead assignment rules, performance dashboards, quota management, and multi-tenant architecture. Important for scaling teams and maintaining organized lead distribution and accountability.
+6. **Universal Platform Integrations**: Flexible integration system supporting 400+ n8n connectors for CRMs, communication tools, marketing platforms, and industry-specific software. Integration configuration and data mapping handled through workflows, not custom code. Essential for seamless workflow integration with any existing business technology stack.
 
-7. **Workflow Automation Builder**: Visual drag-and-drop n8n interface for creating custom workflows, template library, conditional logic, real-time testing, and version control. Core to the platform's no-code/low-code vision and user empowerment.
+7. **Flexible User & Team Management**: Universal role-based access control system adaptable to any organizational structure. Lead assignment rules, performance dashboards, and team hierarchies configured through workflow parameters. Multi-tenant architecture supporting individual users to large enterprises across any industry.
+
+8. **Tiered Workflow Automation Builder**: Visual drag-and-drop n8n interface with industry-agnostic tiered access model:
+   - **Basic Tier**: Pre-built industry workflow packages (real estate, SaaS, healthcare, consulting, etc.)
+   - **Standard Tier**: Workflow package customization with guided editing for industry-specific parameters
+   - **Advanced Tier**: Full workflow creation with industry best practices and guardrails
+   - **Enterprise Tier**: Complete n8n access with dedicated support and custom industry packages
+   Core to the platform's no-code/low-code vision enabling rapid deployment across any industry.
 
 # User Experience  
-**Primary User Personas:**
-- Sales Representatives: Need easy lead access, communication tracking, and priority identification
-- Sales Managers: Require team oversight, performance analytics, and lead assignment control
-- Marketing Teams: Focus on campaign management, lead source analysis, and conversion optimization
-- Business Owners: Want comprehensive analytics, ROI visibility, and growth insights
+**Primary User Personas (Industry-Agnostic):**
+- Sales Representatives (Any Industry): Need easy lead access, automated follow-up, and priority identification
+- Team Leaders/Managers: Require team oversight, lead distribution, performance tracking, and workflow management
+- Business Owners/Directors: Focus on team productivity, ROI tracking, territory/department management, and business analytics
+- Operations Teams: Want workflow optimization, process automation, integration management, and performance insights
 
 **Key User Flows:**
-1. Lead Capture → Enrichment → Scoring → Assignment → Outreach → Tracking → Conversion
-2. Workflow Creation: Design → Test → Deploy → Monitor → Optimize
-3. Analytics Review: Dashboard Access → Drill-down Analysis → Report Generation → Action Planning
+1. Lead Capture → Universal Enrichment → Scoring → Assignment → Outreach → Nurturing → Conversion
+2. Industry Package Selection → Workflow Customization → Testing → Deployment → Performance Monitoring
+3. Template Library Access → Parameter Configuration → Testing → Production Deployment
+4. Analytics Review: Dashboard Access → KPI Tracking → Performance Analysis → Workflow Optimization
 
 **UI/UX Considerations:**
 - Clean, intuitive dashboard with customizable widgets
@@ -42,23 +50,29 @@ The platform addresses the critical problem of manual, inefficient lead manageme
 <PRD>
 # Technical Architecture  
 **System Components:**
-- **Frontend**: SvelteKit with TypeScript for high-performance UI, Tailwind CSS for responsive design, built-in Svelte stores for state management, and Apache ECharts for data visualization
-- **Backend API**: Minimal Python FastAPI focused on complex analytics, SaaS metrics calculations, and advanced data processing that cannot be handled by n8n
+- **Frontend**: SvelteKit with TypeScript for high-performance UI, Tailwind CSS for responsive design, built-in Svelte stores for state management, and Chart.js/Apache ECharts for advanced analytics visualization including line charts, bar charts, pie charts, funnel charts, and heatmaps
+- **Backend API**: Python FastAPI focused on complex analytics, SaaS metrics calculations (MRR/ARR, CAC, LTV, churn rates), ML-based lead scoring, behavioral tracking, and advanced data processing that cannot be handled by n8n
 - **Primary Automation Layer**: n8n workflow engine handling 80% of operations including lead enrichment, CRUD operations, outreach automation, and CRM integrations via native connectors
-- **Database**: PostgreSQL for structured data storage with Redis for caching and session management
+- **Analytics Engine**: Dedicated processing layer for lead scoring algorithms, time-decay analysis, conversion funnel tracking, cohort analysis, and predictive modeling using ML frameworks
+- **Database**: PostgreSQL for structured data storage with optimized schemas for analytics queries, Redis for caching and session management, and time-series data optimization for metrics tracking
 - **Infrastructure**: Docker containerization with Docker Compose orchestration for simplified deployment and reliability
 
 **Data Models:**
-- **Lead Entity**: contact_info, enrichment_data, scoring_metrics, interaction_history, source_attribution
-- **Workflow Entity**: nodes, connections, triggers, conditions, version_history
-- **User Entity**: authentication, roles, permissions, team_assignments, performance_metrics
-- **Organization Entity**: tenant_isolation, billing_info, custom_settings, integration_configs
+- **Lead Entity**: contact_info, industry_context (flexible JSON), hot_warm_cold_temperature, qualification_status, interaction_history, source_attribution, engagement_metrics, conversion_probability
+- **Industry Package Entity**: package_type, workflow_templates, configuration_schema, default_parameters, integration_mappings, custom_fields_definition
+- **Universal Analytics**: conversion_rates, lead_source_performance, team_productivity, industry_specific_metrics (configurable JSON), workflow_performance
+- **Scoring Entity**: lead_score_history, temperature_changes, behavioral_events, engagement_tracking, industry_factors (configurable), qualification_criteria
+- **Workflow Entity**: nodes, connections, triggers, conditions, version_history, tier_restrictions, industry_packages, parameter_overrides
+- **User Entity**: authentication, roles, permissions, team_assignments, performance_metrics, industry_context, workflow_access_level
+- **Organization Entity**: tenant_isolation, billing_info, user_count, industry_package_subscriptions, custom_settings, integration_configs
 
 **APIs and Integrations:**
-- **CRM APIs**: HubSpot, Salesforce, Pipedrive for bidirectional data sync
-- **Communication APIs**: Gmail, Outlook, Slack, Twilio for outreach and notifications
-- **Enrichment APIs**: WHOIS, social media, geographic data, AI classification services
-- **Analytics APIs**: Google Analytics, Facebook Ads, LinkedIn Ads for attribution tracking
+- **Universal CRM APIs**: HubSpot, Salesforce, Pipedrive, and 100+ CRMs via n8n connectors for bidirectional data sync
+- **Communication APIs**: Gmail, Outlook, Slack, Teams, SMS providers, call tracking systems for universal outreach
+- **Marketing APIs**: Facebook Ads, Google Ads, LinkedIn Ads, email marketing platforms via n8n integration library
+- **Industry-Specific APIs**: Delivered through workflow packages (MLS for real estate, medical APIs for healthcare, etc.)
+- **Business Intelligence APIs**: Analytics platforms, reporting tools, data warehouses via n8n connectors
+- **Productivity APIs**: Calendar systems, task management, file storage, collaboration tools
 
 **Infrastructure Requirements:**
 - **Container Orchestration**: Docker containers with Docker Compose for simplified multi-service deployment
@@ -92,13 +106,17 @@ The platform addresses the critical problem of manual, inefficient lead manageme
 - CRM integration (starting with HubSpot)
 - Webhook system for external integrations
 
-**Phase 4 - Analytics & Intelligence**
-- SaaS metrics dashboard (MRR, CAC, LTV calculations)
-- Advanced lead scoring with ML models
-- Conversion funnel analytics
-- Performance reporting and export capabilities
-- A/B testing framework for email campaigns
-- Predictive analytics for lead scoring
+**Phase 4 - Industry-Agnostic Analytics & Intelligence**
+- Universal business metrics dashboard with configurable KPI tracking through workflow parameters
+- Advanced lead scoring with hot/warm/cold temperature classification and ML-based conversion probability models
+- Industry-specific analytics delivered through workflow packages (real estate, SaaS, healthcare, consulting)
+- Lead source ROI analysis configurable for any marketing channel or industry
+- Team performance tracking with configurable metrics and industry-specific leaderboards
+- Advanced Universal Analytics Engine with behavioral tracking and conversion probability modeling
+- Industry Package Manager for deploying pre-built workflow collections
+- Performance reporting and export capabilities with industry-customizable dashboards
+- A/B testing framework for any industry's marketing campaigns
+- Predictive analytics for conversion probability and business optimization strategies
 
 **Phase 5 - Advanced Features**
 - Multi-channel outreach (SMS, Slack integration)

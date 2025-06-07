@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends, status, Query, Background
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from database import get_db
 from models import Workflow, WorkflowExecution, Organization, User, Lead
@@ -1122,4 +1122,496 @@ async def setup_logging_configuration(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update logging configuration"
+        )
+
+# === ADDITIONAL N8N WORKFLOW ENDPOINTS ===
+
+@router.post("/leads/create", response_model=APIResponse)
+async def create_lead_workflow(
+    lead_data: Dict[str, Any],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_dev_user)  # Using dev user for n8n access
+):
+    """Create a new lead from n8n workflow."""
+    try:
+        # Extract lead data
+        email = lead_data.get("email")
+        first_name = lead_data.get("firstName") or lead_data.get("first_name")
+        last_name = lead_data.get("lastName") or lead_data.get("last_name")
+        company = lead_data.get("company")
+        source = lead_data.get("source", "website")
+        
+        if not email or not first_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email and first name are required"
+            )
+        
+        # Check if lead already exists
+        existing_lead = db.query(Lead).filter(
+            Lead.email == email,
+            Lead.organization_id == current_user.organization_id
+        ).first()
+        
+        if existing_lead:
+            return APIResponse(
+                success=True,
+                data={
+                    "lead_id": existing_lead.id,
+                    "email": existing_lead.email,
+                    "first_name": existing_lead.first_name,
+                    "last_name": existing_lead.last_name,
+                    "company": existing_lead.company,
+                    "existing": True
+                },
+                message="Lead already exists"
+            )
+        
+        # Create new lead
+        new_lead = Lead(
+            organization_id=current_user.organization_id,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            company=company,
+            source=LeadSource(source) if source else LeadSource.website,
+            status=LeadStatus.new,
+            score=0,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+        
+        db.add(new_lead)
+        db.commit()
+        db.refresh(new_lead)
+        
+        return APIResponse(
+            success=True,
+            data={
+                "lead_id": new_lead.id,
+                "email": new_lead.email,
+                "first_name": new_lead.first_name,
+                "last_name": new_lead.last_name,
+                "company": new_lead.company,
+                "created_at": new_lead.created_at.isoformat(),
+                "existing": False
+            },
+            message="Lead created successfully"
+        )
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to create lead: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create lead: {str(e)}"
+        )
+
+
+@router.post("/leads/{lead_id}/update-status", response_model=APIResponse)
+async def update_lead_status_workflow(
+    lead_id: int,
+    status_data: Dict[str, Any],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_dev_user)  # Using dev user for n8n access
+):
+    """Update lead status from n8n workflow."""
+    try:
+        lead = db.query(Lead).filter(
+            Lead.id == lead_id,
+            Lead.organization_id == current_user.organization_id
+        ).first()
+        
+        if not lead:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Lead {lead_id} not found"
+            )
+        
+        # Update fields if provided
+        if "status" in status_data:
+            lead.status = LeadStatus(status_data["status"])
+        
+        if "last_contacted_at" in status_data:
+            lead.last_engagement_date = datetime.fromisoformat(status_data["last_contacted_at"].replace('Z', '+00:00'))
+        
+        if "notes" in status_data:
+            existing_notes = lead.notes or ""
+            new_notes = status_data["notes"]
+            lead.notes = f"{existing_notes}\n{new_notes}" if existing_notes else new_notes
+        
+        lead.updated_at = datetime.utcnow()
+        db.commit()
+        
+        return APIResponse(
+            success=True,
+            data={
+                "lead_id": lead_id,
+                "status": lead.status.value if lead.status else None,
+                "updated_at": lead.updated_at.isoformat()
+            },
+            message="Lead status updated successfully"
+        )
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to update lead status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update lead status: {str(e)}"
+        )
+
+
+@router.get("/leads/social-outreach", response_model=APIResponse)
+async def get_leads_for_social_outreach(
+    limit: int = Query(10, ge=1, le=50, description="Maximum number of leads to return"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_dev_user)  # Using dev user for n8n access
+):
+    """Get leads for social media outreach."""
+    try:
+        # Query leads with high scores that haven't been contacted recently
+        leads = db.query(Lead).filter(
+            Lead.organization_id == current_user.organization_id,
+            Lead.linkedin_url.isnot(None),
+            Lead.lead_temperature.in_([LeadTemperature.hot, LeadTemperature.warm]),
+            or_(
+                Lead.last_engagement_date.is_(None),
+                Lead.last_engagement_date < datetime.utcnow() - timedelta(days=7)
+            )
+        ).order_by(Lead.score.desc()).limit(limit).all()
+        
+        # Format for n8n workflow
+        formatted_leads = []
+        for lead in leads:
+            formatted_leads.append({
+                "id": lead.id,
+                "email": lead.email,
+                "first_name": lead.first_name,
+                "last_name": lead.last_name,
+                "company": lead.company,
+                "linkedin_url": lead.linkedin_url,
+                "lead_temperature": lead.lead_temperature.value if lead.lead_temperature else "cold",
+                "score": lead.score or 0,
+                "industry": "technology",  # Default - would come from enrichment
+                "linkedin_connection_status": "pending",
+                "linkedin_messages_sent": 0,
+                "last_linkedin_outreach": lead.last_engagement_date.isoformat() if lead.last_engagement_date else None
+            })
+        
+        return APIResponse(
+            success=True,
+            data=formatted_leads,
+            message=f"Retrieved {len(formatted_leads)} leads for social outreach"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get leads for social outreach: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get leads for social outreach: {str(e)}"
+        )
+
+
+@router.post("/leads/{lead_id}/social-outreach", response_model=APIResponse)
+async def log_social_outreach(
+    lead_id: int,
+    outreach_data: Dict[str, Any],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_dev_user)  # Using dev user for n8n access
+):
+    """Log social media outreach activity."""
+    try:
+        lead = db.query(Lead).filter(
+            Lead.id == lead_id,
+            Lead.organization_id == current_user.organization_id
+        ).first()
+        
+        if not lead:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Lead {lead_id} not found"
+            )
+        
+        # Update lead engagement
+        lead.last_engagement_date = datetime.utcnow()
+        lead.updated_at = datetime.utcnow()
+        
+        # Log activity
+        activity_log = ActivityLog(
+            lead_id=lead_id,
+            activity_type="social_outreach",
+            description=f"LinkedIn {outreach_data.get('outreach_type', 'outreach')} sent",
+            activity_metadata={
+                "platform": "linkedin",
+                "outreach_type": outreach_data.get("outreach_type"),
+                "message_sent": outreach_data.get("message_sent"),
+                "status": outreach_data.get("status", "sent"),
+                "linkedin_connection_status": outreach_data.get("linkedin_connection_status"),
+                "linkedin_connection_message": outreach_data.get("linkedin_connection_message"),
+                "linkedin_follow_up_message": outreach_data.get("linkedin_follow_up_message")
+            },
+            created_at=datetime.utcnow()
+        )
+        
+        db.add(activity_log)
+        db.commit()
+        
+        return APIResponse(
+            success=True,
+            data={
+                "lead_id": lead_id,
+                "outreach_logged": True,
+                "activity_log_id": activity_log.id,
+                "last_linkedin_outreach": datetime.utcnow().isoformat(),
+                "linkedin_messages_sent": 1
+            },
+            message="Social outreach activity logged successfully"
+        )
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to log social outreach: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to log social outreach: {str(e)}"
+        )
+
+
+@router.get("/leads/crm-sync", response_model=APIResponse)
+async def get_leads_for_crm_sync(
+    limit: int = Query(50, ge=1, le=100, description="Maximum number of leads to return"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_dev_user)  # Using dev user for n8n access
+):
+    """Get leads that need CRM synchronization."""
+    try:
+        # Query leads updated in last hour or never synced
+        cutoff_time = datetime.utcnow() - timedelta(hours=1)
+        
+        leads = db.query(Lead).filter(
+            Lead.organization_id == current_user.organization_id,
+            or_(
+                Lead.updated_at >= cutoff_time,
+                and_(
+                    Lead.notes.is_(None),
+                    Lead.created_at >= cutoff_time
+                )
+            )
+        ).order_by(Lead.updated_at.desc()).limit(limit).all()
+        
+        # Format for CRM sync
+        formatted_leads = []
+        for lead in leads:
+            formatted_leads.append({
+                "id": lead.id,
+                "first_name": lead.first_name,
+                "last_name": lead.last_name,
+                "email": lead.email,
+                "company": lead.company,
+                "phone": lead.phone,
+                "source": lead.source.value if lead.source else None,
+                "status": lead.status.value if lead.status else None,
+                "score": lead.score or 0,
+                "lead_temperature": lead.lead_temperature.value if lead.lead_temperature else "cold",
+                "created_at": lead.created_at.isoformat() if lead.created_at else None,
+                "updated_at": lead.updated_at.isoformat() if lead.updated_at else None,
+                "tags": lead.tags or [],
+                "synced_to_crm": "crm_sync" in (lead.notes or ""),
+                "last_crm_sync": lead.updated_at.isoformat() if lead.updated_at else None
+            })
+        
+        return APIResponse(
+            success=True,
+            data=formatted_leads,
+            message=f"Retrieved {len(formatted_leads)} leads for CRM sync"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get leads for CRM sync: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get leads for CRM sync: {str(e)}"
+        )
+
+
+@router.post("/leads/crm-sync", response_model=APIResponse)
+async def update_crm_sync_status(
+    sync_updates: List[Dict[str, Any]],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_dev_user)  # Using dev user for n8n access
+):
+    """Update CRM sync status for multiple leads."""
+    try:
+        updated_leads = []
+        failed_updates = []
+        
+        for sync_data in sync_updates:
+            try:
+                lead_id = sync_data.get("id")
+                crm_id = sync_data.get("crm_id")
+                
+                lead = db.query(Lead).filter(
+                    Lead.id == lead_id,
+                    Lead.organization_id == current_user.organization_id
+                ).first()
+                
+                if not lead:
+                    failed_updates.append({
+                        "lead_id": lead_id,
+                        "error": "Lead not found"
+                    })
+                    continue
+                
+                # Update sync status in notes
+                sync_note = f"CRM Sync: synced to {sync_data.get('crm_type', 'CRM')} (ID: {crm_id})"
+                existing_notes = lead.notes or ""
+                lead.notes = f"{existing_notes}\ncrm_sync: {sync_note}" if existing_notes else f"crm_sync: {sync_note}"
+                
+                lead.updated_at = datetime.utcnow()
+                
+                # Log activity
+                activity_log = ActivityLog(
+                    lead_id=lead_id,
+                    activity_type="crm_sync",
+                    description=f"Lead synced to {sync_data.get('crm_type', 'CRM')}",
+                    activity_metadata={
+                        "crm_type": sync_data.get("crm_type"),
+                        "crm_id": crm_id,
+                        "synced_to_crm": True,
+                        "last_crm_sync": datetime.utcnow().isoformat()
+                    },
+                    created_at=datetime.utcnow()
+                )
+                
+                db.add(activity_log)
+                
+                updated_leads.append({
+                    "lead_id": lead_id,
+                    "crm_id": crm_id,
+                    "synced_to_crm": True,
+                    "last_crm_sync": datetime.utcnow().isoformat()
+                })
+                
+            except Exception as e:
+                failed_updates.append({
+                    "lead_id": sync_data.get("id", "unknown"),
+                    "error": str(e)
+                })
+        
+        db.commit()
+        
+        return APIResponse(
+            success=True,
+            data={
+                "updated_leads": updated_leads,
+                "failed_updates": failed_updates,
+                "summary": {
+                    "successful_updates": len(updated_leads),
+                    "failed_updates": len(failed_updates),
+                    "total_processed": len(sync_updates)
+                }
+            },
+            message=f"CRM sync completed: {len(updated_leads)} successful, {len(failed_updates)} failed"
+        )
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to update CRM sync status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update CRM sync status: {str(e)}"
+        )
+
+
+@router.post("/webhook/crm-update", response_model=APIResponse)
+async def handle_crm_webhook(
+    webhook_data: Dict[str, Any],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_dev_user)  # Using dev user for n8n access
+):
+    """Handle incoming CRM webhook updates."""
+    try:
+        # Extract data based on CRM type
+        email = webhook_data.get("email")
+        crm_id = webhook_data.get("leadId") or webhook_data.get("objectId")
+        
+        if not email and not crm_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email or CRM ID required"
+            )
+        
+        # Find lead by email
+        lead = None
+        if email:
+            lead = db.query(Lead).filter(
+                Lead.email == email,
+                Lead.organization_id == current_user.organization_id
+            ).first()
+        
+        if not lead:
+            return APIResponse(
+                success=False,
+                data={"reason": "Lead not found"},
+                message="Lead not found for CRM update"
+            )
+        
+        # Update lead with CRM data
+        updated_fields = []
+        if webhook_data.get("firstName") and webhook_data["firstName"] != lead.first_name:
+            lead.first_name = webhook_data["firstName"]
+            updated_fields.append("first_name")
+        
+        if webhook_data.get("lastName") and webhook_data["lastName"] != lead.last_name:
+            lead.last_name = webhook_data["lastName"]
+            updated_fields.append("last_name")
+        
+        if webhook_data.get("company") and webhook_data["company"] != lead.company:
+            lead.company = webhook_data["company"]
+            updated_fields.append("company")
+        
+        if webhook_data.get("status"):
+            try:
+                new_status = LeadStatus(webhook_data["status"].lower())
+                if new_status != lead.status:
+                    lead.status = new_status
+                    updated_fields.append("status")
+            except ValueError:
+                pass  # Invalid status
+        
+        lead.updated_at = datetime.utcnow()
+        
+        # Log the CRM update
+        activity_log = ActivityLog(
+            lead_id=lead.id,
+            activity_type="crm_webhook",
+            description=f"Lead updated from {webhook_data.get('crmType', 'CRM')} webhook",
+            activity_metadata={
+                "crm_type": webhook_data.get("crmType"),
+                "crm_id": crm_id,
+                "updated_fields": updated_fields
+            },
+            created_at=datetime.utcnow()
+        )
+        
+        db.add(activity_log)
+        db.commit()
+        
+        return APIResponse(
+            success=True,
+            data={
+                "lead_id": lead.id,
+                "updated_fields": updated_fields,
+                "processed_at": datetime.utcnow().isoformat()
+            },
+            message="Lead updated from CRM webhook"
+        )
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to process CRM webhook: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process CRM webhook: {str(e)}"
         ) 

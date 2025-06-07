@@ -40,13 +40,6 @@ scrape_configs:
       - targets: ['redis-exporter:9121']
     scrape_interval: 30s
 
-  # n8n Workflow Engine
-  - job_name: 'n8n'
-    static_configs:
-      - targets: ['n8n:5678']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
   # Frontend (if metrics endpoint is available)
   - job_name: 'frontend'
     static_configs:
