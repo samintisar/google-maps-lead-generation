@@ -120,6 +120,10 @@ htmlcov/
 # OS specific
 .DS_Store
 
-# Task files
-tasks.json
-tasks/ 
+# Task files (if not using Task Master)
+# tasks.json
+# tasks/
+
+# Task Master specific ignores
+.taskmaster/logs/
+.taskmaster/temp/
