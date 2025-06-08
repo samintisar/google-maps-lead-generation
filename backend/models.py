@@ -11,10 +11,10 @@ from datetime import datetime
 
 class UserRole(enum.Enum):
     """User roles enum."""
-    ADMIN = "ADMIN"
-    MANAGER = "MANAGER"
-    SALES_REP = "SALES_REP"
-    VIEWER = "VIEWER"
+    ADMIN = "admin"
+    MANAGER = "manager"
+    SALES_REP = "sales_rep"
+    VIEWER = "viewer"
 
 
 class LeadStatus(enum.Enum):

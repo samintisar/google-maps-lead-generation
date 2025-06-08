@@ -4,14 +4,16 @@ Provides API endpoints for workflow CRUD operations, execution management, and m
 """
 from fastapi import APIRouter, HTTPException, Depends, status, Query, BackgroundTasks
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, and_
 from typing import List, Optional, Dict, Any
 import logging
 from datetime import datetime, timedelta
 
 from database import get_db
-from models import Workflow, WorkflowExecution, Organization, User, Lead
-from schemas import WorkflowCreate, WorkflowUpdate, WorkflowResponse, WorkflowExecutionResponse
+from models import Workflow, WorkflowExecution, Organization, User, Lead, LeadSource, LeadStatus, LeadTemperature, ActivityLog
+from schemas import WorkflowCreate, WorkflowUpdate, WorkflowResponse, WorkflowExecutionResponse, APIResponse
 from auth import get_current_user
+from routers.auth import get_dev_user
 from n8n_client import N8nClient, get_n8n_client, LEAD_NURTURING_WORKFLOW_TEMPLATE
 from services.n8n_service import N8nService
 from services.workflow_service import WorkflowService
@@ -1174,8 +1176,8 @@ async def create_lead_workflow(
             first_name=first_name,
             last_name=last_name,
             company=company,
-            source=LeadSource(source) if source else LeadSource.website,
-            status=LeadStatus.new,
+            source=LeadSource(source) if source else LeadSource.WEBSITE,
+            status=LeadStatus.NEW,
             score=0,
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
@@ -1274,7 +1276,7 @@ async def get_leads_for_social_outreach(
         leads = db.query(Lead).filter(
             Lead.organization_id == current_user.organization_id,
             Lead.linkedin_url.isnot(None),
-            Lead.lead_temperature.in_([LeadTemperature.hot, LeadTemperature.warm]),
+            Lead.lead_temperature.in_([LeadTemperature.HOT, LeadTemperature.WARM]),
             or_(
                 Lead.last_engagement_date.is_(None),
                 Lead.last_engagement_date < datetime.utcnow() - timedelta(days=7)

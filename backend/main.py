@@ -43,11 +43,15 @@ APP_INFO.labels(version="1.0.0", environment=os.getenv("ENVIRONMENT", "developme
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",  # Frontend dev server
-        "http://localhost:5174",  # Frontend prod build
+        "http://localhost:5173",  # Frontend dev server (original)
+        "http://localhost:5174",  # Frontend prod build (original)
+        "http://localhost:15173", # Frontend dev server (updated port)
+        "http://localhost:15174", # Frontend prod build (updated port)
         "http://localhost:3000",  # Alternative frontend port
         "http://127.0.0.1:5173",  # Alternative localhost format
         "http://127.0.0.1:5174",  # Alternative localhost format
+        "http://127.0.0.1:15173", # Alternative localhost format (updated port)
+        "http://127.0.0.1:15174", # Alternative localhost format (updated port)
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],

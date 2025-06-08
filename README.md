@@ -1,163 +1,175 @@
-# Lead Management Automation Platform
+# LMA - Lead Management Analytics
 
-An n8n-first automation platform with SvelteKit frontend and minimal FastAPI backend for advanced lead management and SaaS analytics.
-
-## 🏗️ Architecture Overview
-
-This platform is designed with an **n8n-first approach**, where 80% of business operations are handled through n8n workflows, ensuring scalability, maintainability, and ease of configuration.
-
-### Technology Stack
-
-- **Frontend**: SvelteKit + TypeScript + Tailwind CSS
-- **Backend**: FastAPI (Python) - Analytics focus only
-- **Automation**: n8n (Primary business logic layer)
-- **Database**: PostgreSQL + Redis
-- **Orchestration**: Docker Compose
-- **Monitoring**: Prometheus + Grafana
-- **CI/CD**: GitHub Actions
-
-### Project Structure
-
-```
-├── frontend/          # SvelteKit frontend application
-├── backend/           # FastAPI analytics backend
-├── n8n-workflows/     # n8n workflow templates and configurations
-├── docker/            # Docker configurations for all services
-├── ci-cd/             # CI/CD pipeline configurations
-├── monitoring/        # Prometheus and Grafana configurations
-├── docs/              # Project documentation
-├── scripts/           # Project management and deployment scripts
-└── tasks/             # Task Master task definitions
-```
+A comprehensive lead management and analytics platform with automated workflow capabilities using FastAPI, SvelteKit, PostgreSQL, and n8n.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
 - Docker & Docker Compose
-- Node.js 18+
-- Python 3.11+
+- Python 3.11+ (for testing)
+- Node.js 18+ (for frontend development)
 
-### Development Setup
-
-1. Clone the repository
-2. Set up environment variables (copy `.env.example` to `.env`)
-3. Start development services:
+### Start Development Environment
 
 ```bash
-docker-compose up -d
+# Windows PowerShell
+.\scripts\start-local-n8n.ps1
+
+# Or manually with Docker Compose
+docker-compose up -d --build
 ```
 
-4. Access the applications:
-   - n8n: http://localhost:5678
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8000
-   - Documentation: http://localhost:8000/docs
+## 🔗 Service URLs
 
-## 📋 Core Features
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| **Frontend** | http://localhost:15173 | test@example.com / testpassword123 |
+| **Backend API** | http://localhost:8000 | - |
+| **N8N Workflows** | http://localhost:5678 | admin / admin123 |
+| **Grafana** | http://localhost:13001 | admin / admin |
+| **Prometheus** | http://localhost:19090 | - |
 
-### n8n Automation Layer (80% of operations)
-- Lead scoring and enrichment workflows
-- Multi-channel outreach automation
-- CRM bidirectional synchronization
-- Real-time lead routing and assignment
-- Email and SMS campaign management
+## 📊 Database Access
 
-### SvelteKit Frontend
-- High-performance reactive UI
-- Real-time dashboard with SaaS metrics
-- Lead management interface
-- Team collaboration tools
-- Mobile-responsive design
+- **PostgreSQL**: localhost:15432
+- **Username**: lma_user
+- **Password**: lma_password
+- **Main Database**: lma_db
+- **N8N Database**: n8n_db
 
-### FastAPI Analytics Backend
-- SaaS metrics calculation (MRR, CAC, LTV)
-- Advanced analytics and reporting
-- Data aggregation and processing
-- Authentication and authorization
+## 🔧 Project Structure
 
-## 🔧 Development
-
-### Frontend Development (SvelteKit)
-
-```bash
-cd frontend
-npm install
-npm run dev
+```
+lma/
+├── backend/                 # FastAPI Python backend
+├── frontend/               # SvelteKit frontend
+├── n8n-workflows/         # N8N workflow definitions
+├── tests/                 # Test scripts
+├── scripts/               # Deployment and utility scripts
+├── monitoring/            # Grafana, Prometheus configs
+└── docker-compose.yml     # Local development setup
 ```
 
-### Backend Development (FastAPI)
+## 🤖 N8N Workflows
 
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
+### Setting Up Workflows
 
-### n8n Workflow Development
+1. Open N8N: http://localhost:5678
+2. Login with: admin / admin123
+3. Import workflow: `n8n-workflows/Lead_Scoring_CORRECTED.json`
+4. Activate the workflow
 
-1. Access n8n at http://localhost:5678
-2. Import workflow templates from `n8n-workflows/`
-3. Configure credentials and test workflows
+### Available Workflows
 
-## 🚢 Deployment
-
-### Local Development
-```bash
-docker-compose up -d
-```
-
-### Production
-```bash
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-## 📊 Monitoring
-
-- **Prometheus**: Metrics collection
-- **Grafana**: Visualization and alerting
-- **Logs**: Centralized logging with ELK stack
+- **Lead Scoring**: Automated lead scoring with temperature classification
+- **Social Outreach**: LinkedIn and email outreach automation
+- **CRM Sync**: Synchronization with external CRM systems
 
 ## 🧪 Testing
 
-### Frontend Tests
+### Run API Tests
 ```bash
-cd frontend
-npm run test
+cd tests
+python test_complete_workflow.py
 ```
 
-### Backend Tests
+### Test N8N Workflows
 ```bash
-cd backend
-pytest
+cd tests
+python test_n8n_webhook_endpoints.py
 ```
 
-### n8n Workflow Tests
-- Use n8n's built-in testing capabilities
-- Validate workflows with test data
+### Create Test Data
+```bash
+cd scripts/test-data
+python create_test_leads_for_scoring.py
+```
 
-## 📚 Documentation
+## 📈 Lead Scoring System
 
-- [API Documentation](docs/api.md)
-- [n8n Workflows](docs/workflows.md)
-- [Deployment Guide](docs/deployment.md)
-- [Contributing Guide](docs/contributing.md)
+The system automatically scores leads based on:
 
-## 🔐 Security
+- **Demographic** (0-25 points): Job title, seniority level
+- **Firmographic** (0-25 points): Company size, industry
+- **Behavioral** (0-30 points): Website visits, page views
+- **Engagement** (0-20 points): Email opens, clicks, downloads
+- **Temporal** (0-10 points): Recent activity bonus
 
-- OAuth 2.0 authentication
-- Role-based access control (RBAC)
-- API rate limiting
-- Secure credential management
+### Lead Temperature Classification
 
-## 📈 Roadmap
+- **Hot** (80-100): Immediate sales contact required
+- **Warm** (60-79): Personalized follow-up needed
+- **Cold** (40-59): Nurturing sequence recommended
+- **Frozen** (<40): Re-engagement campaign needed
 
-See [tasks/](tasks/) directory for detailed project tasks and progress tracking using Task Master.
+## 🔄 Workflow Endpoints
+
+### Working Endpoints (7/11)
+- `POST /api/workflows/leads/create` - Create new leads
+- `POST /api/workflows/leads/{id}/update-status` - Update lead status
+- `GET /api/workflows/leads/social-outreach` - Get leads for outreach
+- `POST /api/workflows/leads/{id}/social-outreach` - Log outreach activity
+- `GET /api/workflows/leads/crm-sync` - Get leads for CRM sync
+- `POST /api/workflows/leads/crm-sync` - Sync leads to CRM
+- `GET /api/leads/dev?test_scoring=true` - Get leads with scoring
+
+## 🛠️ Development Commands
+
+```bash
+# View service logs
+docker-compose logs -f [service_name]
+
+# Restart specific service
+docker-compose restart [service_name]
+
+# Stop all services
+docker-compose down
+
+# Rebuild and restart
+docker-compose up -d --build
+
+# Clean restart (removes volumes)
+docker-compose down -v && docker-compose up -d --build
+```
+
+## 📝 API Documentation
+
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+## 🔐 Authentication
+
+The system uses session-based authentication with test credentials:
+- **Email**: test@example.com
+- **Password**: testpassword123
+
+## 🚨 Monitoring
+
+- **Grafana Dashboards**: http://localhost:13001
+- **Prometheus Metrics**: http://localhost:19090
+- **Application Logs**: `docker-compose logs -f backend`
+
+## 📋 Environment Variables
+
+Key environment variables are configured in `docker-compose.yml`:
+
+- `DATABASE_URL`: PostgreSQL connection string
+- `REDIS_URL`: Redis connection string
+- `N8N_BASE_URL`: N8N service URL for internal communication
+- `N8N_WEBHOOK_URL`: N8N webhook URL for external access
 
 ## 🤝 Contributing
 
-Please read our [Contributing Guide](docs/contributing.md) for details on our code of conduct and the process for submitting pull requests.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly using the test scripts
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License.
+
+---
+
+**Need Help?** Check the logs with `docker-compose logs -f` or open an issue on GitHub.
