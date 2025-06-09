@@ -94,6 +94,30 @@
 		currentPage = 1;
 		loadLeads();
 	}
+
+	// Safe string formatter for status/source values
+	function safeFormat(value: any): string {
+		if (!value || typeof value !== 'string') {
+			console.warn('safeFormat received invalid value:', value);
+			return 'UNKNOWN';
+		}
+		return value.replace('_', ' ').toUpperCase();
+	}
+
+	// Get temperature badge color
+	function getTemperatureColor(temperature: string | undefined): string {
+		const temp = (temperature || '').toLowerCase();
+		switch (temp) {
+			case 'hot':
+				return 'bg-red-100 text-red-800';
+			case 'warm':
+				return 'bg-yellow-100 text-yellow-800';
+			case 'cold':
+				return 'bg-blue-100 text-blue-800';
+			default:
+				return 'bg-gray-100 text-gray-800';
+		}
+	}
 </script>
 
 <svelte:head>
@@ -176,7 +200,7 @@
 						>
 							<option value="">All Statuses</option>
 							{#each Object.values(LeadStatus) as status}
-								<option value={status}>{status.replace('_', ' ').toUpperCase()}</option>
+								<option value={status}>{safeFormat(status)}</option>
 							{/each}
 						</select>
 					</div>
@@ -192,7 +216,7 @@
 						>
 							<option value="">All Sources</option>
 							{#each Object.values(LeadSource) as source}
-								<option value={source}>{source.replace('_', ' ').toUpperCase()}</option>
+								<option value={source}>{safeFormat(source)}</option>
 							{/each}
 						</select>
 					</div>
@@ -266,6 +290,9 @@
 									Score
 								</th>
 								<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									Temperature
+								</th>
+								<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 									Created
 								</th>
 								<th scope="col" class="relative px-6 py-3">
@@ -299,11 +326,11 @@
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {getStatusColor(lead.status)}">
-											{lead.status.replace('_', ' ').toUpperCase()}
+											{safeFormat(lead.status)}
 										</span>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-										{lead.source.replace('_', ' ').toUpperCase()}
+										{safeFormat(lead.source)}
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<div class="flex items-center">
@@ -315,6 +342,11 @@
 												></div>
 											</div>
 										</div>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap">
+										<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {getTemperatureColor(lead.lead_temperature)}">
+											{(lead.lead_temperature || 'cold').toUpperCase()}
+										</span>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 										{formatDate(lead.created_at)}

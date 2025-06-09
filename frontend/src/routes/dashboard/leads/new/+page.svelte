@@ -244,7 +244,7 @@
 								class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
 							>
 								{#each Object.values(LeadSource) as source}
-									<option value={source}>{source.replace('_', ' ').toUpperCase()}</option>
+									<option value={source}>{(source || '').replace('_', ' ').toUpperCase()}</option>
 								{/each}
 							</select>
 						</div>
@@ -257,7 +257,7 @@
 								class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
 							>
 								{#each Object.values(LeadStatus) as status}
-									<option value={status}>{status.replace('_', ' ').toUpperCase()}</option>
+									<option value={status}>{(status || '').replace('_', ' ').toUpperCase()}</option>
 								{/each}
 							</select>
 						</div>

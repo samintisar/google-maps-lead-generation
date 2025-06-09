@@ -6,7 +6,10 @@
       "name": "When clicking \"Test workflow\"",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [720, 300],
+      "position": [
+        720,
+        300
+      ],
       "id": "manual-trigger"
     },
     {
@@ -19,7 +22,10 @@
       "name": "Lead Data Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [500, 300],
+      "position": [
+        500,
+        300
+      ],
       "webhookId": "lead-nurturing-webhook",
       "id": "lead-webhook"
     },
@@ -41,14 +47,17 @@
       "name": "Validate Lead Data",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [940, 300],
+      "position": [
+        940,
+        300
+      ],
       "id": "validate-lead"
     },
     {
       "parameters": {
-        "url": "={{$parameter.BACKEND_URL}}/api/workflows/leads/create",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "http://backend:8000/api/workflows/leads/create",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -88,11 +97,14 @@
       "name": "Create Lead Record",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [1180, 300],
+      "position": [
+        1180,
+        300
+      ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "1",
-          "name": "LMA API Auth"
+          "id": "oiDt5Ri93QZxjGEm",
+          "name": "Header Auth account"
         }
       },
       "id": "create-lead-api"
@@ -105,7 +117,10 @@
       "name": "Wait 2 Hours",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
-      "position": [1400, 300],
+      "position": [
+        1400,
+        300
+      ],
       "id": "wait-2-hours"
     },
     {
@@ -120,7 +135,10 @@
       "name": "Send Welcome Email",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [1620, 300],
+      "position": [
+        1620,
+        300
+      ],
       "credentials": {
         "smtp": {
           "id": "2",
@@ -137,7 +155,10 @@
       "name": "Wait 3 Days",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
-      "position": [1840, 300],
+      "position": [
+        1840,
+        300
+      ],
       "id": "wait-3-days"
     },
     {
@@ -152,7 +173,10 @@
       "name": "Send Follow-up Email",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [2060, 300],
+      "position": [
+        2060,
+        300
+      ],
       "credentials": {
         "smtp": {
           "id": "2",
@@ -163,9 +187,9 @@
     },
     {
       "parameters": {
-        "url": "={{$parameter.BACKEND_URL}}/api/workflows/leads/{{$json.data.lead_id}}/update-status",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "={{ \"http://backend:8000/api/workflows/leads/\" + $json.data.lead_id + \"/update-status\" }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -197,11 +221,14 @@
       "name": "Update Lead Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [2280, 300],
+      "position": [
+        2280,
+        300
+      ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "1",
-          "name": "LMA API Auth"
+          "id": "oiDt5Ri93QZxjGEm",
+          "name": "Header Auth account"
         }
       },
       "id": "update-lead-status-api"
@@ -214,7 +241,10 @@
       "name": "Return Success Response",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [2500, 300],
+      "position": [
+        2500,
+        300
+      ],
       "id": "return-success"
     },
     {
@@ -226,7 +256,10 @@
       "name": "Return Error Response",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1180, 480],
+      "position": [
+        1180,
+        480
+      ],
       "id": "return-error"
     }
   ],
@@ -357,4 +390,4 @@
       "description": "The base URL of your LMA backend API (e.g., http://192.168.1.106:8000)"
     }
   }
-} 
+}

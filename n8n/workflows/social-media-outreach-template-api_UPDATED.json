@@ -15,7 +15,10 @@
       "name": "Daily LinkedIn Outreach Schedule",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
-      "position": [200, 400],
+      "position": [
+        200,
+        400
+      ],
       "id": "daily-schedule"
     },
     {
@@ -23,14 +26,16 @@
       "name": "Manual Trigger",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [200, 280],
+      "position": [
+        200,
+        280
+      ],
       "id": "manual-trigger"
     },
     {
       "parameters": {
-        "url": "={{$parameter.BACKEND_URL}}/api/workflows/leads/social-outreach?limit=10",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "http://backend:8000/api/workflows/leads/social-outreach?limit=10",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -40,16 +45,20 @@
             }
           ]
         },
-        "options": {}
+        "options": {},
+        "genericAuthType": "httpHeaderAuth"
       },
       "name": "Get High-Score Leads",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [420, 320],
+      "position": [
+        420,
+        320
+      ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "1",
-          "name": "LMA API Auth"
+          "id": "oiDt5Ri93QZxjGEm",
+          "name": "Header Auth account"
         }
       },
       "id": "get-leads-api"
@@ -69,7 +78,10 @@
       "name": "Check If Leads Exist",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [640, 320],
+      "position": [
+        640,
+        320
+      ],
       "id": "check-leads-exist"
     },
     {
@@ -79,7 +91,10 @@
       "name": "Generate Connection Messages",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [860, 240],
+      "position": [
+        860,
+        240
+      ],
       "id": "generate-messages"
     },
     {
@@ -93,7 +108,10 @@
       "name": "Send LinkedIn Connection",
       "type": "n8n-nodes-base.linkedIn",
       "typeVersion": 1,
-      "position": [1080, 160],
+      "position": [
+        1080,
+        160
+      ],
       "credentials": {
         "linkedInOAuth2Api": {
           "id": "6",
@@ -104,9 +122,8 @@
     },
     {
       "parameters": {
-        "url": "={{$parameter.BACKEND_URL}}/api/workflows/leads/{{$json.id}}/social-outreach",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "={{ \"http://backend:8000/api/workflows/leads/\" + $json.id + \"/social-outreach\" }}",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -125,7 +142,7 @@
             },
             {
               "name": "message_sent",
-              "value": "={{$json.connection_message}}"
+              "value": "=={{$json.connection_message}}"
             },
             {
               "name": "status",
@@ -137,20 +154,24 @@
             },
             {
               "name": "linkedin_connection_message",
-              "value": "={{$json.connection_message}}"
+              "value": "=={{$json.connection_message}}"
             }
           ]
         },
-        "options": {}
+        "options": {},
+        "genericAuthType": "httpHeaderAuth"
       },
       "name": "Log Connection Request",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [1300, 160],
+      "position": [
+        1300,
+        160
+      ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "1",
-          "name": "LMA API Auth"
+          "id": "oiDt5Ri93QZxjGEm",
+          "name": "Header Auth account"
         }
       },
       "id": "log-connection-api"
@@ -163,7 +184,10 @@
       "name": "Wait 3 Days",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
-      "position": [1520, 160],
+      "position": [
+        1520,
+        160
+      ],
       "id": "wait-3-days"
     },
     {
@@ -181,14 +205,17 @@
       "name": "Is Hot Lead?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [1080, 320],
+      "position": [
+        1080,
+        320
+      ],
       "id": "hot-lead-check"
     },
     {
       "parameters": {
-        "subject": "🔥 Hot Lead Alert: {{$json.first_name}} {{$json.last_name}} from {{$json.company}}",
+        "subject": "ðŸ”¥ Hot Lead Alert: {{$json.data.first_name}} {{$json.data.last_name}} from {{$json.data.company}}",
         "emailType": "html",
-        "html": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <title>Hot Lead Alert</title>\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">\n  <div style=\"max-width: 600px; margin: 0 auto; padding: 20px;\">\n    <div style=\"background-color: #ff4444; color: white; padding: 15px; border-radius: 5px; text-align: center; margin-bottom: 20px;\">\n      <h1 style=\"margin: 0; font-size: 24px;\">🔥 HOT LEAD ALERT</h1>\n    </div>\n    \n    <h2>LinkedIn Connection Request Sent</h2>\n    \n    <div style=\"background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;\">\n      <h3 style=\"margin-top: 0;\">Lead Information:</h3>\n      <ul>\n        <li><strong>Name:</strong> {{$json.first_name}} {{$json.last_name}}</li>\n        <li><strong>Company:</strong> {{$json.company}}</li>\n        <li><strong>Email:</strong> {{$json.email}}</li>\n        <li><strong>Score:</strong> {{$json.score}}/100</li>\n        <li><strong>Temperature:</strong> {{$json.lead_temperature}}</li>\n        <li><strong>LinkedIn:</strong> <a href=\"{{$json.linkedin_url}}\">View Profile</a></li>\n      </ul>\n    </div>\n    \n    <div style=\"background-color: #e8f5e8; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #28a745;\">\n      <h3 style=\"margin-top: 0; color: #155724;\">Connection Message Sent:</h3>\n      <p style=\"font-style: italic; margin-bottom: 0;\">\"{{$json.connection_message}}\"</p>\n    </div>\n    \n    <p><strong>Next Steps:</strong> Monitor for connection acceptance and prepare personalized follow-up approach.</p>\n    \n    <p>Best regards,<br>\n    LMA Automation System</p>\n  </div>\n</body>\n</html>",
+        "html": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <title>Hot Lead Alert</title>\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">\n  <div style=\"max-width: 600px; margin: 0 auto; padding: 20px;\">\n    <div style=\"background-color: #ff4444; color: white; padding: 15px; border-radius: 5px; text-align: center; margin-bottom: 20px;\">\n      <h1 style=\"margin: 0; font-size: 24px;\">ðŸ”¥ HOT LEAD ALERT</h1>\n    </div>\n    \n    <h2>LinkedIn Connection Request Sent</h2>\n    \n    <div style=\"background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;\">\n      <h3 style=\"margin-top: 0;\">Lead Information:</h3>\n      <ul>\n        <li><strong>Name:</strong> {{$json.data.first_name}} {{$json.data.last_name}}</li>\n        <li><strong>Company:</strong> {{$json.data.company}}</li>\n        <li><strong>Email:</strong> {{$json.data.email}}</li>\n        <li><strong>Score:</strong> {{$json.score}}/100</li>\n        <li><strong>Temperature:</strong> {{$json.lead_temperature}}</li>\n        <li><strong>LinkedIn:</strong> <a href=\"{{$json.linkedin_url}}\">View Profile</a></li>\n      </ul>\n    </div>\n    \n    <div style=\"background-color: #e8f5e8; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #28a745;\">\n      <h3 style=\"margin-top: 0; color: #155724;\">Connection Message Sent:</h3>\n      <p style=\"font-style: italic; margin-bottom: 0;\">\"{{$json.connection_message}}\"</p>\n    </div>\n    \n    <p><strong>Next Steps:</strong> Monitor for connection acceptance and prepare personalized follow-up approach.</p>\n    \n    <p>Best regards,<br>\n    LMA Automation System</p>\n  </div>\n</body>\n</html>",
         "toEmail": "sales@leadmanagement.com",
         "fromEmail": "automation@leadmanagement.com",
         "fromName": "LMA Hot Lead Alert"
@@ -196,7 +223,10 @@
       "name": "Send Hot Lead Alert",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [1300, 400],
+      "position": [
+        1300,
+        400
+      ],
       "credentials": {
         "smtp": {
           "id": "2",
@@ -212,7 +242,10 @@
       "name": "Check Connection Status",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1740, 160],
+      "position": [
+        1740,
+        160
+      ],
       "id": "check-connection-status"
     },
     {
@@ -229,7 +262,10 @@
       "name": "Connection Accepted?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [1960, 160],
+      "position": [
+        1960,
+        160
+      ],
       "id": "connection-accepted-check"
     },
     {
@@ -239,7 +275,10 @@
       "name": "Generate Follow-up Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2180, 80],
+      "position": [
+        2180,
+        80
+      ],
       "id": "generate-followup"
     },
     {
@@ -253,7 +292,10 @@
       "name": "Send Follow-up Message",
       "type": "n8n-nodes-base.linkedIn",
       "typeVersion": 1,
-      "position": [2400, 80],
+      "position": [
+        2400,
+        80
+      ],
       "credentials": {
         "linkedInOAuth2Api": {
           "id": "6",
@@ -264,9 +306,8 @@
     },
     {
       "parameters": {
-        "url": "={{$parameter.BACKEND_URL}}/api/workflows/leads/{{$json.id}}/social-outreach",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "={{ \"http://backend:8000/api/workflows/leads/\" + $json.id + \"/social-outreach\" }}",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -301,16 +342,20 @@
             }
           ]
         },
-        "options": {}
+        "options": {},
+        "genericAuthType": "httpHeaderAuth"
       },
       "name": "Log Follow-up Activity",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [2620, 80],
+      "position": [
+        2620,
+        80
+      ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "1",
-          "name": "LMA API Auth"
+          "id": "oiDt5Ri93QZxjGEm",
+          "name": "Header Auth account"
         }
       },
       "id": "log-followup-api"

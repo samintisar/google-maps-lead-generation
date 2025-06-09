@@ -19,12 +19,12 @@ The platform addresses the critical problem of manual, inefficient lead manageme
 
 7. **Flexible User & Team Management**: Universal role-based access control system adaptable to any organizational structure. Lead assignment rules, performance dashboards, and team hierarchies configured through workflow parameters. Multi-tenant architecture supporting individual users to large enterprises across any industry.
 
-8. **Tiered Workflow Automation Builder**: Visual drag-and-drop n8n interface with industry-agnostic tiered access model:
-   - **Basic Tier**: Pre-built industry workflow packages (real estate, SaaS, healthcare, consulting, etc.)
-   - **Standard Tier**: Workflow package customization with guided editing for industry-specific parameters
-   - **Advanced Tier**: Full workflow creation with industry best practices and guardrails
-   - **Enterprise Tier**: Complete n8n access with dedicated support and custom industry packages
-   Core to the platform's no-code/low-code vision enabling rapid deployment across any industry.
+8. **Simple Workflow Templates**: Core n8n workflow templates for essential business operations:
+   - **Lead Scoring & Nurturing**: AI-powered scoring with Apollo.io enrichment workflows
+   - **Social Media Outreach**: Automated social media engagement and nurturing campaigns
+   - **CRM Synchronization**: Bidirectional sync with major CRM platforms using native n8n connectors
+   - **Template Expansion**: Additional workflow templates developed based on client needs and optimization
+   Focused on practical, immediately usable workflows that can be easily tested and modified for client requirements.
 
 # User Experience  
 **Primary User Personas (Industry-Agnostic):**
@@ -35,9 +35,9 @@ The platform addresses the critical problem of manual, inefficient lead manageme
 
 **Key User Flows:**
 1. Lead Capture → Universal Enrichment → Scoring → Assignment → Outreach → Nurturing → Conversion
-2. Industry Package Selection → Workflow Customization → Testing → Deployment → Performance Monitoring
-3. Template Library Access → Parameter Configuration → Testing → Production Deployment
-4. Analytics Review: Dashboard Access → KPI Tracking → Performance Analysis → Workflow Optimization
+2. Template Selection → Parameter Configuration → Testing → Deployment → Performance Monitoring
+3. Analytics Review: Dashboard Access → KPI Tracking → Performance Analysis → Workflow Optimization
+4. Workflow Management: Template Access → Client-Specific Configuration → Testing → Optimization
 
 **UI/UX Considerations:**
 - Clean, intuitive dashboard with customizable widgets
@@ -106,17 +106,15 @@ The platform addresses the critical problem of manual, inefficient lead manageme
 - CRM integration (starting with HubSpot)
 - Webhook system for external integrations
 
-**Phase 4 - Industry-Agnostic Analytics & Intelligence**
-- Universal business metrics dashboard with configurable KPI tracking through workflow parameters
-- Advanced lead scoring with hot/warm/cold temperature classification and ML-based conversion probability models
-- Industry-specific analytics delivered through workflow packages (real estate, SaaS, healthcare, consulting)
-- Lead source ROI analysis configurable for any marketing channel or industry
-- Team performance tracking with configurable metrics and industry-specific leaderboards
-- Advanced Universal Analytics Engine with behavioral tracking and conversion probability modeling
-- Industry Package Manager for deploying pre-built workflow collections
-- Performance reporting and export capabilities with industry-customizable dashboards
-- A/B testing framework for any industry's marketing campaigns
-- Predictive analytics for conversion probability and business optimization strategies
+**Phase 4 - Analytics Dashboard & Workflow Optimization**
+- SaaS metrics dashboard with Chart.js visualizations and real-time KPI tracking using test data
+- Advanced lead scoring through n8n workflows with AI and Apollo.io integration
+- Simple workflow templates: lead scoring/nurturing, social media outreach, CRM sync
+- Client-specific workflow customization and testing procedures
+- Performance reporting and export capabilities with comprehensive analytics tables
+- Real-time data refresh mechanisms and interactive dashboard components
+- Workflow monitoring and optimization tools for client needs
+- Template expansion based on practical client requirements
 
 **Phase 5 - Advanced Features**
 - Multi-channel outreach (SMS, Slack integration)

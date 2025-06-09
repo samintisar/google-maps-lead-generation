@@ -398,7 +398,7 @@
 									<dt class="text-sm font-medium text-gray-500">Current Status</dt>
 									<dd class="mt-1">
 										<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {getStatusColor($currentLead.status)}">
-											{$currentLead.status.replace('_', ' ').toUpperCase()}
+											{($currentLead.status || 'unknown').replace('_', ' ').toUpperCase()}
 										</span>
 									</dd>
 								</div>
@@ -431,7 +431,7 @@
 												onclick={() => updateStatus(status)}
 												class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
 											>
-													{status.replace('_', ' ').toUpperCase()}
+													{(status || 'unknown').replace('_', ' ').toUpperCase()}
 												</button>
 											{/if}
 										{/each}
@@ -449,7 +449,7 @@
 							<dl class="space-y-4">
 								<div>
 									<dt class="text-sm font-medium text-gray-500">Source</dt>
-									<dd class="mt-1 text-sm text-gray-900">{$currentLead.source.replace('_', ' ').toUpperCase()}</dd>
+									<dd class="mt-1 text-sm text-gray-900">{($currentLead.source || 'unknown').replace('_', ' ').toUpperCase()}</dd>
 								</div>
 								
 								<div>
