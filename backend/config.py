@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     """Application settings."""
     
     # Database settings
-    database_url: str = "postgresql://lma_user:lma_password@postgres:5432/lma_db"
+    database_url: str = "postgresql://lma_db_owner:npg_mRQX3eAio4tL@ep-old-butterfly-a6ids19o-pooler.us-west-2.aws.neon.tech/lma_db?sslmode=require"
     postgres_db: Optional[str] = None
     postgres_user: Optional[str] = None  
     postgres_password: Optional[str] = None
