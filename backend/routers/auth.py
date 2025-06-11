@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from database import get_db, get_redis
-from models import User
+from models import User, Organization
 from schemas import UserCreate, UserLogin, Token, UserResponse, MessageResponse, APIResponse
 from auth import (
     verify_password, 
@@ -67,13 +67,14 @@ def get_dev_user(db: Session = Depends(get_db)) -> User:
     if not dev_user:
         from auth import get_password_hash
         # Create development organization first
-        from models import Organization
         dev_org = db.query(Organization).filter(Organization.id == 1).first()
         if not dev_org:
             dev_org = Organization(
                 id=1,
                 name="Development Organization",
-                domain="example.com",
+                slug="dev-org",
+                description="Development organization for testing",
+                billing_email="dev@example.com",
                 is_active=True
             )
             db.add(dev_org)

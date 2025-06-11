@@ -705,4 +705,353 @@ class EnrichmentTypesResponse(BaseSchema):
     """Schema for available enrichment types response."""
     enrichment_types: Dict[str, EnrichmentType]
     default_types: List[str]
-    total_types: int 
+    total_types: int
+
+
+# Workflow Management Schemas
+
+class WorkflowCredentialsBase(BaseModel):
+    service_name: str
+    is_active: bool = True
+
+
+class WorkflowCredentialsCreate(WorkflowCredentialsBase):
+    credentials: Dict[str, Any]  # Will be encrypted before storage
+
+
+class WorkflowCredentialsUpdate(BaseModel):
+    credentials: Optional[Dict[str, Any]] = None
+    is_active: Optional[bool] = None
+
+
+class WorkflowCredentials(WorkflowCredentialsBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class WorkflowExecutionBase(BaseModel):
+    workflow_type: str = "lead_enrichment"
+    input_data: Optional[Dict[str, Any]] = None
+
+
+class WorkflowExecutionCreate(WorkflowExecutionBase):
+    pass
+
+
+class WorkflowExecutionUpdate(BaseModel):
+    status: Optional[str] = None
+    output_data: Optional[Dict[str, Any]] = None
+    error_message: Optional[str] = None
+    leads_processed: Optional[int] = None
+    leads_enriched: Optional[int] = None
+    confidence_score: Optional[float] = None
+
+
+class WorkflowLogBase(BaseModel):
+    step_name: str
+    step_type: str
+    status: str = "pending"
+    input_data: Optional[Dict[str, Any]] = None
+    output_data: Optional[Dict[str, Any]] = None
+    error_message: Optional[str] = None
+    duration_ms: Optional[int] = None
+
+
+class WorkflowLogCreate(WorkflowLogBase):
+    execution_id: int
+
+
+class WorkflowLog(WorkflowLogBase):
+    id: int
+    execution_id: int
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class WorkflowExecution(WorkflowExecutionBase):
+    id: int
+    user_id: int
+    status: str
+    output_data: Optional[Dict[str, Any]] = None
+    error_message: Optional[str] = None
+    leads_processed: int = 0
+    leads_enriched: int = 0
+    confidence_score: Optional[float] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    created_at: datetime
+    workflow_logs: List[WorkflowLog] = []
+
+    class Config:
+        from_attributes = True
+
+
+class EnrichedLeadDataBase(BaseModel):
+    original_data: Optional[Dict[str, Any]] = None
+    enriched_data: Optional[Dict[str, Any]] = None
+    confidence_score: Optional[float] = None
+    data_sources: Optional[Dict[str, Any]] = None
+    validation_status: str = "pending"
+
+
+class EnrichedLeadDataCreate(EnrichedLeadDataBase):
+    lead_id: int
+    execution_id: int
+
+
+class EnrichedLeadDataUpdate(BaseModel):
+    enriched_data: Optional[Dict[str, Any]] = None
+    confidence_score: Optional[float] = None
+    data_sources: Optional[Dict[str, Any]] = None
+    validation_status: Optional[str] = None
+
+
+class EnrichedLeadData(EnrichedLeadDataBase):
+    id: int
+    lead_id: int
+    execution_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Workflow Service Request/Response Schemas
+
+class WorkflowServiceCredentials(BaseModel):
+    hubspot_api_key: Optional[str] = None
+    hubspot_access_token: Optional[str] = None
+    openai_api_key: Optional[str] = None
+    google_credentials: Optional[Dict[str, Any]] = None
+
+
+class WorkflowRunRequest(BaseModel):
+    workflow_type: str = "lead_enrichment"
+    lead_filters: Optional[Dict[str, Any]] = {}
+    validation_threshold: float = 0.85
+    credentials: WorkflowServiceCredentials
+
+
+class WorkflowRunResponse(BaseModel):
+    execution_id: int
+    status: str
+    message: str
+
+
+class WorkflowStatusResponse(BaseModel):
+    execution_id: int
+    status: str
+    leads_processed: Optional[int] = None
+    leads_enriched: Optional[int] = None
+    confidence_score: Optional[float] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    error_message: Optional[str] = None
+    logs: Optional[List[Dict[str, Any]]] = None
+
+
+class WorkflowServiceCredentialsUpdate(BaseModel):
+    hubspot_api_key: Optional[str] = None
+    hubspot_access_token: Optional[str] = None
+    openai_api_key: Optional[str] = None
+    google_service_account: Optional[Dict[str, Any]] = None
+    google_sheets_id: Optional[str] = None
+
+
+class WorkflowRunRequest(BaseModel):
+    workflow_type: str = "lead_enrichment"
+    lead_filters: Optional[Dict[str, Any]] = None
+    credentials: WorkflowServiceCredentials
+    options: Optional[Dict[str, Any]] = None
+
+
+class WorkflowRunResponse(BaseModel):
+    execution_id: int
+    status: str
+    message: str
+
+
+class WorkflowStatusResponse(BaseModel):
+    execution_id: int
+    status: str
+    leads_processed: int
+    leads_enriched: int
+    confidence_score: Optional[float] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    error_message: Optional[str] = None
+    logs: List[WorkflowLog] = []
+
+
+# Google Maps Workflow Schemas
+class GoogleMapsWorkflowRequest(BaseModel):
+    """Schema for Google Maps lead generation workflow request."""
+    location: str
+    industry: str
+    max_results: Optional[int] = 20
+    include_ai_enrichment: bool = True
+    openai_api_key: Optional[str] = None
+    
+    @field_validator('location')
+    @classmethod
+    def validate_location(cls, v):
+        """Validate location is not empty."""
+        if not v.strip():
+            raise ValueError('Location cannot be empty')
+        return v.strip()
+    
+    @field_validator('industry')
+    @classmethod
+    def validate_industry(cls, v):
+        """Validate industry is not empty."""
+        if not v.strip():
+            raise ValueError('Industry cannot be empty')
+        return v.strip()
+    
+    @field_validator('max_results')
+    @classmethod
+    def validate_max_results(cls, v):
+        """Validate max_results is reasonable."""
+        if v and (v < 1 or v > 100):
+            raise ValueError('Max results must be between 1 and 100')
+        return v
+
+
+class GoogleMapsWorkflowResponse(BaseModel):
+    """Schema for Google Maps workflow response."""
+    execution_id: int
+    search_execution_id: int
+    status: str
+    message: str
+    search_query: str
+    estimated_completion_time: Optional[str] = None
+
+
+class GoogleMapsLeadBase(BaseModel):
+    """Base schema for Google Maps leads."""
+    business_name: str
+    google_maps_url: Optional[str] = None
+    website_url: Optional[str] = None
+    location: Optional[str] = None
+    industry: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    ai_enriched_data: Optional[Dict[str, Any]] = None
+    confidence_score: Optional[float] = None
+
+
+class GoogleMapsLeadCreate(GoogleMapsLeadBase):
+    """Schema for creating Google Maps leads."""
+    execution_id: int
+    organization_id: int
+    user_id: int
+
+
+class GoogleMapsLeadUpdate(BaseModel):
+    """Schema for updating Google Maps leads."""
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    ai_enriched_data: Optional[Dict[str, Any]] = None
+    confidence_score: Optional[float] = None
+    enrichment_status: Optional[str] = None
+    conversion_status: Optional[str] = None
+    converted_to_lead_id: Optional[int] = None
+
+
+class GoogleMapsLeadResponse(GoogleMapsLeadBase):
+    """Schema for Google Maps lead responses."""
+    id: int
+    execution_id: int
+    organization_id: int
+    user_id: int
+    enrichment_status: str
+    conversion_status: str
+    converted_to_lead_id: Optional[int] = None
+    scraped_at: datetime
+    enriched_at: Optional[datetime] = None
+    converted_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class GoogleMapsSearchExecutionBase(BaseModel):
+    """Base schema for Google Maps search execution."""
+    location: str
+    industry: str
+    search_query: str
+
+
+class GoogleMapsSearchExecutionCreate(GoogleMapsSearchExecutionBase):
+    """Schema for creating Google Maps search execution."""
+    workflow_execution_id: int
+    user_id: int
+    organization_id: int
+
+
+class GoogleMapsSearchExecutionUpdate(BaseModel):
+    """Schema for updating Google Maps search execution."""
+    total_urls_found: Optional[int] = None
+    websites_scraped: Optional[int] = None
+    emails_found: Optional[int] = None
+    leads_enriched: Optional[int] = None
+    leads_converted: Optional[int] = None
+    status: Optional[str] = None
+    error_message: Optional[str] = None
+    current_step: Optional[str] = None
+    progress_percentage: Optional[float] = None
+    completed_at: Optional[datetime] = None
+
+
+class GoogleMapsSearchExecutionResponse(GoogleMapsSearchExecutionBase):
+    """Schema for Google Maps search execution responses."""
+    id: int
+    workflow_execution_id: int
+    user_id: int
+    organization_id: int
+    total_urls_found: int
+    websites_scraped: int
+    emails_found: int
+    leads_enriched: int
+    leads_converted: int
+    status: str
+    error_message: Optional[str] = None
+    current_step: Optional[str] = None
+    progress_percentage: float
+    started_at: datetime
+    completed_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class GoogleMapsWorkflowStatusResponse(BaseModel):
+    """Schema for Google Maps workflow status responses."""
+    execution_id: int
+    search_execution_id: int
+    status: str
+    current_step: Optional[str] = None
+    progress_percentage: float
+    total_urls_found: int
+    websites_scraped: int
+    emails_found: int
+    leads_enriched: int
+    leads_converted: int
+    error_message: Optional[str] = None
+    started_at: datetime
+    completed_at: Optional[datetime] = None
+    leads: List[GoogleMapsLeadResponse] = [] 

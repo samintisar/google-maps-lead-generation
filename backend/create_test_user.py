@@ -4,7 +4,7 @@ Create test user for login testing
 """
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from models import User, Organization
+from models import User, Organization, UserRole
 from auth import get_password_hash
 
 def create_test_user():
@@ -34,7 +34,7 @@ def create_test_user():
                 last_name='User',
                 hashed_password=get_password_hash('testpassword123'),
                 organization_id=org.id,
-                role='SALES_REP',
+                role=UserRole.SALES_REP,
                 is_active=True
             )
             db.add(test_user)

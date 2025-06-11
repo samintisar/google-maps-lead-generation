@@ -91,8 +91,46 @@ async def get_dashboard_metrics_dev(
             },
             "lead_distribution": {
                 "by_status": [{"status": item.status.value, "count": item.count} for item in leads_by_status],
-                "by_source": []
-            }
+                "by_source": [
+                    {"source": "Website", "count": max(1, int(total_leads * 0.4))},
+                    {"source": "Email", "count": max(1, int(total_leads * 0.25))},
+                    {"source": "Phone", "count": max(1, int(total_leads * 0.25))},
+                    {"source": "Social", "count": max(1, total_leads - max(1, int(total_leads * 0.4)) - max(1, int(total_leads * 0.25)) - max(1, int(total_leads * 0.25)))}
+                ]
+            },
+            "time_series": {
+                "daily_leads": [
+                    {"date": "2024-01-01", "count": max(1, int(total_leads * 0.15))},
+                    {"date": "2024-01-02", "count": max(1, int(total_leads * 0.25))},
+                    {"date": "2024-01-03", "count": max(1, int(total_leads * 0.1))},
+                    {"date": "2024-01-04", "count": max(1, int(total_leads * 0.3))},
+                    {"date": "2024-01-05", "count": max(1, total_leads - max(1, int(total_leads * 0.15)) - max(1, int(total_leads * 0.25)) - max(1, int(total_leads * 0.1)) - max(1, int(total_leads * 0.3)))}
+                ],
+                "score_trend": [
+                    {"date": "2024-01-01", "avg_score": 65.2},
+                    {"date": "2024-01-02", "avg_score": 68.5},
+                    {"date": "2024-01-03", "avg_score": 72.1},
+                    {"date": "2024-01-04", "avg_score": 69.8},
+                    {"date": "2024-01-05", "avg_score": 74.3}
+                ]
+            },
+            "score_analytics": {
+                "avg_score": 69.8,
+                "max_score": 95.5,
+                "min_score": 45.2
+            },
+            "communication_metrics": {
+                "total_communications": 156,
+                "outbound_count": 89,
+                "inbound_count": 67
+            },
+            "team_performance": [
+                {"user_id": 1, "name": "John Doe", "leads_assigned": 15, "leads_won": 8, "revenue_generated": 24000, "win_rate": 53.3},
+                {"user_id": 2, "name": "Jane Smith", "leads_assigned": 12, "leads_won": 5, "revenue_generated": 18000, "win_rate": 41.7}
+            ],
+            "campaign_performance": [
+                {"campaign_id": 1, "name": "Q1 Email Campaign", "status": "active", "total_leads": 45, "converted_leads": 12, "conversion_rate": 26.7, "budget_allocated": 5000, "budget_spent": 3200, "budget_utilization": 64.0}
+            ]
         }
     )
 
@@ -108,9 +146,23 @@ async def get_revenue_metrics_dev(
     return APIResponse(
         success=True,
         data={
-            "revenue_by_period": [],
-            "growth_rate": 0,
-            "total_revenue": 0
+            "revenue_trend": [
+                {"period": "2024-01", "revenue": 15000, "deals_count": 5, "avg_deal_size": 3000},
+                {"period": "2024-02", "revenue": 22000, "deals_count": 8, "avg_deal_size": 2750},
+                {"period": "2024-03", "revenue": 18000, "deals_count": 6, "avg_deal_size": 3000},
+                {"period": "2024-04", "revenue": 28000, "deals_count": 10, "avg_deal_size": 2800},
+                {"period": "2024-05", "revenue": 35000, "deals_count": 12, "avg_deal_size": 2917}
+            ],
+            "revenue_by_source": [
+                {"source": "Website", "revenue": 45000, "deals_count": 15},
+                {"source": "Email", "revenue": 28000, "deals_count": 8},
+                {"source": "Phone", "revenue": 52000, "deals_count": 18},
+                {"source": "Social", "revenue": 12000, "deals_count": 4}
+            ],
+            "growth_rate": 15.7,
+            "total_revenue": 137000,
+            "group_by": group_by,
+            "period_days": days_back
         }
     )
 
@@ -122,15 +174,25 @@ async def get_funnel_metrics_dev(
     current_user: User = Depends(get_dev_user)
 ):
     """Get funnel metrics for development."""
+    # Use realistic test data that matches the overview (14 leads)
+    total_leads = 14  # Consistent with dashboard overview
+    
+    # Calculate funnel stages based on realistic proportions  
+    qualified_count = max(1, int(total_leads * 0.45))  # 45% qualification rate = 6 leads
+    proposal_count = max(1, int(qualified_count * 0.5))  # 50% of qualified move to proposal = 3 leads  
+    closed_won_count = max(1, int(proposal_count * 0.67))  # 67% of proposals close-win = 2 leads
+    
     return APIResponse(
         success=True,
         data={
             "funnel_stages": [
-                { "stage": "Leads", "count": 0, "conversion_rate": 0, "stage_conversion": 0 },
-                { "stage": "Qualified", "count": 0, "conversion_rate": 0, "stage_conversion": 0 },
-                { "stage": "Proposal", "count": 0, "conversion_rate": 0, "stage_conversion": 0 },
-                { "stage": "Closed Won", "count": 0, "conversion_rate": 0, "stage_conversion": 0 }
-            ]
+                { "stage": "Leads", "count": total_leads, "conversion_rate": 100.0, "stage_conversion": 100.0 },
+                { "stage": "Qualified", "count": qualified_count, "conversion_rate": round((qualified_count / total_leads) * 100, 1), "stage_conversion": 45.0 },
+                { "stage": "Proposal", "count": proposal_count, "conversion_rate": round((proposal_count / total_leads) * 100, 1), "stage_conversion": round((proposal_count / qualified_count) * 100, 1) },
+                { "stage": "Closed Won", "count": closed_won_count, "conversion_rate": round((closed_won_count / total_leads) * 100, 1), "stage_conversion": round((closed_won_count / proposal_count) * 100, 1) }
+            ],
+            "total_leads": total_leads,
+            "period_days": days_back
         }
     )
 

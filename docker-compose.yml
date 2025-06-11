@@ -89,14 +89,12 @@ services:
       dockerfile: Dockerfile
     container_name: lma-backend
     ports:
-      - "8000:8000"
+      - "18000:8000"
     environment:
       - ENVIRONMENT=development
       - PORT=8000
       - DATABASE_URL=postgresql://lma_user:lma_password@postgres:5432/lma_db
       - REDIS_URL=redis://redis:6379/0
-      - N8N_BASE_URL=http://n8n:5678
-      - N8N_WEBHOOK_URL=http://localhost:5678/webhook
     depends_on:
       - postgres
       - redis
@@ -119,8 +117,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=5173
-      - VITE_API_URL=http://localhost:8000
-      - VITE_N8N_URL=http://localhost:5678
+      - PUBLIC_API_URL=http://localhost:18000/api
       - DATABASE_URL=postgresql://lma_user:lma_password@postgres:5432/lma_db
     volumes:
       - ./frontend/src:/app/src
@@ -137,49 +134,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # n8n Workflow Automation
-  n8n:
-    image: n8nio/n8n:latest
-    container_name: lma-n8n
-    ports:
-      - "5678:5678"
-    environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=admin123
-      - N8N_HOST=localhost
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=http
-      - WEBHOOK_URL=http://localhost:5678/
-      - GENERIC_TIMEZONE=UTC
-      - N8N_LOG_LEVEL=info
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=postgres
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=n8n_db
-      - DB_POSTGRESDB_USER=lma_user
-      - DB_POSTGRESDB_PASSWORD=lma_password
-      - N8N_ENCRYPTION_KEY=mysecretencryptionkey123456789
-      - N8N_USER_MANAGEMENT_DISABLED=true
-    volumes:
-      - n8n_data:/home/node/.n8n
-      - ./n8n-workflows:/home/node/.n8n/workflows
-      - ./n8n-workflows:/home/node/.n8n/workflows/backup
-    depends_on:
-      - postgres
-      - backend
-    networks:
-      - lma-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5678/healthz"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+
 
   # Loki for centralized logging
   loki:
@@ -313,7 +268,7 @@ services:
     image: gcr.io/cadvisor/cadvisor:v0.47.0
     container_name: lma-cadvisor
     ports:
-      - "8080:8080"
+      - "18081:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -342,8 +297,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5173
-      - VITE_API_URL=http://localhost:8000
-      - VITE_N8N_URL=https://your-n8n-cloud-instance.app.n8n.cloud
+      - PUBLIC_API_URL=http://localhost:18000/api
     depends_on:
       - backend
     networks:
@@ -361,7 +315,6 @@ volumes:
   grafana_data:
   loki_data:
   alertmanager_data:
-  n8n_data:
 
 networks:
   lma-network:

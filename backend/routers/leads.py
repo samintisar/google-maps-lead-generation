@@ -74,6 +74,8 @@ def _generate_enhanced_test_data(lead):
     """Generate enhanced test data across the three supported temperature ranges for lead scoring."""
     lead_hash = abs(hash(lead.email))
     lead_type = lead_hash % 3  # 0=hot, 1=warm, 2=cold (only 3 supported types)
+    
+    print(f"🌡️ TEMPERATURE GENERATION: {lead.email} -> hash: {lead_hash}, type: {lead_type}")
 
     # Generate job titles that affect demographic scoring
     executive_titles = ["CEO", "CTO", "VP Sales", "Director of Marketing", "Founder"]
@@ -131,8 +133,128 @@ def _generate_enhanced_test_data(lead):
         "industry": industry,
         "unsubscribed": False,
         "bounced_emails": 0,
-        "last_activity_at": last_activity_at.isoformat()
+        "last_activity_at": last_activity_at.isoformat(),
+        # Temperature will be calculated based on the final score, not generated here
     }
+
+
+def _calculate_score_from_test_data(lead, test_data):
+    """Calculate a realistic score based on the lead's actual data and enhanced test data."""
+    score = 0
+    
+    # Demographic scoring (based on actual lead data + test data) - reduced max points
+    if lead.company or test_data.get('company_size', 0) > 0:
+        score += 5  # Has company information
+    
+    if lead.job_title or test_data.get('job_title'):
+        job_title = test_data.get('job_title', lead.job_title or '').lower()
+        if any(title in job_title for title in ['ceo', 'cto', 'founder', 'vp', 'vice president', 'director']):
+            score += 15  # Executive level (reduced from 25)
+        elif any(title in job_title for title in ['manager', 'lead', 'head']):
+            score += 10  # Manager level (reduced from 15)
+        else:
+            score += 5   # Has job title
+    
+    if lead.phone:
+        score += 3   # Has phone number (reduced from 5)
+    
+    if lead.linkedin_url:
+        score += 3   # Has LinkedIn profile (reduced from 5)
+    
+    # Company size scoring (from test data) - reduced max points
+    company_size = test_data.get('company_size', 0)
+    if company_size >= 1000:
+        score += 15  # Enterprise (reduced from 25)
+    elif company_size >= 200:
+        score += 10  # Mid-market (reduced from 15)
+    elif company_size >= 50:
+        score += 6   # Small business (reduced from 10)
+    elif company_size > 0:
+        score += 3   # Has company size info (reduced from 5)
+    
+    # Engagement scoring (from test data) - reduced max points
+    website_visits = test_data.get('website_visits', 0)
+    if website_visits >= 15:
+        score += 10  # High engagement (reduced from 15)
+    elif website_visits >= 8:
+        score += 7   # Medium engagement (reduced from 10)
+    elif website_visits >= 3:
+        score += 4   # Some engagement (reduced from 5)
+    
+    pages_viewed = test_data.get('pages_viewed', 0)
+    if pages_viewed >= 25:
+        score += 10  # Very engaged (reduced from 15)
+    elif pages_viewed >= 15:
+        score += 7   # Engaged (reduced from 10)
+    elif pages_viewed >= 5:
+        score += 4   # Some interest (reduced from 5)
+    
+    # Email engagement scoring - reduced max points
+    email_opens = test_data.get('email_opens', 0)
+    email_clicks = test_data.get('email_clicks', 0)
+    
+    score += min(email_opens * 1, 6)    # Up to 6 points for email opens (reduced from 10)
+    score += min(email_clicks * 3, 9)   # Up to 9 points for email clicks (reduced from 15)
+    
+    # Download scoring - reduced max points
+    downloads = test_data.get('downloads', 0)
+    score += min(downloads * 3, 6)      # Up to 6 points for downloads (reduced from 10)
+    
+    # Source-based scoring (based on actual lead data) - reduced points
+    if lead.source:
+        source_scores = {
+            'referral': 12,      # reduced from 20
+            'website': 8,        # reduced from 15
+            'social_media': 5,   # reduced from 8
+            'email': 6,          # reduced from 10
+            'advertising': 7,    # reduced from 12
+            'cold_outreach': 3,  # reduced from 5
+            'event': 9,          # reduced from 15
+            'other': 3           # reduced from 5
+        }
+        score += source_scores.get(lead.source.value, 3)
+    
+    # Industry scoring (from test data) - reduced points
+    industry = test_data.get('industry', '')
+    if industry in ['technology', 'saas', 'finance']:
+        score += 6   # High-value industries (reduced from 10)
+    elif industry in ['healthcare', 'consulting']:
+        score += 4   # Medium-value industries (reduced from 8)
+    else:
+        score += 2   # Other industries (reduced from 5)
+    
+    # Temporal scoring (based on last activity) - reduced points
+    from datetime import datetime, timedelta
+    last_activity_str = test_data.get('last_activity_at')
+    if last_activity_str:
+        try:
+            last_activity = datetime.fromisoformat(last_activity_str.replace('Z', '+00:00'))
+            now = datetime.utcnow()
+            days_since_activity = (now - last_activity.replace(tzinfo=None)).days
+            
+            if days_since_activity <= 1:
+                score += 6   # Very recent activity (reduced from 10)
+            elif days_since_activity <= 3:
+                score += 4   # Recent activity (reduced from 7)
+            elif days_since_activity <= 7:
+                score += 3   # Recent activity (reduced from 5)
+            elif days_since_activity <= 14:
+                score += 2   # Some recent activity (reduced from 3)
+        except:
+            score += 2   # Default for activity
+    
+    # Cap the score at 100
+    return min(score, 100)
+
+
+def _calculate_temperature_from_score(score):
+    """Calculate lead temperature based on the calculated score."""
+    if score >= 70:
+        return "hot"
+    elif score >= 40:
+        return "warm"
+    else:
+        return "cold"
 
 
 # Development endpoint - no auth required
@@ -315,10 +437,23 @@ async def get_leads_dev(
     # Apply pagination
     leads = query.offset(skip).limit(limit).all()
     
-    # Format leads with complete data (like in test_scoring branch)
+    # Format leads with complete data and apply test data for realistic temperatures
     formatted_leads = []
     for lead in leads:
-        formatted_lead = {
+        # Generate test data for each lead to get realistic temperature distribution
+        test_data = _generate_enhanced_test_data(lead)
+        
+        # DEBUG: Print test data generation results
+        print(f"🔥 DEBUG: Lead {lead.id} ({lead.email}) -> test_data temperature: {test_data.get('lead_temperature')}")
+        
+        # Calculate realistic score from test data
+        calculated_score = _calculate_score_from_test_data(lead, test_data)
+        
+        # Calculate temperature based on the calculated score
+        calculated_temperature = _calculate_temperature_from_score(calculated_score)
+        
+        # Create base lead data - use calculated score and temperature
+        base_lead_data = {
             "id": lead.id,
             "email": lead.email,
             "first_name": lead.first_name,
@@ -330,14 +465,22 @@ async def get_leads_dev(
             "linkedin_url": lead.linkedin_url,
             "status": lead.status.value if lead.status else None,
             "source": lead.source.value if lead.source else None,
-            "score": lead.score or 0,
-            "lead_temperature": lead.lead_temperature.value if lead.lead_temperature else "cold",
+            "score": calculated_score,  # Use calculated score instead of database score
+            "lead_temperature": calculated_temperature,  # Use calculated temperature based on score
             "created_at": lead.created_at.isoformat() if lead.created_at else None,
             "updated_at": lead.updated_at.isoformat() if lead.updated_at else None,
             "last_activity_at": lead.last_engagement_date.isoformat() if lead.last_engagement_date else (lead.created_at.isoformat() if lead.created_at else None),
             "tags": lead.tags or [],
             "custom_fields": lead.custom_fields or {},
         }
+        
+        # Merge with test data to get proper temperature distribution (excluding last_activity_at and lead_temperature as we already used it)
+        test_data_filtered = {k: v for k, v in test_data.items() if k not in ["last_activity_at", "lead_temperature"]}
+        formatted_lead = {**base_lead_data, **test_data_filtered}
+        
+        # Ensure job_title from test data overrides null database value
+        if test_data.get('job_title'):
+            formatted_lead['job_title'] = test_data['job_title']
         formatted_leads.append(formatted_lead)
     
     return {

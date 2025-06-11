@@ -4,6 +4,7 @@ Core configuration settings for the LMA backend.
 from pydantic_settings import BaseSettings
 from typing import Optional
 import os
+from cryptography.fernet import Fernet
 
 
 class Settings(BaseSettings):
@@ -36,6 +37,9 @@ class Settings(BaseSettings):
     jwt_algorithm: Optional[str] = None
     jwt_expiration_hours: Optional[str] = None
     
+    # Workflow encryption key for credentials
+    encryption_key: str = Fernet.generate_key().decode()
+    
     # Application settings
     environment: str = "development"
     debug: bool = True
@@ -50,6 +54,22 @@ class Settings(BaseSettings):
     
     # Docker settings
     compose_project_name: Optional[str] = None
+    
+    def get_database_url(self) -> str:
+        """Get database URL with development fallback to SQLite."""
+        # Try PostgreSQL first
+        if "postgres" not in self.database_url or self.environment == "development":
+            # Check if we can connect to PostgreSQL
+            try:
+                import psycopg2
+                # Try to connect to postgres
+                conn = psycopg2.connect(self.database_url)
+                conn.close()
+                return self.database_url
+            except Exception:
+                # Fall back to SQLite for development
+                return "sqlite:///./lma_dev.db"
+        return self.database_url
     
     class Config:
         env_file = ".env"

@@ -75,8 +75,8 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Get user from database
-    user = db.query(User).filter(User.id == int(user_id)).first()
+    # Get user from database by username (stored in JWT sub field)
+    user = db.query(User).filter(User.username == user_id).first()
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

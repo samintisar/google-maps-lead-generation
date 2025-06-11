@@ -1,7 +1,7 @@
 """
 Database models for the Lead Management Automation Platform.
 """
-from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, ForeignKey, Enum, JSON, Date
+from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, ForeignKey, Enum, JSON, Date, Float, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -122,6 +122,8 @@ class User(Base):
     campaigns = relationship("Campaign", back_populates="created_by_user")
     integrations = relationship("Integration", back_populates="created_by_user")
     activity_logs = relationship("ActivityLog", back_populates="user")
+    workflow_credentials = relationship("WorkflowCredentials", back_populates="user")
+    workflow_executions = relationship("WorkflowExecution", back_populates="user")
     
     @property
     def full_name(self):
@@ -212,6 +214,7 @@ class Lead(Base):
     score_history = relationship("LeadScoreHistory", back_populates="lead")
     assignments = relationship("LeadAssignment", back_populates="lead")
     campaign_leads = relationship("CampaignLead", back_populates="lead")
+    enriched_data = relationship("EnrichedLeadData", back_populates="lead")
     
     @property
     def full_name(self):
@@ -246,24 +249,91 @@ class Workflow(Base):
     # executions = relationship("WorkflowExecution", back_populates="workflow")
 
 
-class WorkflowExecution(Base):
-    """Track n8n workflow executions for leads."""
-    __tablename__ = "workflow_executions"
-
+class WorkflowCredentials(Base):
+    __tablename__ = "workflow_credentials"
+    
     id = Column(Integer, primary_key=True, index=True)
-    workflow_id = Column(String(100), nullable=False, index=True)  # n8n workflow ID
-    execution_id = Column(String(100), nullable=False, index=True)  # n8n execution ID
-    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=False)
-    status = Column(String(50), nullable=False)  # running, success, error, cancelled
-    started_at = Column(DateTime(timezone=True), nullable=False)
-    finished_at = Column(DateTime(timezone=True), nullable=True)
-    error_message = Column(Text, nullable=True)
-    execution_data = Column(JSON, nullable=True)  # Store execution details
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    service_name = Column(String(50), nullable=False)  # 'hubspot', 'openai', 'google'
+    encrypted_credentials = Column(Text, nullable=False)  # JSON string of encrypted credentials
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
+    user = relationship("User", back_populates="workflow_credentials")
+    
+    __table_args__ = (
+        Index('idx_workflow_credentials_user_service', 'user_id', 'service_name'),
+    )
+
+
+class WorkflowExecution(Base):
+    __tablename__ = "workflow_executions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=True)  # Added missing foreign key
+    workflow_type = Column(String(50), nullable=False, default="lead_enrichment")
+    status = Column(Enum(
+        "pending", "running", "completed", "failed", "cancelled",
+        name="workflow_status"
+    ), default="pending")
+    input_data = Column(JSON)  # Original input data
+    output_data = Column(JSON)  # Results from the workflow
+    error_message = Column(Text)
+    leads_processed = Column(Integer, default=0)
+    leads_enriched = Column(Integer, default=0)
+    confidence_score = Column(Float)
+    started_at = Column(DateTime)
+    completed_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User", back_populates="workflow_executions")
     lead = relationship("Lead", back_populates="workflow_executions")
-    # Remove the problematic workflow relationship for now
-    # workflow = relationship("Workflow", back_populates="executions", foreign_keys=[workflow_id], primaryjoin="WorkflowExecution.workflow_id == Workflow.n8n_workflow_id")
+    workflow_logs = relationship("WorkflowLog", back_populates="execution", cascade="all, delete-orphan")
+
+
+class WorkflowLog(Base):
+    __tablename__ = "workflow_logs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    execution_id = Column(Integer, ForeignKey("workflow_executions.id"), nullable=False)
+    step_name = Column(String(100), nullable=False)
+    step_type = Column(String(50), nullable=False)  # 'trigger', 'enrichment', 'validation', 'update'
+    status = Column(Enum("pending", "running", "completed", "failed", name="step_status"), default="pending")
+    input_data = Column(JSON)
+    output_data = Column(JSON)
+    error_message = Column(Text)
+    duration_ms = Column(Integer)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    execution = relationship("WorkflowExecution", back_populates="workflow_logs")
+
+
+class EnrichedLeadData(Base):
+    __tablename__ = "enriched_lead_data"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=False)
+    execution_id = Column(Integer, ForeignKey("workflow_executions.id"), nullable=False)
+    original_data = Column(JSON)  # Original lead data before enrichment
+    enriched_data = Column(JSON)  # All enriched fields
+    confidence_score = Column(Float)
+    data_sources = Column(JSON)  # Sources of enriched data (LinkedIn, Google, etc.)
+    validation_status = Column(Enum("pending", "validated", "rejected", name="validation_status"), default="pending")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    lead = relationship("Lead", back_populates="enriched_data")
+    execution = relationship("WorkflowExecution")
+    
+    __table_args__ = (
+        Index('idx_enriched_lead_execution', 'lead_id', 'execution_id'),
+    )
 
 
 class LeadScoringRule(Base):
@@ -434,6 +504,111 @@ class LeadAssignment(Base):
     
     # Relationships
     lead = relationship("Lead", back_populates="assignments")
+
+
+class GoogleMapsLead(Base):
+    """Google Maps scraped lead data."""
+    __tablename__ = "google_maps_leads"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    execution_id = Column(Integer, ForeignKey("workflow_executions.id"), nullable=False)
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    # Original scraped data
+    business_name = Column(String(255), nullable=False, index=True)
+    google_maps_url = Column(String(500), nullable=True)
+    website_url = Column(String(500), nullable=True)
+    location = Column(String(255), nullable=True)
+    industry = Column(String(100), nullable=False, index=True)
+    
+    # Contact information (scraped)
+    email = Column(String(255), nullable=True, index=True)
+    phone = Column(String(50), nullable=True)
+    address = Column(String(500), nullable=True)
+    
+    # AI enrichment data
+    ai_enriched_data = Column(JSON)  # OpenAI enhanced data
+    confidence_score = Column(Float)  # AI confidence in the data
+    enrichment_status = Column(Enum(
+        "pending", "enriched", "failed", "skipped",
+        name="enrichment_status"
+    ), default="pending")
+    
+    # Lead conversion
+    converted_to_lead_id = Column(Integer, ForeignKey("leads.id"), nullable=True)
+    conversion_status = Column(Enum(
+        "pending", "converted", "duplicate", "rejected",
+        name="conversion_status"
+    ), default="pending")
+    
+    # Timestamps
+    scraped_at = Column(DateTime, default=datetime.utcnow)
+    enriched_at = Column(DateTime, nullable=True)
+    converted_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    execution = relationship("WorkflowExecution")
+    organization = relationship("Organization")
+    user = relationship("User")
+    converted_lead = relationship("Lead", foreign_keys=[converted_to_lead_id])
+    
+    __table_args__ = (
+        Index('idx_gmaps_lead_execution', 'execution_id'),
+        Index('idx_gmaps_lead_industry_location', 'industry', 'location'),
+        Index('idx_gmaps_lead_email', 'email'),
+    )
+
+
+class GoogleMapsSearchExecution(Base):
+    """Execution tracking for Google Maps searches."""
+    __tablename__ = "google_maps_search_executions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    workflow_execution_id = Column(Integer, ForeignKey("workflow_executions.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
+    
+    # Search parameters
+    location = Column(String(255), nullable=False)
+    industry = Column(String(100), nullable=False)
+    search_query = Column(String(500), nullable=False)  # The actual Google Maps search query
+    
+    # Search results
+    total_urls_found = Column(Integer, default=0)
+    websites_scraped = Column(Integer, default=0)
+    emails_found = Column(Integer, default=0)
+    leads_enriched = Column(Integer, default=0)
+    leads_converted = Column(Integer, default=0)
+    
+    # Execution status
+    status = Column(Enum(
+        "pending", "scraping_maps", "scraping_websites", "enriching", "converting", "completed", "failed",
+        name="gmaps_execution_status"
+    ), default="pending")
+    error_message = Column(Text, nullable=True)
+    
+    # Progress tracking
+    current_step = Column(String(100), nullable=True)
+    progress_percentage = Column(Float, default=0.0)
+    
+    # Timestamps
+    started_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    workflow_execution = relationship("WorkflowExecution")
+    user = relationship("User")
+    organization = relationship("Organization")
+    
+    __table_args__ = (
+        Index('idx_gmaps_search_user_date', 'user_id', 'created_at'),
+        Index('idx_gmaps_search_location_industry', 'location', 'industry'),
+    )
 
 
 class ActivityLog(Base):

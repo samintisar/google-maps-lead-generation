@@ -1,30 +1,30 @@
 <context>
 # Overview  
-Modular Lead Management Automation Platform - A comprehensive, n8n-powered lead management ecosystem designed to serve multiple industries through customizable workflow packages. The platform provides a flexible foundation with industry-specific customization delivered entirely through n8n workflows, eliminating the need for custom code development for each business type. It combines intelligent automation, configurable lead enrichment, multi-channel outreach capabilities, adaptable metrics tracking, and a tiered visual workflow builder.
+Modular Lead Management Automation Platform - A comprehensive, Python-powered lead management ecosystem designed to serve multiple industries through customizable automation scripts. The platform provides a flexible foundation with industry-specific customization delivered entirely through Python automation modules, enabling rapid development and deployment for each business type. It combines intelligent automation, configurable lead enrichment, multi-channel outreach capabilities, adaptable metrics tracking, and a programmatic workflow system.
 
-The platform addresses the critical problem of manual, inefficient lead management processes across industries that result in lost opportunities, inconsistent follow-up, and poor lead qualification. Businesses typically lose 30-40% of leads due to slow response times and inadequate follow-up systems. It provides value through automation of 80% of operations via industry-specific n8n workflow packages while Python/FastAPI handles universal analytics calculations and metrics processing. Industry customization happens at the workflow layer, not the code layer, enabling rapid deployment across different business types.
+The platform addresses the critical problem of manual, inefficient lead management processes across industries that result in lost opportunities, inconsistent follow-up, and poor lead qualification. Businesses typically lose 30-40% of leads due to slow response times and inadequate follow-up systems. It provides value through automation of 80% of operations via industry-specific Python automation modules while the FastAPI backend handles universal analytics calculations and metrics processing. Industry customization happens at the Python script layer, enabling rapid deployment across different business types with full programmatic control.
 
 # Core Features  
-1. **Universal Lead Enrichment Engine**: Configurable data enrichment system that adapts to any industry through n8n workflows. Core enrichment includes email validation, domain analysis, social profile matching, and geographic data. Industry-specific enrichment (property data, company firmographics, patient records) delivered through specialized workflow packages. Critical for improving lead quality across all business types.
+1. **Universal Lead Enrichment Engine**: Configurable data enrichment system that adapts to any industry through Python automation scripts. Core enrichment includes email validation, domain analysis, social profile matching, and geographic data. Industry-specific enrichment (property data, company firmographics, patient records) delivered through specialized Python modules. Critical for improving lead quality across all business types.
 
-2. **Adaptive Lead Scoring & Prioritization**: Flexible hot/warm/cold lead temperature classification system configurable through workflow parameters. Features ML-based predictive scoring with industry-agnostic algorithms that adapt to different conversion patterns. Scoring rules, weighting factors, and qualification criteria all configured through n8n workflows rather than code changes. Essential for any business to focus on highest-value opportunities.
+2. **Adaptive Lead Scoring & Prioritization**: Flexible hot/warm/cold lead temperature classification system configurable through Python parameters. Features ML-based predictive scoring with industry-agnostic algorithms that adapt to different conversion patterns. Scoring rules, weighting factors, and qualification criteria all configured through Python modules rather than code changes. Essential for any business to focus on highest-value opportunities.
 
-3. **Multi-Channel Outreach Automation**: Universal communication system supporting email, SMS, voice, and social media outreach. Industry-specific templates, drip campaigns, and follow-up sequences delivered through workflow packages. Core platform handles delivery infrastructure while n8n workflows define messaging, timing, and channel selection. Vital for maintaining consistent communication across any industry.
+3. **Multi-Channel Outreach Automation**: Universal communication system supporting email, SMS, voice, and social media outreach. Industry-specific templates, drip campaigns, and follow-up sequences delivered through Python automation modules. Core platform handles delivery infrastructure while Python scripts define messaging, timing, and channel selection. Vital for maintaining consistent communication across any industry.
 
-4. **Configurable Business Metrics Dashboard**: Universal analytics framework that calculates and visualizes industry-specific KPIs through workflow configuration. Core metrics (conversion rates, lead source ROI, team performance) with industry-specific overlays (commissions for real estate, MRR for SaaS, patient volume for healthcare) defined in workflow packages. Provides data-driven insights for any business type.
+4. **Configurable Business Metrics Dashboard**: Universal analytics framework that calculates and visualizes industry-specific KPIs through Python automation configuration. Core metrics (conversion rates, lead source ROI, team performance) with industry-specific overlays (commissions for real estate, MRR for SaaS, patient volume for healthcare) defined in Python automation packages. Provides data-driven insights for any business type.
 
-5. **Industry-Agnostic Intelligence Engine**: ML-powered analytics system with universal prediction algorithms that adapt to different business models through workflow parameters. Core features include conversion probability, lead freshness decay, and behavioral tracking. Industry-specific intelligence (property trends, software adoption patterns, patient compliance) delivered through specialized workflow logic.
+5. **Industry-Agnostic Intelligence Engine**: ML-powered analytics system with universal prediction algorithms that adapt to different business models through Python automation parameters. Core features include conversion probability, lead freshness decay, and behavioral tracking. Industry-specific intelligence (property trends, software adoption patterns, patient compliance) delivered through specialized Python automation logic.
 
-6. **Universal Platform Integrations**: Flexible integration system supporting 400+ n8n connectors for CRMs, communication tools, marketing platforms, and industry-specific software. Integration configuration and data mapping handled through workflows, not custom code. Essential for seamless workflow integration with any existing business technology stack.
+6. **Universal Platform Integrations**: Flexible integration system supporting Python-based connectors for CRMs, communication tools, marketing platforms, and industry-specific software. Integration configuration and data mapping handled through Python automation scripts, not manual configuration. Essential for seamless automation integration with any existing business technology stack.
 
-7. **Flexible User & Team Management**: Universal role-based access control system adaptable to any organizational structure. Lead assignment rules, performance dashboards, and team hierarchies configured through workflow parameters. Multi-tenant architecture supporting individual users to large enterprises across any industry.
+7. **Flexible User & Team Management**: Universal role-based access control system adaptable to any organizational structure. Lead assignment rules, performance dashboards, and team hierarchies configured through Python automation parameters. Multi-tenant architecture supporting individual users to large enterprises across any industry.
 
-8. **Simple Workflow Templates**: Core n8n workflow templates for essential business operations:
-   - **Lead Scoring & Nurturing**: AI-powered scoring with Apollo.io enrichment workflows
+8. **Python Automation Templates**: Core Python automation templates for essential business operations:
+   - **Lead Scoring & Nurturing**: AI-powered scoring with Apollo.io enrichment automation
    - **Social Media Outreach**: Automated social media engagement and nurturing campaigns
-   - **CRM Synchronization**: Bidirectional sync with major CRM platforms using native n8n connectors
-   - **Template Expansion**: Additional workflow templates developed based on client needs and optimization
-   Focused on practical, immediately usable workflows that can be easily tested and modified for client requirements.
+   - **CRM Synchronization**: Bidirectional sync with major CRM platforms using Python API clients
+   - **Template Expansion**: Additional automation templates developed based on client needs and optimization
+   Focused on practical, immediately usable Python automations that can be easily tested and modified for client requirements.
 
 # User Experience  
 **Primary User Personas (Industry-Agnostic):**
@@ -51,27 +51,28 @@ The platform addresses the critical problem of manual, inefficient lead manageme
 # Technical Architecture  
 **System Components:**
 - **Frontend**: SvelteKit with TypeScript for high-performance UI, Tailwind CSS for responsive design, built-in Svelte stores for state management, and Chart.js/Apache ECharts for advanced analytics visualization including line charts, bar charts, pie charts, funnel charts, and heatmaps
-- **Backend API**: Python FastAPI focused on complex analytics, SaaS metrics calculations (MRR/ARR, CAC, LTV, churn rates), ML-based lead scoring, behavioral tracking, and advanced data processing that cannot be handled by n8n
-- **Primary Automation Layer**: n8n workflow engine handling 80% of operations including lead enrichment, CRUD operations, outreach automation, and CRM integrations via native connectors
+- **Backend API**: Python FastAPI focused on complex analytics, SaaS metrics calculations (MRR/ARR, CAC, LTV, churn rates), ML-based lead scoring, behavioral tracking, and advanced data processing
+- **Primary Automation Layer**: Python automation engine handling 80% of operations including lead enrichment, CRUD operations, outreach automation, and CRM integrations via Python API clients and automation libraries
 - **Analytics Engine**: Dedicated processing layer for lead scoring algorithms, time-decay analysis, conversion funnel tracking, cohort analysis, and predictive modeling using ML frameworks
 - **Database**: PostgreSQL for structured data storage with optimized schemas for analytics queries, Redis for caching and session management, and time-series data optimization for metrics tracking
 - **Infrastructure**: Docker containerization with Docker Compose orchestration for simplified deployment and reliability
+- **Automation Scheduler**: Python-based scheduling system using `schedule` or `apscheduler` for cron jobs, automated tasks, and workflow execution
 
 **Data Models:**
 - **Lead Entity**: contact_info, industry_context (flexible JSON), hot_warm_cold_temperature, qualification_status, interaction_history, source_attribution, engagement_metrics, conversion_probability
-- **Industry Package Entity**: package_type, workflow_templates, configuration_schema, default_parameters, integration_mappings, custom_fields_definition
-- **Universal Analytics**: conversion_rates, lead_source_performance, team_productivity, industry_specific_metrics (configurable JSON), workflow_performance
+- **Industry Package Entity**: package_type, automation_templates, configuration_schema, default_parameters, integration_mappings, custom_fields_definition
+- **Universal Analytics**: conversion_rates, lead_source_performance, team_productivity, industry_specific_metrics (configurable JSON), automation_performance
 - **Scoring Entity**: lead_score_history, temperature_changes, behavioral_events, engagement_tracking, industry_factors (configurable), qualification_criteria
-- **Workflow Entity**: nodes, connections, triggers, conditions, version_history, tier_restrictions, industry_packages, parameter_overrides
-- **User Entity**: authentication, roles, permissions, team_assignments, performance_metrics, industry_context, workflow_access_level
+- **Automation Entity**: script_definitions, triggers, conditions, parameters, execution_history, tier_restrictions, industry_packages, parameter_overrides
+- **User Entity**: authentication, roles, permissions, team_assignments, performance_metrics, industry_context, automation_access_level
 - **Organization Entity**: tenant_isolation, billing_info, user_count, industry_package_subscriptions, custom_settings, integration_configs
 
 **APIs and Integrations:**
-- **Universal CRM APIs**: HubSpot, Salesforce, Pipedrive, and 100+ CRMs via n8n connectors for bidirectional data sync
-- **Communication APIs**: Gmail, Outlook, Slack, Teams, SMS providers, call tracking systems for universal outreach
-- **Marketing APIs**: Facebook Ads, Google Ads, LinkedIn Ads, email marketing platforms via n8n integration library
-- **Industry-Specific APIs**: Delivered through workflow packages (MLS for real estate, medical APIs for healthcare, etc.)
-- **Business Intelligence APIs**: Analytics platforms, reporting tools, data warehouses via n8n connectors
+- **Universal CRM APIs**: HubSpot, Salesforce, Pipedrive, and 100+ CRMs via Python API clients for bidirectional data sync
+- **Communication APIs**: Gmail, Outlook, Slack, Teams, SMS providers, call tracking systems for universal outreach via Python libraries
+- **Marketing APIs**: Facebook Ads, Google Ads, LinkedIn Ads, email marketing platforms via Python API integrations
+- **Industry-Specific APIs**: Delivered through Python automation packages (MLS for real estate, medical APIs for healthcare, etc.)
+- **Business Intelligence APIs**: Analytics platforms, reporting tools, data warehouses via Python connectors
 - **Productivity APIs**: Calendar systems, task management, file storage, collaboration tools
 
 **Infrastructure Requirements:**
@@ -86,39 +87,39 @@ The platform addresses the critical problem of manual, inefficient lead manageme
 - Basic FastAPI backend with Lucia authentication integration
 - PostgreSQL database with core data models (User, Lead, Organization)
 - SvelteKit frontend with Lucia authentication (login/signup), dashboard shell, and basic navigation
-- n8n integration setup and basic workflow engine connection
+- Python automation engine setup and basic scheduling system connection
 - Simple lead import/export functionality (CSV)
 - Basic lead listing and detail views
 
 **Phase 2 - Lead Management Core**
 - Complete lead CRUD operations with form-based data entry
 - Basic lead scoring implementation (rule-based, no ML)
-- Simple lead enrichment workflows (email validation, domain extraction)
+- Simple lead enrichment automation (email validation, domain extraction)
 - Basic search and filtering capabilities
 - Lead assignment and routing functionality
 - Simple notification system (email alerts)
 
 **Phase 3 - Automation Engine**
-- Full n8n workflow integration with visual builder
-- Email automation workflows (SMTP integration, templates)
+- Full Python automation integration with script management
+- Email automation scripts (SMTP integration, templates)
 - Basic drip campaign functionality
 - Lead enrichment automation (WHOIS, website scraping)
 - CRM integration (starting with HubSpot)
 - Webhook system for external integrations
 
-**Phase 4 - Analytics Dashboard & Workflow Optimization**
+**Phase 4 - Analytics Dashboard & Automation Optimization**
 - SaaS metrics dashboard with Chart.js visualizations and real-time KPI tracking using test data
-- Advanced lead scoring through n8n workflows with AI and Apollo.io integration
-- Simple workflow templates: lead scoring/nurturing, social media outreach, CRM sync
-- Client-specific workflow customization and testing procedures
+- Advanced lead scoring through Python automation with AI and Apollo.io integration
+- Simple automation templates: lead scoring/nurturing, social media outreach, CRM sync
+- Client-specific automation customization and testing procedures
 - Performance reporting and export capabilities with comprehensive analytics tables
 - Real-time data refresh mechanisms and interactive dashboard components
-- Workflow monitoring and optimization tools for client needs
+- Automation monitoring and optimization tools for client needs
 - Template expansion based on practical client requirements
 
 **Phase 5 - Advanced Features**
 - Multi-channel outreach (SMS, Slack integration)
-- Advanced workflow templates and marketplace
+- Advanced automation templates and marketplace
 - Team management and role-based permissions
 - Advanced analytics and cohort analysis
 - Mobile app or progressive web app
@@ -129,10 +130,10 @@ The platform addresses the critical problem of manual, inefficient lead manageme
 - Custom integrations and API marketplace
 - Advanced AI and machine learning capabilities
 - Enterprise reporting and analytics
-- Advanced workflow automation and AI agents
+- Advanced automation and AI agents
 - Scalability optimizations and performance enhancements
 
-# Optimized Task Execution Order for n8n-First Architecture
+# Optimized Task Execution Order for Python-First Architecture
 
 **Phase 1 - Infrastructure Foundation (Tasks 1-3):**
 1. **Task 1: Setup Core Infrastructure** - No dependencies
@@ -140,31 +141,32 @@ The platform addresses the critical problem of manual, inefficient lead manageme
    - Foundation for all subsequent development
 
 2. **Task 3: Database Schema Design** - Depends on Task 1
-   - PostgreSQL schema for User, Lead, Organization, Workflow entities
-   - Required before n8n workflows can interact with data
+   - PostgreSQL schema for User, Lead, Organization, Automation entities
+   - Required before Python automation can interact with data
 
-3. **Task 2: Minimal FastAPI Backend** - Depends on Task 1
+3. **Task 2: Enhanced FastAPI Backend** - Depends on Task 1
    - Analytics-focused API for SaaS metrics calculation
    - Lucia authentication integration for secure access
+   - Python automation management endpoints
 
 **Phase 2 - Core Automation Layer (Tasks 5, 4):**
-4. **Task 5: n8n Workflow Engine Integration** - Depends on Tasks 1, 3
+4. **Task 5: Python Automation Engine Integration** - Depends on Tasks 1, 3
    - Primary automation layer handling 80% of operations
-   - CRUD workflows, webhook system, error handling
-   - Must be established before frontend can connect to workflows
+   - Scheduling system, script management, error handling
+   - Must be established before frontend can connect to automations
 
 5. **Task 4: SvelteKit Frontend MVP** - Depends on Tasks 1, 5
    - High-performance UI with Tailwind CSS and Lucia authentication integration
-   - Connects to n8n workflows and minimal FastAPI backend
+   - Connects to Python automations and FastAPI backend
    - Built-in Svelte stores for state management with Lucia session handling
 
 **Phase 3 - Business Logic Implementation (Tasks 6, 7, 8, 9):**
 6. **Task 6: Lead Scoring and Enrichment** - Depends on Tasks 3, 5
-   - n8n workflows for automated enrichment
+   - Python automation for automated enrichment
    - ML-based scoring using FastAPI for complex calculations
 
 7. **Task 7: Multi-Channel Outreach System** - Depends on Tasks 5, 6
-   - Email automation through n8n workflows
+   - Email automation through Python scripts
    - Campaign management and analytics
 
 8. **Task 8: SaaS Metrics Dashboard** - Depends on Tasks 2, 4
@@ -172,8 +174,8 @@ The platform addresses the critical problem of manual, inefficient lead manageme
    - Real-time updates through SvelteKit reactive stores
 
 9. **Task 9: CRM Integrations** - Depends on Task 5
-   - n8n native connectors for Salesforce, HubSpot, Pipedrive
-   - Simplified implementation using pre-built n8n nodes
+   - Python API clients for Salesforce, HubSpot, Pipedrive
+   - Custom integration implementation using Python libraries
 
 **Phase 4 - Advanced Features (Task 10):**
 10. **Task 10: User and Team Management** - Depends on Tasks 2, 4
@@ -181,12 +183,13 @@ The platform addresses the critical problem of manual, inefficient lead manageme
     - Team collaboration features
 
 **Key Architectural Benefits:**
-- n8n handles 80% of operations reducing complexity
-- FastAPI focused only on complex analytics and SaaS metrics
+- Python automation handles 80% of operations with full programmatic control
+- FastAPI focused on complex analytics and SaaS metrics plus automation management
 - SvelteKit provides better performance than React
-- Native CRM connectors eliminate custom API development
+- Custom Python API clients allow for more flexible integrations
 - Docker Compose simplifies deployment and reduces infrastructure overhead
-- Reduced overall development time and maintenance overhead
+- Full control over automation logic and execution
+- Easier debugging and custom feature development
 
 # Risks and Mitigations  
 **Technical Challenges:**

@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 
 from models import Workflow, WorkflowExecution, Lead, LeadStatus, User, Organization
-from .n8n_service import N8nService
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +20,10 @@ class WorkflowService:
     def __init__(self, db: Session):
         """Initialize the workflow service."""
         self.db = db
-        self.n8n_service = N8nService(db)
     
     async def close(self):
         """Clean up resources."""
-        await self.n8n_service.close()
+        pass
     
     async def process_lead_status_change(
         self, 
@@ -36,51 +34,8 @@ class WorkflowService:
         """
         Process workflows that should trigger on lead status changes.
         """
-        try:
-            lead = self.db.query(Lead).filter(Lead.id == lead_id).first()
-            if not lead:
-                raise ValueError(f"Lead {lead_id} not found")
-            
-            # Find workflows that trigger on status changes
-            triggered_workflows = self.db.query(Workflow).filter(
-                and_(
-                    Workflow.organization_id == lead.organization_id,
-                    Workflow.is_active == True,
-                    Workflow.trigger_type == "lead_status_change"
-                )
-            ).all()
-            
-            executions = []
-            
-            for workflow in triggered_workflows:
-                should_trigger = self._should_trigger_for_status_change(
-                    workflow, old_status, new_status
-                )
-                
-                if should_trigger:
-                    execution_data = {
-                        "trigger": {
-                            "type": "lead_status_change",
-                            "old_status": old_status.value,
-                            "new_status": new_status.value,
-                            "timestamp": datetime.utcnow().isoformat()
-                        }
-                    }
-                    
-                    execution = await self.n8n_service.execute_workflow_for_lead(
-                        workflow_id=workflow.id,
-                        lead_id=lead_id,
-                        execution_data=execution_data
-                    )
-                    executions.append(execution)
-                    
-                    logger.info(f"Triggered workflow {workflow.id} for lead {lead_id} status change: {old_status.value} -> {new_status.value}")
-            
-            return executions
-            
-        except Exception as e:
-            logger.error(f"Failed to process lead status change for lead {lead_id}: {e}")
-            raise
+        logger.warning(f"Workflow execution disabled for lead {lead_id} status change: {old_status.value} -> {new_status.value}")
+        return []
     
     async def schedule_follow_up_workflows(
         self, 
@@ -90,44 +45,8 @@ class WorkflowService:
         """
         Schedule follow-up workflows for a lead.
         """
-        try:
-            lead = self.db.query(Lead).filter(Lead.id == lead_id).first()
-            if not lead:
-                raise ValueError(f"Lead {lead_id} not found")
-            
-            # Find follow-up workflows
-            follow_up_workflows = self.db.query(Workflow).filter(
-                and_(
-                    Workflow.organization_id == lead.organization_id,
-                    Workflow.is_active == True,
-                    Workflow.category == "follow_up"
-                )
-            ).all()
-            
-            scheduled_workflows = []
-            
-            for workflow in follow_up_workflows:
-                # Calculate schedule time
-                schedule_time = datetime.utcnow() + timedelta(days=delay_days)
-                
-                # Create scheduled workflow entry (you might want to create a scheduled_workflows table)
-                scheduled_entry = {
-                    "workflow_id": workflow.id,
-                    "lead_id": lead_id,
-                    "scheduled_for": schedule_time.isoformat(),
-                    "trigger_type": "scheduled_follow_up",
-                    "status": "scheduled",
-                    "created_at": datetime.utcnow().isoformat()
-                }
-                
-                scheduled_workflows.append(scheduled_entry)
-                logger.info(f"Scheduled follow-up workflow {workflow.id} for lead {lead_id} at {schedule_time}")
-            
-            return scheduled_workflows
-            
-        except Exception as e:
-            logger.error(f"Failed to schedule follow-up workflows for lead {lead_id}: {e}")
-            raise
+        logger.warning(f"Follow-up workflow scheduling disabled for lead {lead_id}")
+        return []
     
     async def execute_lead_nurturing_sequence(
         self, 
@@ -137,54 +56,14 @@ class WorkflowService:
         """
         Execute a lead nurturing sequence for a new or existing lead.
         """
-        try:
-            lead = self.db.query(Lead).filter(Lead.id == lead_id).first()
-            if not lead:
-                raise ValueError(f"Lead {lead_id} not found")
-            
-            # Find nurturing workflows based on lead characteristics
-            nurturing_workflows = self._find_appropriate_nurturing_workflows(lead, sequence_type)
-            
-            execution_results = []
-            
-            for workflow, delay_hours in nurturing_workflows:
-                if delay_hours == 0:
-                    # Execute immediately
-                    execution = await self.n8n_service.execute_workflow_for_lead(
-                        workflow_id=workflow.id,
-                        lead_id=lead_id,
-                        execution_data={
-                            "nurturing_sequence": sequence_type,
-                            "lead_score": lead.score,
-                            "lead_temperature": lead.lead_temperature.value if lead.lead_temperature else "cold"
-                        }
-                    )
-                    execution_results.append({
-                        "workflow_id": workflow.id,
-                        "execution_id": execution.execution_id,
-                        "scheduled": False,
-                        "delay_hours": 0
-                    })
-                else:
-                    # Schedule for later (implement scheduling logic)
-                    execution_results.append({
-                        "workflow_id": workflow.id,
-                        "execution_id": None,
-                        "scheduled": True,
-                        "delay_hours": delay_hours,
-                        "scheduled_for": (datetime.utcnow() + timedelta(hours=delay_hours)).isoformat()
-                    })
-            
-            return {
-                "lead_id": lead_id,
-                "sequence_type": sequence_type,
-                "executions": execution_results,
-                "total_workflows": len(execution_results)
-            }
-            
-        except Exception as e:
-            logger.error(f"Failed to execute nurturing sequence for lead {lead_id}: {e}")
-            raise
+        logger.warning(f"Lead nurturing sequence disabled for lead {lead_id}, sequence: {sequence_type}")
+        return {
+            "lead_id": lead_id,
+            "sequence_type": sequence_type,
+            "executions": [],
+            "total_workflows": 0,
+            "status": "disabled_n8n_unavailable"
+        }
     
     async def get_workflow_performance_metrics(
         self, 
@@ -309,39 +188,13 @@ class WorkflowService:
         """
         Validate and sync all workflows for an organization.
         """
-        try:
-            # Get all workflows
-            workflows = self.db.query(Workflow).filter(
-                Workflow.organization_id == organization_id
-            ).all()
-            
-            validation_results = []
-            sync_needed = []
-            
-            for workflow in workflows:
-                validation = await self.n8n_service.validate_workflow_configuration(workflow.id)
-                validation_results.append({
-                    "workflow_id": workflow.id,
-                    "workflow_name": workflow.name,
-                    **validation
-                })
-                
-                if validation.get("sync_status") == "out_of_sync":
-                    sync_needed.append(workflow.id)
-            
-            # Perform sync from n8n
-            sync_result = await self.n8n_service.sync_workflows_from_n8n(organization_id)
-            
-            return {
-                "validation_results": validation_results,
-                "sync_needed": sync_needed,
-                "sync_result": sync_result,
-                "total_workflows": len(workflows)
-            }
-            
-        except Exception as e:
-            logger.error(f"Failed to validate and sync workflows for organization {organization_id}: {e}")
-            raise
+        logger.warning(f"Workflow validation and sync disabled for organization {organization_id}")
+        return {
+            "validation_results": [],
+            "sync_needed": [],
+            "sync_result": {"status": "disabled_n8n_unavailable"},
+            "total_workflows": 0
+        }
     
     def _should_trigger_for_status_change(
         self, 

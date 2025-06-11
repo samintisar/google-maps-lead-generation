@@ -2,9 +2,8 @@
 Services package for business logic abstraction.
 """
 
-from .n8n_service import N8nService
 from .workflow_service import WorkflowService
 from .lead_scoring_service import LeadScoringService
-from .lead_enrichment_service import LeadEnrichmentService
+from .enrichment_workflow_service import EnrichmentWorkflowService
 
-__all__ = ["N8nService", "WorkflowService", "LeadScoringService", "LeadEnrichmentService"] 
+__all__ = ["WorkflowService", "LeadScoringService", "EnrichmentWorkflowService"] 

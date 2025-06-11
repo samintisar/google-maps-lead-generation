@@ -2,71 +2,62 @@
 # Title: Setup Core Infrastructure
 # Status: done
 # Dependencies: None
-# Priority: high
-# Description: Set up the foundational infrastructure for the Lead Management Automation Platform
+# Priority: medium
+# Description: Establish the foundational infrastructure for the project, including Git, Docker, Docker Compose, CI/CD pipelines, and monitoring tools. Transition from n8n to a Python-based automation backend.
 # Details:
-1. Initialize Git repository
-2. Set up Docker containers for PostgreSQL, Redis, and n8n
-3. Configure Docker Compose for multi-container orchestration
-4. Implement basic CI/CD pipeline
-5. Set up monitoring and logging infrastructure
+This task involves setting up the core infrastructure and transitioning from n8n to a Python-based automation system. Key steps include:
+
+1. Remove n8n components (Completed)
+2. Update backend/ for Python automation (Completed)
+3. Maintain existing infrastructure (Completed)
+4. Update documentation
+5. Test complete system integration
+6. Start remaining containers and verify full functionality
 
 # Test Strategy:
-1. Verify successful deployment of all containers
-2. Ensure Docker Compose services are operational
-3. Test CI/CD pipeline with a sample deployment
-4. Validate monitoring and logging systems are capturing data
+1. Verify all n8n components are removed without affecting other services (Completed)
+2. Test the enhanced FastAPI backend for automation management (Completed)
+3. Validate the Python automation engine's scheduling capabilities (Completed)
+4. Ensure the automation script management system is functional (Completed)
+5. Confirm PostgreSQL, Redis, and monitoring services are working correctly (Completed)
+6. Test frontend connectivity to the new Python automation system
+7. Perform integration tests to ensure all components work together seamlessly
+8. Verify that all containers start successfully and the system functions as expected
 
 # Subtasks:
-## 1. Add monitoring stack to Docker Compose [done]
+## 1.1. Remove n8n components [done]
 ### Dependencies: None
-### Description: Integrate Prometheus, Grafana, and other monitoring tools into the Docker Compose configuration
+### Description: Delete n8n directory, remove n8n service from docker-compose.yml, clean up environment variables and references, and remove n8n volumes and data.
 ### Details:
-Add Prometheus container for metrics collection, Grafana for visualization, and configure networking between services. Set up persistent volumes for data retention.
-<info added on 2025-06-02T08:06:38.914Z>
-Successfully implemented monitoring stack in Docker Compose configuration. Added Prometheus, Grafana, Node Exporter, and cAdvisor containers. Created monitoring directory structure. Configured Prometheus scraping targets. Set up Grafana datasource and dashboard provisioning. Built LMA platform overview dashboard. Tested deployment - all services are running. Services are now available at the following ports: Prometheus (9090), Grafana (3001), Node Exporter (9100), cAdvisor (8080). The monitoring infrastructure is now ready for integration with other components and further refinement in subsequent subtasks.
-</info added on 2025-06-02T08:06:38.914Z>
 
-## 2. Configure centralized logging with ELK stack [done]
+
+## 1.2. Update backend for Python automation [done]
 ### Dependencies: None
-### Description: Set up Elasticsearch, Logstash, and Kibana for centralized log collection and analysis
+### Description: Enhance FastAPI backend for automation management, add Python automation engine with scheduling capabilities, and setup automation script management system.
 ### Details:
-Add ELK stack containers to Docker Compose, configure log drivers for all services, set up log parsing and indexing. Configure Kibana dashboards for log visualization.
 
-## 3. Set up metrics collection and monitoring [done]
+
+## 1.3. Maintain existing infrastructure [done]
 ### Dependencies: None
-### Description: Configure Prometheus to collect metrics from all services and create monitoring dashboards
+### Description: Ensure PostgreSQL, Redis, and monitoring remain intact, update environment variables to remove n8n references, and verify frontend can connect to the new Python automation system.
 ### Details:
-Configure service endpoints for metrics exposition, set up Prometheus scraping configuration, create Grafana dashboards for application and infrastructure metrics. Monitor key metrics like response times, error rates, and resource usage.
-<info added on 2025-06-02T08:16:36.925Z>
-Successfully implemented comprehensive metrics collection and monitoring system. Added Prometheus metrics endpoint to FastAPI backend with HTTP request tracking, response times, and application metrics. Implemented dedicated PostgreSQL exporter (port 9187) and Redis exporter (port 9121). Updated Prometheus configuration to scrape all exporters. Created comprehensive Grafana dashboard with service health status, HTTP request rates, response times, container resource usage, database connections, Redis metrics, system load and disk usage. All services reporting metrics successfully: backend, postgres, redis, cadvisor, node-exporter, prometheus all UP. Monitoring infrastructure complete with real-time dashboards and alerting capabilities ready.
-</info added on 2025-06-02T08:16:36.925Z>
 
-## 4. Configure alerting and notifications [done]
+
+## 1.4. Update documentation [done]
 ### Dependencies: None
-### Description: Set up alerting rules and notification channels for critical events
+### Description: Update project documentation to reflect the transition from n8n to Python-based automation, including setup instructions and API changes.
 ### Details:
-Configure Prometheus AlertManager for alert routing, set up notification channels (Slack, email), define alert rules for critical metrics like high error rates, service downtime, resource exhaustion. Test alert delivery and escalation policies.
-<info added on 2025-06-02T08:26:13.115Z>
-Successfully implemented comprehensive alerting and notifications system. Added AlertManager service for handling Prometheus alerts. Created alerting rules covering service health, memory usage, CPU usage, database connections, Redis metrics, HTTP performance, and system metrics. Configured webhook notifications for critical and warning alerts. Set up alert routing with severity-based classification. Created sample webhook receiver demonstrating alert processing. AlertManager is accessible at port 9093 with active alerts firing for down services and resource usage. Alert pipeline is working end-to-end: Prometheus -> AlertManager -> Webhook notifications. The system is now ready for production alerting with email, Slack, or other notification channels.
-</info added on 2025-06-02T08:26:13.115Z>
 
-## 5. Test and validate monitoring infrastructure [done]
+
+## 1.5. Test complete system integration [done]
 ### Dependencies: None
-### Description: Perform comprehensive testing of monitoring and logging systems
+### Description: Perform comprehensive integration tests to ensure all components of the new Python-based automation system work together seamlessly with existing infrastructure.
 ### Details:
-Test log collection from all services, verify metric scraping and visualization, trigger test alerts to validate notification channels, perform load testing to ensure monitoring stack performance, document monitoring runbooks and troubleshooting guides.
-<info added on 2025-06-02T08:29:00.758Z>
-Monitoring infrastructure validation results:
-- Prometheus (9090): 7/8 targets UP (alertmanager, backend, cadvisor, node-exporter, postgres, prometheus, redis)
-- Grafana (3001): Dashboard accessible, health status OK
-- Loki (3100): Centralized logging operational
-- AlertManager (9093): Fully operational with 31 active alerts firing
-- Metrics Collection: FastAPI backend metrics working (HTTP requests tracked, active connections monitored)
-- Database Monitoring: PostgreSQL connections (2 active), Redis clients (1 connected)
-- Load Testing: Generated 10 test requests, metrics updated correctly (24→36 requests)
-- Alert Pipeline: Service down alerts for n8n/frontend, memory usage alerts active
 
-Infrastructure is now ready for production with full observability stack in place.
-</info added on 2025-06-02T08:29:00.758Z>
+
+## 1.6. Start remaining containers and verify full functionality [done]
+### Dependencies: None
+### Description: Start all remaining Docker containers, including the updated backend and frontend services, and verify that the entire system functions as expected with the new Python-based automation.
+### Details:
+
 

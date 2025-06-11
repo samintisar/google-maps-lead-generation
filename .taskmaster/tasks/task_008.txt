@@ -1,185 +1,73 @@
 # Task ID: 8
-# Title: Create SaaS Metrics Dashboard
+# Title: SaaS Metrics Dashboard
 # Status: pending
-# Dependencies: 2, 4
-# Priority: high
-# Description: Develop comprehensive analytics dashboard with KPI metrics, interactive visualizations, and real-time data refresh using Chart.js and test data
+# Dependencies: None
+# Priority: medium
+# Description: Create a dashboard with FastAPI analytics calculations and Apache ECharts visualization.
 # Details:
-1. Implement Chart.js visualizations with test data for key business metrics
-2. Create interactive KPI dashboard components
-3. Build real-time data refresh mechanisms
-4. Develop comprehensive analytics tables and reports
-5. Implement export functionality for reports
-6. Ensure flexibility for future integration of industry-specific metrics
+
 
 # Test Strategy:
-1. Validate accuracy of metric calculations using test data
-2. Test real-time update performance and data consistency
-3. Verify correct rendering and interactivity of Chart.js visualizations
-4. Conduct user testing for dashboard usability and responsiveness
-5. Perform cross-browser and device compatibility testing
-6. Test export functionality for all report types
-7. Validate performance under various data load scenarios
+
 
 # Subtasks:
-## 1. Data Source Integration [done]
+## 1. Data Integration [pending]
 ### Dependencies: None
-### Description: Connect and integrate various data sources required for the dashboard
+### Description: Integrate data from various sources into a unified dataset.
 ### Details:
-Identify and establish connections to relevant databases, APIs, or file systems. Ensure proper authentication and data retrieval mechanisms are in place.
-<info added on 2025-06-05T04:53:01.797Z>
-Data source integration has been successfully completed. The following components have been implemented:
+Use tools like web scrapers or APIs to collect data and store it in a central data warehouse.
 
-1. Backend API (Metrics Router):
-   - Comprehensive metrics router in backend/routers/metrics.py
-   - Endpoints for dashboard, revenue, and funnel metrics
-   - Complete database queries for SaaS metrics calculation
-   - Proper authentication and error handling
-
-2. Frontend API Client:
-   - TypeScript types for DashboardMetrics, RevenueMetrics, and FunnelMetrics
-   - metricsApi with functions for getting dashboard, revenue, and funnel metrics
-   - Integration with existing session-based authentication
-   - Error handling and response typing
-
-3. Metrics Store:
-   - Svelte store for metrics state management
-   - Separate loading states for different metric types
-   - Auto-refresh capabilities with configurable intervals
-   - Helper functions for formatting
-   - Error handling with auto-clearing messages
-
-4. Dashboard Integration:
-   - Main dashboard updated to load real metrics data
-   - Placeholder values replaced with actual metrics
-   - Loading states with skeleton UI added
-   - Error display for failed API calls
-   - Responsive design maintained
-
-5. Technical Integration:
-   - Metrics router imported and registered in main.py
-   - API endpoints follow existing authentication patterns
-   - Frontend integration uses established API patterns
-   - Store follows existing state management conventions
-
-Note: The metrics API requires a proper PostgreSQL database connection to function. Currently experiencing connection issues when testing outside the Docker environment, which is expected behavior due to Docker networking configuration. The integration is complete and ready for use once database connectivity is established.
-</info added on 2025-06-05T04:53:01.797Z>
-
-## 2. Data Aggregation Pipeline [done]
+## 2. Data Aggregation [pending]
 ### Dependencies: 8.1
-### Description: Develop a pipeline to aggregate data from multiple sources
+### Description: Aggregate the integrated data to summarize insights.
 ### Details:
-Create ETL processes to extract, transform, and load data into a unified format suitable for metric calculations and visualization.
-<info added on 2025-06-05T04:53:37.551Z>
-Given the completed backend work, this subtask will focus on frontend data processing:
+Apply aggregation techniques such as grouping and averaging to extract meaningful data.
 
-1. Implement a frontend data pipeline to efficiently fetch and manage metrics data from the API endpoints (/api/metrics/dashboard, /api/metrics/revenue, /api/metrics/funnel).
-
-2. Develop data transformation functions to convert API responses into Chart.js-compatible formats for various chart types (line, bar, pie, etc.).
-
-3. Create utility functions for time-series data handling, including date range selection, data grouping (daily, weekly, monthly), and time zone adjustments.
-
-4. Build helper functions to prepare and format data for specific chart requirements, such as cumulative data for funnel charts or percentage calculations for pie charts.
-
-5. Implement caching mechanisms to optimize frontend performance and reduce unnecessary API calls for frequently accessed metrics.
-
-6. Ensure all data processing functions are unit tested and documented for maintainability.
-</info added on 2025-06-05T04:53:37.551Z>
-<info added on 2025-06-05T04:57:21.211Z>
-Frontend Data Aggregation Pipeline Completed:
-
-1. Implemented Chart Data Transformation Utilities in `lib/utils/chartData.ts`:
-   - Transformation functions for Chart.js compatibility (line, bar, pie, doughnut)
-   - Dashboard, revenue, and funnel metrics transformations
-   - Consistent color schemes and styling
-   - Professional chart configuration presets with tooltips and formatting
-
-2. Developed Data Caching System in `lib/utils/dataCache.ts`:
-   - In-memory caching with localStorage backup
-   - Configurable cache durations (5min dashboard, 10min revenue/funnel)
-   - Automatic cache expiration, cleanup, and invalidation
-   - Performance optimization with cache statistics and preloading
-
-3. Implemented Time-Series Data Handling:
-   - Date formatting for various time periods
-   - Time range utilities with optimal grouping calculation
-   - Data aggregation for time period grouping
-   - Cumulative value calculations and moving averages
-   - Currency, percentage, and number formatting helpers
-
-4. Created Chart Data Preparation functions:
-   - API response conversion to chart-ready formats
-   - Consistent dataset creation with proper styling
-   - Type-safe data transformations matching backend API structure
-   - Support for multi-series charts and complex visualizations
-
-Technical features include TypeScript implementation, modular design, performance optimization, error handling, responsive chart configurations, and professional styling. The frontend data pipeline is now complete and ready for Chart.js integration in the next subtask (8.4 - Visualization Component Design).
-</info added on 2025-06-05T04:57:21.211Z>
-
-## 3. Chart.js Visualization Implementation [pending]
+## 3. Metric Calculation [pending]
 ### Dependencies: 8.2
-### Description: Implement Chart.js visualizations with test data for key business metrics
+### Description: Calculate key metrics from aggregated data.
 ### Details:
-1. Set up Chart.js library and necessary plugins
-2. Create reusable chart components for different types of visualizations (line, bar, pie, etc.)
-3. Implement data binding between test data and chart components
-4. Add interactivity features like tooltips, zooming, and click events
-5. Ensure responsive design for various screen sizes
-6. Optimize chart rendering performance
+Develop functions to compute metrics such as averages, ranges, and trends.
 
-## 4. Interactive KPI Dashboard Components [pending]
+## 4. Data Visualization [pending]
 ### Dependencies: 8.3
-### Description: Create interactive KPI dashboard components for key metrics
+### Description: Create visualizations to represent calculated metrics.
 ### Details:
-1. Design and implement KPI card components
-2. Create summary widgets for important metrics
-3. Develop interactive filters for date ranges and data categories
-4. Implement drill-down functionality for detailed metric exploration
-5. Add customization options for users to personalize their dashboard
-6. Ensure accessibility compliance for all interactive elements
+Use libraries like Matplotlib or Plotly to create interactive visualizations.
 
-## 5. Real-time Data Refresh Mechanism [pending]
-### Dependencies: 8.3, 8.4
-### Description: Build real-time data refresh mechanisms for live updates
+## 5. Dashboard Layout [pending]
+### Dependencies: 8.4
+### Description: Design a user-friendly dashboard layout.
 ### Details:
-1. Implement WebSocket connection for real-time data streaming
-2. Create a data update service to manage incoming real-time data
-3. Develop a mechanism to efficiently update chart and KPI components
-4. Add visual indicators for live data updates
-5. Implement error handling and reconnection logic for WebSocket failures
-6. Optimize performance to handle frequent updates without impacting user experience
+Organize visualizations and metrics into an intuitive dashboard structure.
 
-## 6. Analytics Tables and Reports [pending]
-### Dependencies: 8.3, 8.4
-### Description: Develop comprehensive analytics tables and reports
+## 6. Analytics Development [pending]
+### Dependencies: 8.5
+### Description: Develop advanced analytics capabilities.
 ### Details:
-1. Design and implement sortable and filterable data tables
-2. Create paginated views for large datasets
-3. Develop summary reports for key business areas
-4. Implement data aggregation features for tables (e.g., grouping, subtotals)
-5. Add search functionality for tables and reports
-6. Ensure responsive design for tables on various devices
+Implement predictive models or machine learning algorithms for deeper insights.
 
-## 7. Export Functionality [pending]
+## 7. Performance Optimization [pending]
 ### Dependencies: 8.6
-### Description: Implement export functionality for reports and visualizations
+### Description: Optimize the performance of the dashboard and analytics.
 ### Details:
-1. Develop PDF export for dashboard views and reports
-2. Implement CSV export for tabular data
-3. Create image export options for individual charts
-4. Add options to customize exports (e.g., date ranges, included metrics)
-5. Ensure exported data maintains formatting and is easily readable
-6. Implement progress indicators for large exports
+Use caching, parallel processing, or other optimization techniques to improve speed.
 
-## 8. Integration and Testing [pending]
-### Dependencies: 8.3, 8.4, 8.5, 8.6, 8.7
-### Description: Integrate all components and perform comprehensive testing
+## 8. Workflow Configuration [pending]
+### Dependencies: 8.7
+### Description: Configure workflows for data processing and analytics.
 ### Details:
-1. Integrate all dashboard components into a cohesive interface
-2. Perform unit testing for individual components
-3. Conduct integration testing for data flow and component interactions
-4. Execute performance testing under various data load scenarios
-5. Perform user acceptance testing with stakeholders
-6. Conduct cross-browser and device compatibility testing
-7. Address and fix any identified issues or bugs
+Set up automated workflows using tools like Apache Airflow or similar.
+
+## 9. Industry-Specific Package Development [pending]
+### Dependencies: 8.8
+### Description: Develop industry-specific packages for the dashboard.
+### Details:
+Create custom modules or plugins tailored to specific industry needs.
+
+## 10. Final Integration and Testing [pending]
+### Dependencies: 8.9
+### Description: Integrate all components and conduct thorough testing.
+### Details:
+Ensure all subtasks are fully integrated and functioning as expected.
 
