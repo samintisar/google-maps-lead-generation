@@ -1,73 +1,43 @@
 # Task ID: 8
-# Title: SaaS Metrics Dashboard
+# Title: Build Analytics Dashboard with Chart.js/Apache ECharts
 # Status: pending
-# Dependencies: None
+# Dependencies: 4, 7
 # Priority: medium
-# Description: Create a dashboard with FastAPI analytics calculations and Apache ECharts visualization.
+# Description: Develop analytics page with comprehensive metrics visualization.
 # Details:
-
+Build SvelteKit analytics page with Chart.js (v4.4.2) and/or Apache ECharts (v5.4.3) integration. Visualize conversion funnels, source performance, scoring distributions, temperature analytics, and trend data. Use Svelte stores for state. Fetch data from FastAPI analytics endpoints. Implement export functionality for analytics data.
 
 # Test Strategy:
-
+Test chart rendering, data visualization, and export functionality. Validate data consistency with backend.
 
 # Subtasks:
-## 1. Data Integration [pending]
+## 1. Set Up SvelteKit Project and Install Libraries [pending]
 ### Dependencies: None
-### Description: Integrate data from various sources into a unified dataset.
+### Description: Initialize a SvelteKit project and install required libraries (Chart.js v4.4.2 and/or Apache ECharts v5.4.3).
 ### Details:
-Use tools like web scrapers or APIs to collect data and store it in a central data warehouse.
+Create a new SvelteKit project, install dependencies via npm, and configure the project structure for analytics dashboard development[1][5][3].
 
-## 2. Data Aggregation [pending]
+## 2. Design Dashboard Layout and Chart Components [pending]
 ### Dependencies: 8.1
-### Description: Aggregate the integrated data to summarize insights.
+### Description: Design the analytics dashboard layout and create reusable chart components for each visualization type.
 ### Details:
-Apply aggregation techniques such as grouping and averaging to extract meaningful data.
+Implement responsive layout using Svelte components. Create reusable chart components for line, bar, pie, funnel, and heatmap charts[2][1][5].
 
-## 3. Metric Calculation [pending]
-### Dependencies: 8.2
-### Description: Calculate key metrics from aggregated data.
+## 3. Integrate Data Fetching and State Management [pending]
+### Dependencies: 8.1, 8.2
+### Description: Implement data fetching from FastAPI analytics endpoints and manage state using Svelte stores.
 ### Details:
-Develop functions to compute metrics such as averages, ranges, and trends.
+Set up data fetching logic to retrieve analytics data from FastAPI. Use Svelte stores for state management and real-time updates[2][1].
 
-## 4. Data Visualization [pending]
-### Dependencies: 8.3
-### Description: Create visualizations to represent calculated metrics.
+## 4. Implement Chart Visualization and Analytics Features [pending]
+### Dependencies: 8.2, 8.3
+### Description: Integrate Chart.js and Apache ECharts to visualize conversion funnels, source performance, scoring distributions, temperature analytics, and trend data.
 ### Details:
-Use libraries like Matplotlib or Plotly to create interactive visualizations.
+Configure each chart type with appropriate data and options. Ensure real-time updates and mobile responsiveness[2][1][3].
 
-## 5. Dashboard Layout [pending]
-### Dependencies: 8.4
-### Description: Design a user-friendly dashboard layout.
+## 5. Add Export Functionality and Finalize Dashboard [pending]
+### Dependencies: 8.3, 8.4
+### Description: Implement export functionality for analytics data and finalize the dashboard.
 ### Details:
-Organize visualizations and metrics into an intuitive dashboard structure.
-
-## 6. Analytics Development [pending]
-### Dependencies: 8.5
-### Description: Develop advanced analytics capabilities.
-### Details:
-Implement predictive models or machine learning algorithms for deeper insights.
-
-## 7. Performance Optimization [pending]
-### Dependencies: 8.6
-### Description: Optimize the performance of the dashboard and analytics.
-### Details:
-Use caching, parallel processing, or other optimization techniques to improve speed.
-
-## 8. Workflow Configuration [pending]
-### Dependencies: 8.7
-### Description: Configure workflows for data processing and analytics.
-### Details:
-Set up automated workflows using tools like Apache Airflow or similar.
-
-## 9. Industry-Specific Package Development [pending]
-### Dependencies: 8.8
-### Description: Develop industry-specific packages for the dashboard.
-### Details:
-Create custom modules or plugins tailored to specific industry needs.
-
-## 10. Final Integration and Testing [pending]
-### Dependencies: 8.9
-### Description: Integrate all components and conduct thorough testing.
-### Details:
-Ensure all subtasks are fully integrated and functioning as expected.
+Add export options (e.g., CSV, PNG) for analytics data. Perform final UI/UX checks and optimizations.
 

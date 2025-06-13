@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
-
 	export let title: string;
 	export let value: string | number;
 	export let subtitle: string = '';
@@ -16,23 +14,22 @@
 	export let drillDownData: Array<{ label: string; value: string | number; percentage?: number }> = [];
 	export const showDrillDown: boolean = false;
 
-	const dispatch = createEventDispatcher<{
-		click: { title: string; value: string | number };
-		drillDown: { title: string; item: string };
-	}>();
+	// Event callbacks
+	export let onclick: ((data: { title: string; value: string | number }) => void) | undefined = undefined;
+	export let ondrilldown: ((data: { title: string; item: string }) => void) | undefined = undefined;
 
 	let expanded = false;
 
 	function handleCardClick() {
 		if (!clickable || loading || error) return;
-		dispatch('click', { title, value });
+		onclick?.({ title, value });
 		if (drillDownData.length > 0) {
 			expanded = !expanded;
 		}
 	}
 
 	function handleDrillDownClick(item: { label: string; value: string | number }) {
-		dispatch('drillDown', { title, item: item.label });
+		ondrilldown?.({ title, item: item.label });
 	}
 
 	function formatValue(val: string | number): string {
@@ -59,15 +56,15 @@
 	}
 </script>
 
-<div 
-	class="bg-white rounded-lg shadow-sm border border-gray-200 transition-all duration-200
+<svelte:element 
+	this={clickable ? 'button' : 'div'}
+	class="bg-white rounded-lg shadow-sm border border-gray-200 transition-all duration-200 text-left
 		{clickable && !loading && !error ? 'hover:shadow-md hover:border-gray-300 cursor-pointer' : ''}
 		{expanded ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}
 		{error ? 'border-red-200 bg-red-50' : ''}"
 	on:click={handleCardClick}
-	on:keydown={(e) => e.key === 'Enter' && handleCardClick()}
-	role={clickable ? 'button' : 'region'}
-	tabindex={clickable ? 0 : undefined}
+	on:keydown={(e: KeyboardEvent) => e.key === 'Enter' && handleCardClick()}
+	role={clickable ? undefined : 'button'}
 	aria-expanded={expanded}
 	aria-label="{title}: {value}"
 >
@@ -171,4 +168,4 @@
 			</div>
 		</div>
 	{/if}
-</div> 
+</svelte:element> 

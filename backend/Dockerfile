@@ -21,6 +21,7 @@ COPY . .
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser \
     && chown -R appuser:appuser /app
+
 USER appuser
 
 # Expose port

@@ -1,61 +1,11 @@
 # Task ID: 7
-# Title: Multi-Channel Outreach System
-# Status: pending
-# Dependencies: None
+# Title: Implement Analytics Backend Calculations
+# Status: in-progress
+# Dependencies: 2, 3
 # Priority: medium
-# Description: Implement email automation through Python scripts and campaign management analytics.
+# Description: Develop FastAPI endpoints for analytics data processing and chart data generation.
 # Details:
-
+Implement FastAPI endpoints for calculating conversion metrics, source performance, scoring distributions, temperature analytics, trend data, and funnel metrics. Use SQL queries and aggregation for analytics. Return data in format suitable for Chart.js/Apache ECharts.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Email Channel Integration [pending]
-### Dependencies: None
-### Description: Implement email integration using Python and FastAPI to send and receive emails.
-### Details:
-Use libraries like smtplib for sending emails and imaplib for receiving emails.
-
-## 2. Slack Channel Integration [pending]
-### Dependencies: None
-### Description: Integrate Slack API with FastAPI to send and receive messages.
-### Details:
-Use Slack's Webhook API for sending messages and Slack's Events API for receiving messages.
-
-## 3. SMS Channel Integration [pending]
-### Dependencies: None
-### Description: Implement SMS integration using a service like Twilio with FastAPI.
-### Details:
-Use Twilio's API to send and receive SMS messages.
-
-## 4. Campaign Management System [pending]
-### Dependencies: 7.1, 7.2, 7.3
-### Description: Develop a campaign management system to organize and track campaigns across channels.
-### Details:
-Use a database to store campaign data and integrate with channel integrations.
-
-## 5. Analytics System Development [pending]
-### Dependencies: 7.4
-### Description: Create an analytics system to track performance across channels.
-### Details:
-Use data visualization tools like Matplotlib or Plotly to display analytics.
-
-## 6. UI Component Design [pending]
-### Dependencies: 7.4, 7.5
-### Description: Design UI components for campaign management and analytics visualization.
-### Details:
-Use a UI framework like React or Vue.js for building the UI.
-
-## 7. Cross-Channel Coordination [pending]
-### Dependencies: 7.4, 7.6
-### Description: Implement cross-channel coordination to ensure seamless operation across email, Slack, and SMS.
-### Details:
-Use message queues like RabbitMQ for coordinating messages across channels.
-
-## 8. User Experience Design and Testing [pending]
-### Dependencies: 7.6, 7.7
-### Description: Design and test the user experience for the campaign management and analytics UI.
-### Details:
-Conduct user testing and gather feedback to improve the UI.
-
+Test analytics endpoints with sample data. Validate calculation accuracy and response format.

@@ -1,31 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { auth, authStore } from '$lib/stores/auth';
-
 	let showMobileMenu = $state(false);
-	let authState = $state($authStore);
-
-	// Subscribe to auth store
-	onMount(() => {
-		const unsubscribe = authStore.subscribe(state => {
-			authState = state;
-			
-			// If not authenticated, redirect to login
-			if (!state.isAuthenticated && !state.isLoading) {
-				goto('/login');
-			}
-		});
-
-		return unsubscribe;
-	});
+	let { children } = $props();
 
 	function toggleMobileMenu() {
 		showMobileMenu = !showMobileMenu;
-	}
-
-	function handleLogout() {
-		auth.logout();
 	}
 </script>
 
@@ -75,7 +53,14 @@
 	<!-- Mobile menu overlay -->
 	{#if showMobileMenu}
 		<div class="lg:hidden fixed inset-0 z-40 flex">
-			<div class="fixed inset-0 bg-gray-600 bg-opacity-75" onclick={toggleMobileMenu}></div>
+			<div 
+				class="fixed inset-0 bg-gray-600 bg-opacity-75" 
+				onclick={toggleMobileMenu}
+				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleMobileMenu(); }}
+				tabindex="0"
+				role="button"
+				aria-label="Close menu"
+			></div>
 			<div class="relative flex-1 flex flex-col max-w-xs w-full bg-gray-900">
 				<div class="absolute top-0 right-0 -mr-12 pt-2">
 					<button
@@ -147,26 +132,7 @@
 						<!-- Mobile menu button is above -->
 					</div>
 					<div class="hidden lg:flex lg:items-center lg:justify-end xl:col-span-4">
-						<!-- Profile dropdown -->
-						<div class="ml-4 relative flex-shrink-0">
-							<div class="flex items-center space-x-4">
-								{#if authState.user}
-									<span class="text-sm font-medium text-gray-700">
-										{authState.user.username}
-									</span>
-								{/if}
-								<button
-									type="button"
-									onclick={handleLogout}
-									class="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-								>
-									<span class="sr-only">Logout</span>
-									<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-									</svg>
-								</button>
-							</div>
-						</div>
+						<!-- Authentication removed -->
 					</div>
 				</div>
 			</div>
@@ -174,18 +140,7 @@
 
 		<!-- Main content area -->
 		<main class="flex-1">
-			{#if authState.isLoading}
-				<div class="flex justify-center items-center h-64">
-					<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-					<span class="ml-3 text-gray-600">Loading...</span>
-				</div>
-			{:else if authState.isAuthenticated}
-				<slot />
-			{:else}
-				<div class="flex justify-center items-center h-64">
-					<p class="text-gray-600">Please log in to access the dashboard.</p>
-				</div>
-			{/if}
+			{@render children()}
 		</main>
 	</div>
 </div> 

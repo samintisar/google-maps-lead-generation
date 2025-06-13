@@ -1,117 +1,43 @@
 # Task ID: 5
-# Title: Python Automation Engine Integration
-# Status: done
-# Dependencies: None
+# Title: Implement Lead Management Dashboard
+# Status: in-progress
+# Dependencies: 3, 4
 # Priority: medium
-# Description: Implement the primary automation layer using Python, handling 80% of operations with scheduling and script management. Core automation infrastructure is now in place and operational.
+# Description: Develop dashboard page with lead overview, status tracking, and quick actions.
 # Details:
-The automation engine includes a complete framework with AutomationEngine class, comprehensive scheduler using APScheduler, script management system with template support, full REST API for automation management, integration with existing FastAPI backend, and Docker container setup.
+Build SvelteKit dashboard page with real-time lead overview, status indicators, and quick action buttons. Use Svelte stores for reactive state. Fetch data from FastAPI backend. Implement real-time updates using server-sent events (SSE) for live data[1]. Use Tailwind CSS for styling.
 
 # Test Strategy:
-Conduct thorough integration testing to ensure all components work seamlessly together. Use Docker containers for isolated testing environments.
+Test dashboard rendering, real-time updates, and quick action functionality. Validate data consistency with backend.
 
 # Subtasks:
-## 1. Workflow Templates Integration [done]
+## 1. Set Up SvelteKit Dashboard Page Structure [pending]
 ### Dependencies: None
-### Description: Integrate existing n8n workflow templates into the Python automation framework.
+### Description: Create the main dashboard page layout and routing in SvelteKit.
 ### Details:
-Use n8n's template library as a reference to create similar workflows in Python, focusing on best practices and examples.
+Initialize SvelteKit project, set up routing for the dashboard, and create the main +page.svelte file for the dashboard view.
 
-## 2. CRUD Operations Implementation [done]
+## 2. Integrate FastAPI Backend and Neon Database [pending]
 ### Dependencies: 5.1
-### Description: Implement CRUD (Create, Read, Update, Delete) operations in the Python automation framework.
+### Description: Connect SvelteKit frontend to FastAPI backend and ensure Neon database integration.
 ### Details:
-Develop API endpoints using FastAPI to handle CRUD operations, ensuring compatibility with the existing infrastructure.
+Implement API calls from SvelteKit to FastAPI for fetching lead data. Ensure Neon database is properly connected and data is accessible.
 
-## 3. Webhook System Development [done]
+## 3. Implement Real-Time Data Updates with SSE [pending]
 ### Dependencies: 5.2
-### Description: Design and implement a webhook system to handle real-time data updates.
+### Description: Enable real-time lead data updates using server-sent events (SSE).
 ### Details:
-Use FastAPI to create webhook endpoints that can receive and process data from external sources, integrating with the CRUD operations and the new automation engine.
-<info added on 2025-06-10T07:46:12.572Z>
-The webhook system development is now complete. Key accomplishments include:
+Set up SSE in FastAPI and subscribe to real-time updates in SvelteKit. Use Svelte stores for reactive state management.
 
-1. Comprehensive webhook router implementation in `backend/routers/webhooks.py` with registration, secure signature verification, event processing, lifecycle management, and test endpoints.
-
-2. WebhookProcessor class for intelligent event handling, automation engine integration, and event queue management.
-
-3. Webhook automation scripts in `backend/automation/webhook_scripts.py` for lead scoring, enrichment, welcome emails, lead creation, and notifications.
-
-4. FastAPI integration in `backend/main.py` with proper initialization and existing automation infrastructure integration.
-
-5. Security features including signature verification, user-based access control, and secret key management.
-
-6. API endpoints for webhook registration, listing, data reception, deletion, toggling, event history viewing, and testing.
-
-The system is fully operational, featuring real-time processing, event-driven automation, database and Redis integration, error handling, and logging. It's ready for external webhook calls and automated workflows for lead processing, scoring, enrichment, and notifications.
-</info added on 2025-06-10T07:46:12.572Z>
-
-## 4. Monitoring Subtasks Setup [done]
-### Dependencies: 5.3
-### Description: Set up monitoring subtasks to track the performance and health of the automation system.
-### Details:
-Implement logging and monitoring tools to ensure the system's reliability and efficiency, using Docker for containerization. Integrate with the existing automation engine and scheduler.
-<info added on 2025-06-10T08:02:11.995Z>
-The monitoring infrastructure implementation is complete, with the following major accomplishments:
-
-1. Automation Metrics System (backend/automation/metrics.py):
-   - Prometheus metrics collection framework
-   - Comprehensive metric definitions for automation execution, webhooks, scheduler, and system health
-   - Health check functionality with automated status reporting
-   - Error tracking and performance monitoring capabilities
-
-2. Prometheus Alert Rules (monitoring/prometheus/rules/automation_alerts.yml):
-   - 20+ alert rules covering all automation system aspects
-   - Error rate, performance, system health, and business logic monitoring
-   - Capacity planning alerts for scaling decisions
-
-3. Grafana Dashboard (monitoring/grafana/dashboards/automation_dashboard.json):
-   - 14-panel dashboard for real-time monitoring, performance visualization, resource monitoring, and error analysis
-
-4. Metrics Integration:
-   - Integrated into AutomationEngine and WebhookProcessor
-   - Added prometheus_client dependency
-   - Created health check endpoint in automation router
-
-5. Infrastructure Enhancements:
-   - Updated Prometheus configuration
-   - Configured alert rules for automated notifications
-   - Dashboard ready for Grafana import
-   - Monitoring stack integrated with existing infrastructure
-
-Technical implementation includes Prometheus metrics (Counters, Histograms, Gauges), tuned alert thresholds, and a comprehensive dashboard. The monitoring infrastructure is now production-ready, providing full visibility into the automation system's performance, health, and business impact.
-</info added on 2025-06-10T08:02:11.995Z>
-
-## 5. Integration Testing and Deployment [done]
-### Dependencies: 5.4
-### Description: Perform integration testing and deploy the complete automation system.
-### Details:
-Test all components together to ensure seamless integration, then deploy the system using Docker Compose for simplified management. Ensure proper integration with the new AutomationEngine class and APScheduler.
-<info added on 2025-06-10T08:14:06.996Z>
-Integration testing and deployment Phase 1 completed successfully. Key achievements:
-
-1. Docker infrastructure validated with all core services operational.
-2. Backend system fully integrated with comprehensive API endpoints, authentication, and database connectivity.
-3. Frontend-backend integration enhanced with improved API client, error handling, and user experience.
-4. Automation framework developed, including AutomationEngine, AutomationScheduler, ScriptManager, and webhook system.
-5. Infrastructure monitoring set up with Prometheus metrics, Grafana dashboards, and alert rules.
-
-Technical accomplishments include complete removal of n8n dependencies, transition to Python-based automation architecture, enhanced error handling and logging, and implementation of a modular, scalable automation framework.
-
-Current status: Core LMA platform operational, frontend-backend integration optimized, database and Redis services stable, monitoring infrastructure ready, and automation framework codebase complete.
-
-Next steps: Refine containerization of the automation system, optimize Docker build process for production deployment.
-</info added on 2025-06-10T08:14:06.996Z>
-
-## 6. Documentation and User Guide [done]
+## 4. Develop Lead Overview Cards and Status Indicators [pending]
 ### Dependencies: 5.1, 5.2
-### Description: Create comprehensive documentation and user guide for the new automation engine.
+### Description: Design and implement lead overview cards and status indicators.
 ### Details:
-Document the AutomationEngine class, APScheduler usage, script management system, and REST API endpoints. Include examples of how to create and manage automation tasks.
+Create reusable components for lead cards and status indicators. Use Tailwind CSS for styling. Display relevant lead information and status.
 
-## 7. Performance Optimization [done]
-### Dependencies: 5.1, 5.2, 5.3, 5.4
-### Description: Optimize the performance of the automation engine and scheduler.
+## 5. Add Quick Action Buttons and Chart.js Integration [pending]
+### Dependencies: 5.1, 5.2, 5.4
+### Description: Implement quick action buttons and integrate Chart.js for data visualization.
 ### Details:
-Analyze and improve the efficiency of the AutomationEngine class and APScheduler. Implement caching mechanisms where appropriate and optimize database queries.
+Add buttons for common lead actions (e.g., edit, delete, assign). Integrate Chart.js to visualize lead metrics and trends.
 

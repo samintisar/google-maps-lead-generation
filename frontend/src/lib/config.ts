@@ -33,7 +33,7 @@ export const config = {
 	
 	// Features flags
 	features: {
-		useDevEndpoints: browser ? window.location.hostname === 'localhost' : true,
+		useDevEndpoints: true, // Enabled - using dev endpoints during migration
 		enableDebugLogging: browser ? window.location.hostname === 'localhost' : false,
 	}
 };

@@ -11,10 +11,14 @@
 	let sourceFilter = '';
 	let currentPage = 1;
 	const itemsPerPage = 20;
+	let hasLoaded = false;
 
 	// Load leads on component mount
 	onMount(() => {
-		loadLeads();
+		if (!hasLoaded) {
+			hasLoaded = true;
+			loadLeads();
+		}
 	});
 
 	// Load leads with current filters
@@ -60,7 +64,7 @@
 
 	// Delete lead
 	async function deleteLead(lead: Lead) {
-		if (confirm(`Are you sure you want to delete ${lead.first_name} ${lead.last_name}?`)) {
+		if (confirm(`Are you sure you want to delete ${lead.name}?`)) {
 			await leadsStore.deleteLead(lead.id);
 		}
 	}
@@ -72,16 +76,14 @@
 
 	// Get status badge color
 	function getStatusColor(status: LeadStatus) {
-		const colors = {
+		const colors: Record<LeadStatus, string> = {
 			[LeadStatus.NEW]: 'bg-blue-100 text-blue-800',
 			[LeadStatus.CONTACTED]: 'bg-yellow-100 text-yellow-800',
 			[LeadStatus.QUALIFIED]: 'bg-green-100 text-green-800',
 			[LeadStatus.PROPOSAL]: 'bg-purple-100 text-purple-800',
 			[LeadStatus.NEGOTIATION]: 'bg-orange-100 text-orange-800',
-			[LeadStatus.WON]: 'bg-green-100 text-green-800',
-			[LeadStatus.LOST]: 'bg-red-100 text-red-800',
-			[LeadStatus.NURTURING]: 'bg-indigo-100 text-indigo-800',
-			[LeadStatus.UNRESPONSIVE]: 'bg-gray-100 text-gray-800',
+			[LeadStatus.CLOSED_WON]: 'bg-green-100 text-green-800',
+			[LeadStatus.CLOSED_LOST]: 'bg-red-100 text-red-800',
 		};
 		return colors[status] || 'bg-gray-100 text-gray-800';
 	}
@@ -308,13 +310,13 @@
 											<div class="flex-shrink-0 h-10 w-10">
 												<div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
 													<span class="text-sm font-medium text-gray-700">
-														{lead.first_name?.[0]}{lead.last_name?.[0]}
+														{lead.name?.[0]}
 													</span>
 												</div>
 											</div>
 											<div class="ml-4">
 												<div class="text-sm font-medium text-gray-900">
-													{lead.first_name} {lead.last_name}
+													{lead.name}
 												</div>
 												<div class="text-sm text-gray-500">{lead.email}</div>
 											</div>
@@ -322,7 +324,6 @@
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<div class="text-sm text-gray-900">{lead.company || '-'}</div>
-										<div class="text-sm text-gray-500">{lead.job_title || '-'}</div>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {getStatusColor(lead.status)}">
@@ -344,8 +345,8 @@
 										</div>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
-										<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {getTemperatureColor(lead.lead_temperature)}">
-											{(lead.lead_temperature || 'cold').toUpperCase()}
+										<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+											COLD
 										</span>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

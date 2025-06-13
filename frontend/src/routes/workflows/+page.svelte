@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { api, leadApi, authApi } from '$lib/api';
-	import { authStore } from '$lib/stores/auth';
+	import { api } from '$lib/api';
 
 	// UI State
 	let activeTab = 'credentials';
@@ -136,11 +134,7 @@
 	];
 
 	onMount(async () => {
-		// Check authentication
-		if (!$authStore.user) {
-			goto('/login');
-			return;
-		}
+		// Authentication check removed
 		
 		// Note: This is the main workflows page that shows available workflows.
 		// We don't load user-specific data (credentials, stats, executions) here.

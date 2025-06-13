@@ -1,12 +1,12 @@
 <!-- Settings Page -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { authStore } from '$lib/stores/auth';
+	// Auth store removed
 	
-	// Settings state
+	// Settings state - auth removed
 	let userSettings = $state({
-		username: $authStore.user?.username || '',
-		email: $authStore.user?.email || '',
+		username: 'demo_user',
+		email: 'demo@example.com',
 		notifications: {
 			email: true,
 			browser: true,

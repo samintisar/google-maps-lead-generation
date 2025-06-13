@@ -2,777 +2,334 @@
   "tasks": [
     {
       "id": 1,
-      "title": "Setup Core Infrastructure",
-      "description": "Establish the foundational infrastructure for the project, including Git, Docker, Docker Compose, CI/CD pipelines, and monitoring tools. Transition from n8n to a Python-based automation backend.",
-      "status": "done",
+      "title": "Setup Project Repository and Development Environment",
+      "description": "Initialize project repository with SvelteKit (v2.19.0), FastAPI (v0.115.11), Neon PostgreSQL, Docker, and Docker Compose. Configure environment variables and basic CI/CD pipeline.",
+      "details": "Create a monorepo or separate repos for frontend (SvelteKit with TypeScript, Tailwind CSS) and backend (FastAPI, Python 3.13.2). Set up Docker Compose for local development with Neon PostgreSQL (latest). Use Node.js 22.14.0 and npm 11.2.0 for SvelteKit. Configure environment variables for database connection and API endpoints. Add basic CI/CD workflow for linting and testing.",
+      "testStrategy": "Verify repository structure, Docker Compose setup, and environment variable configuration. Test local development environment by running both frontend and backend services.",
+      "priority": "high",
       "dependencies": [],
-      "priority": "medium",
-      "details": "This task involves setting up the core infrastructure and transitioning from n8n to a Python-based automation system. Key steps include:\n\n1. Remove n8n components (Completed)\n2. Update backend/ for Python automation (Completed)\n3. Maintain existing infrastructure (Completed)\n4. Update documentation\n5. Test complete system integration\n6. Start remaining containers and verify full functionality",
-      "testStrategy": "1. Verify all n8n components are removed without affecting other services (Completed)\n2. Test the enhanced FastAPI backend for automation management (Completed)\n3. Validate the Python automation engine's scheduling capabilities (Completed)\n4. Ensure the automation script management system is functional (Completed)\n5. Confirm PostgreSQL, Redis, and monitoring services are working correctly (Completed)\n6. Test frontend connectivity to the new Python automation system\n7. Perform integration tests to ensure all components work together seamlessly\n8. Verify that all containers start successfully and the system functions as expected",
-      "subtasks": [
-        {
-          "id": 1.1,
-          "title": "Remove n8n components",
-          "status": "done",
-          "description": "Delete n8n directory, remove n8n service from docker-compose.yml, clean up environment variables and references, and remove n8n volumes and data."
-        },
-        {
-          "id": 1.2,
-          "title": "Update backend for Python automation",
-          "status": "done",
-          "description": "Enhance FastAPI backend for automation management, add Python automation engine with scheduling capabilities, and setup automation script management system."
-        },
-        {
-          "id": 1.3,
-          "title": "Maintain existing infrastructure",
-          "status": "done",
-          "description": "Ensure PostgreSQL, Redis, and monitoring remain intact, update environment variables to remove n8n references, and verify frontend can connect to the new Python automation system."
-        },
-        {
-          "id": 1.4,
-          "title": "Update documentation",
-          "status": "done",
-          "description": "Update project documentation to reflect the transition from n8n to Python-based automation, including setup instructions and API changes."
-        },
-        {
-          "id": 1.5,
-          "title": "Test complete system integration",
-          "status": "done",
-          "description": "Perform comprehensive integration tests to ensure all components of the new Python-based automation system work together seamlessly with existing infrastructure."
-        },
-        {
-          "id": 1.6,
-          "title": "Start remaining containers and verify full functionality",
-          "status": "done",
-          "description": "Start all remaining Docker containers, including the updated backend and frontend services, and verify that the entire system functions as expected with the new Python-based automation."
-        }
-      ]
+      "status": "done",
+      "subtasks": []
     },
     {
       "id": 2,
-      "title": "Enhanced FastAPI Backend",
-      "description": "Develop the FastAPI backend with Lucia authentication integration for secure access, analytics-focused API endpoints, and automation capabilities.",
-      "status": "in-progress",
-      "dependencies": [],
-      "priority": "medium",
-      "details": "The backend now includes a comprehensive automation module with REST API endpoints, AutomationEngine, AutomationScheduler, and ScriptManager classes, as well as Docker container integration.",
-      "testStrategy": "Implement unit tests for new authentication and analytics endpoints. Ensure integration tests cover the interaction between automation, authentication, and analytics components.",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Implement Authentication",
-          "description": "Integrate Lucia authentication to secure API endpoints.",
-          "dependencies": [],
-          "details": "Implement Lucia authentication for user authentication, ensuring compatibility with the existing FastAPI infrastructure and automation module.",
-          "status": "done"
-        },
-        {
-          "id": 2,
-          "title": "Develop SaaS Metrics Endpoints",
-          "description": "Create API endpoints to track and report SaaS metrics.",
-          "dependencies": [
-            1
-          ],
-          "details": "Design endpoints to collect and analyze SaaS metrics such as user engagement, subscription status, and revenue growth. Ensure these endpoints integrate well with the existing automation capabilities.",
-          "status": "done"
-        },
-        {
-          "id": 3,
-          "title": "Implement Complex Calculations",
-          "description": "Integrate algorithms for complex data analysis and calculations.",
-          "dependencies": [
-            1,
-            2
-          ],
-          "details": "Develop functions to perform advanced statistical analysis and data modeling on collected metrics. Leverage the existing AutomationEngine for potential optimization of calculations.\n<info added on 2025-06-10T08:33:34.780Z>\nBased on the implementation analysis, we will enhance the subtask with the following:\n\nDevelop a comprehensive analytics service module with the following components:\n\n1. Statistical Analysis Engine:\n   - Implement correlation analysis, trend analysis, and regression functions\n   - Create data science utilities for statistical tests and confidence intervals\n\n2. Predictive Analytics:\n   - Develop algorithms for lead conversion probability\n   - Implement revenue forecasting models\n\n3. Cohort Analysis:\n   - Build user retention analysis tools\n   - Create lead lifecycle analysis functions\n\n4. Advanced Aggregations:\n   - Implement time-series analytics with trend detection\n   - Add rolling averages calculations\n\n5. Machine Learning Preparation:\n   - Develop feature engineering utilities\n   - Create data transformation functions for ML model input\n\n6. Integration and Optimization:\n   - Integrate new analytics components with existing AutomationEngine\n   - Optimize calculations for performance\n\n7. API Development:\n   - Create new API endpoints for accessing advanced analytics features\n\nNext steps: Begin implementation of the statistical analysis service and predictive models, focusing on the core components of the analytics module.\n</info added on 2025-06-10T08:33:34.780Z>\n<info added on 2025-06-10T08:45:34.670Z>\nImplementation of complex calculations and comprehensive analytics modules is complete. Key components successfully developed:\n\n1. Statistical Analysis Engine (statistical_engine.py):\n   - Descriptive statistics, correlation analysis, trend analysis\n   - Moving averages, outlier detection, normality testing\n\n2. Predictive Analytics Module (predictive_analytics.py):\n   - Lead conversion probability prediction, revenue forecasting\n   - Customer Lifetime Value calculation, feature engineering\n   - Automated recommendations generation\n\n3. Cohort Analysis Module (cohort_analysis.py):\n   - Lead cohort analysis, customer lifecycle stage analysis\n   - Behavioral segmentation, retention rate calculation\n   - Lead pipeline performance analysis\n\n4. Main Analytics Service (analytics_service.py):\n   - Orchestrates all analysis modules\n   - Supports parallel processing with AutomationEngine integration\n   - Comprehensive reporting and advanced metrics calculation\n   - Performance optimization through caching\n\n5. API Integration (analytics.py router):\n   - 8 development endpoints and 3 production endpoints\n   - Request/response models with Pydantic validation\n   - Error handling and logging\n\nDependencies updated to include scikit-learn, scipy, matplotlib, seaborn, and plotly.\n\nIntegration status:\n- Router integrated into main FastAPI application\n- Database models compatible with analytics functions\n- AutomationEngine integration completed\n- Development endpoints ready for testing\n\nThe implementation is now ready for integration testing and production deployment.\n</info added on 2025-06-10T08:45:34.670Z>",
-          "status": "done"
-        },
-        {
-          "id": 4,
-          "title": "Integrate Analytics Features",
-          "description": "Combine authentication, metrics, and calculations into a cohesive analytics API.",
-          "dependencies": [
-            1,
-            2,
-            3
-          ],
-          "details": "Ensure seamless interaction between authentication, data collection, complex calculations, and the automation module to provide comprehensive analytics.",
-          "status": "pending"
-        },
-        {
-          "id": 5,
-          "title": "Enhance Automation Integration",
-          "description": "Optimize the integration between analytics features and the existing automation module.",
-          "dependencies": [
-            1,
-            2,
-            3,
-            4
-          ],
-          "details": "Refine the interaction between analytics endpoints and the automation module, ensuring efficient data flow and processing. Implement additional endpoints if necessary for analytics-driven automation tasks.\n<info added on 2025-06-10T07:25:54.012Z>\nEnhanced automation integration is now complete. The following key components have been successfully implemented:\n\n1. Comprehensive automation router with full REST API\n2. Integration of AutomationEngine, AutomationScheduler, and ScriptManager classes\n3. CRUD operations for scripts, executions, and jobs\n4. Template management system\n5. Integration with main FastAPI application\n6. Docker container functionality tested\n7. Updated requirements.txt with necessary dependencies\n\nThe automation module is fully integrated with the FastAPI backend, with all automation endpoints operational and tested. This enhancement ensures efficient data flow and processing between analytics endpoints and the automation module, supporting analytics-driven automation tasks.\n</info added on 2025-06-10T07:25:54.012Z>",
-          "status": "done"
-        },
-        {
-          "id": 6,
-          "title": "Documentation and API Specification",
-          "description": "Create comprehensive documentation for the enhanced backend, including authentication, analytics, and automation features.",
-          "dependencies": [
-            1,
-            2,
-            3,
-            4,
-            5
-          ],
-          "details": "Develop detailed API documentation, including endpoint specifications, request/response formats, and usage examples. Include information on how the automation module interacts with analytics features.",
-          "status": "pending"
-        }
-      ]
+      "title": "Design and Implement Neon PostgreSQL Database Schema",
+      "description": "Define and implement database schema for Lead, Analytics, Workflow, User, and Organization entities as per PRD.",
+      "details": "Design tables for Lead (contact_info, company_details, lead_source, lead_status, lead_score, lead_temperature, interaction_history, enrichment_data, creation_date, last_updated), Analytics (conversion_metrics, source_performance, scoring_distributions, temperature_analytics, trend_data, funnel_metrics), Workflow (workflow_type, workflow_steps, current_status, completion_percentage, assigned_leads, execution_history), User (basic_profile, role, permissions, dashboard_preferences), Organization (company_info, settings, lead_count, user_count, subscription_status). Use Neon PostgreSQL for cloud-based storage and team collaboration. Implement indexes for performance.",
+      "testStrategy": "Validate schema with sample data insertion and retrieval. Test foreign key constraints and query performance.",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "done",
+      "subtasks": []
     },
     {
       "id": 3,
-      "title": "Database Schema Design",
-      "description": "Design and implement the PostgreSQL database schema for User, Lead, Organization, and Automation entities.",
-      "details": "",
-      "testStrategy": "",
-      "priority": "medium",
-      "dependencies": [],
-      "status": "in-progress",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Schema Design",
-          "description": "Design a scalable database schema considering future expansion and performance requirements.",
-          "dependencies": [],
-          "details": "Focus on selecting appropriate data types, indexing strategies, and sharding if necessary. Use tools like JSON or YAML for schema definition and version control.",
-          "status": "done"
-        },
-        {
-          "id": 2,
-          "title": "Schema Implementation",
-          "description": "Implement the designed schema in the database, ensuring consistency across all environments.",
-          "dependencies": [
-            1
-          ],
-          "details": "Use automated tools to apply schema changes and maintain version control. Consider using Delta tables or metadata tables for schema management.",
-          "status": "done"
-        },
-        {
-          "id": 3,
-          "title": "Schema Optimization",
-          "description": "Optimize the implemented schema for better performance and scalability.",
-          "dependencies": [
-            2
-          ],
-          "details": "Analyze query patterns, optimize indexing, and consider denormalization or aggregation services to reduce cross-shard operations.\n<info added on 2025-06-10T08:16:33.480Z>\nSchema Analysis Phase Results:\n\nTables & Data Volume:\n- 14 core tables implemented\n- Test data: 5 leads, 2 users, 4 organizations\n- 72 indexes defined\n\nWell-Indexed Areas:\n- Primary and foreign keys\n- Critical search fields (email, username, organization_id)\n- Status fields (lead_status, user_role)\n- Time-based fields (created_at, scheduled_at)\n- Business logic fields (lead_score, lead_temperature)\n\nSchema Structure Strengths:\n- Comprehensive normalization with proper foreign key relationships\n- Good separation of concerns\n- JSON fields for flexible data\n- Proper enum usage\n- Audit trail tables implemented\n\nOptimization Opportunities:\n1. Implement missing composite indexes for common query patterns\n2. Enhance JSON field performance with GIN indexes\n3. Optimize time-series data for high-volume logs\n4. Analyze query patterns for lead management workflows\n5. Explore denormalization opportunities for read-heavy operations\n\nNext steps involve implementing targeted optimizations based on query pattern analysis and performance testing.\n</info added on 2025-06-10T08:16:33.480Z>\n<info added on 2025-06-10T08:25:42.660Z>\nSchema Optimization Implementation Results:\n\nPerformance Metrics:\n- Total indexes: 101 (29 new optimized indexes added)\n- Average query time: 1.91ms\n- All business queries under 4ms average\n\nOptimization Categories Implemented:\n1. Composite Indexes\n2. JSON GIN Indexes\n3. Partial Indexes\n4. Time-Series Indexes\n5. Covering Indexes\n6. Data Integrity Constraints\n\nKey Performance Improvements:\n- Lead Assignment Queue: 0.97ms\n- Lead Scoring Analysis: 1.03ms\n- JSON Tag Search: 0.87ms\n- Communication History: 1.28ms\n- User Activity Tracking: 1.90ms\n- Organization Health Metrics: 3.34ms\n\nDeliverables:\n- SQL optimization script: /backend/database_optimizations.sql\n- Performance test suite: /backend/scripts/performance_tests.py\n- Documentation: /backend/docs/schema_optimization_report.md\n- 3 Performance monitoring views\n\nMonitoring & Maintenance Framework:\n- Automated performance testing suite\n- Query execution plan analysis\n- Database maintenance procedures\n- Performance monitoring views for business metrics\n\nValidation: All optimizations tested with real database. Performance exceeds 100ms target by 50x.\n</info added on 2025-06-10T08:25:42.660Z>",
-          "status": "done"
-        }
-      ]
+      "title": "Implement FastAPI Backend Core and CRUD Endpoints",
+      "description": "Develop FastAPI backend with core lead management CRUD endpoints and basic API documentation.",
+      "details": "Set up FastAPI (v0.115.11) with async SQLAlchemy (v2.0.25) for Neon PostgreSQL. Implement CRUD endpoints for Lead entity. Add basic API documentation using FastAPI’s built-in Swagger UI. Use Pydantic (v2.6.4) for request/response validation. Implement error handling and logging.",
+      "testStrategy": "Test all CRUD endpoints with Postman or automated tests. Validate request/response schemas and error handling.",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "done",
+      "subtasks": []
     },
     {
       "id": 4,
-      "title": "SvelteKit Frontend MVP",
-      "description": "Create a high-performance UI with SvelteKit, Tailwind CSS, and Lucia authentication integration.",
-      "details": "",
-      "testStrategy": "",
+      "title": "Setup SvelteKit Frontend Foundation",
+      "description": "Initialize SvelteKit frontend with TypeScript, Tailwind CSS, and basic routing.",
+      "details": "Set up SvelteKit (v2.19.0) with TypeScript and Tailwind CSS for responsive design. Configure routing for dashboard, lead list, and analytics pages. Use Svelte stores for state management. Implement basic layout and navigation.",
+      "testStrategy": "Test routing and layout rendering. Verify responsive design on multiple devices.",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 5,
+      "title": "Implement Lead Management Dashboard",
+      "description": "Develop dashboard page with lead overview, status tracking, and quick actions.",
+      "details": "Build SvelteKit dashboard page with real-time lead overview, status indicators, and quick action buttons. Use Svelte stores for reactive state. Fetch data from FastAPI backend. Implement real-time updates using server-sent events (SSE) for live data[1]. Use Tailwind CSS for styling.",
+      "testStrategy": "Test dashboard rendering, real-time updates, and quick action functionality. Validate data consistency with backend.",
       "priority": "medium",
-      "dependencies": [],
+      "dependencies": [
+        3,
+        4
+      ],
       "status": "in-progress",
       "subtasks": [
         {
           "id": 1,
-          "title": "Implement UI Components with SvelteKit",
-          "description": "Design and develop reusable UI components using SvelteKit's component structure.",
+          "title": "Set Up SvelteKit Dashboard Page Structure",
+          "description": "Create the main dashboard page layout and routing in SvelteKit.",
           "dependencies": [],
-          "details": "Focus on creating components for layout, pages, and shared elements like headers and footers.",
-          "status": "done"
+          "details": "Initialize SvelteKit project, set up routing for the dashboard, and create the main +page.svelte file for the dashboard view.",
+          "status": "pending",
+          "testStrategy": "Verify page loads and routing works as expected."
         },
         {
           "id": 2,
-          "title": "Integrate Svelte Stores for State Management",
-          "description": "Implement Svelte stores for managing application state across components.",
+          "title": "Integrate FastAPI Backend and Neon Database",
+          "description": "Connect SvelteKit frontend to FastAPI backend and ensure Neon database integration.",
           "dependencies": [
             1
           ],
-          "details": "Use Svelte's built-in store mechanism to handle reactive state updates.",
-          "status": "done"
+          "details": "Implement API calls from SvelteKit to FastAPI for fetching lead data. Ensure Neon database is properly connected and data is accessible.",
+          "status": "pending",
+          "testStrategy": "Test API endpoints and confirm data retrieval from Neon database."
         },
         {
           "id": 3,
-          "title": "Apply Tailwind Styling for Consistent UI",
-          "description": "Integrate Tailwind CSS for styling and layout consistency across the application.",
-          "dependencies": [
-            1
-          ],
-          "details": "Configure Tailwind to match the project's design requirements and apply it to UI components.",
-          "status": "done"
-        },
-        {
-          "id": 4,
-          "title": "Implement Key Features with SvelteKit and FastAPI",
-          "description": "Develop key application features by integrating SvelteKit frontend with the FastAPI backend.",
-          "dependencies": [
-            2,
-            3
-          ],
-          "details": "Focus on integrating backend API calls with frontend components for a seamless user experience.\n<info added on 2025-06-10T07:37:23.228Z>\nInitial analysis of SvelteKit frontend and FastAPI backend integration:\n\n✅ Working well:\n- Auth system with JWT token handling and storage\n- Comprehensive API client functions for leads and metrics\n- Professional dashboard layout with sidebar navigation\n- Proper store setup for state management\n- Dev endpoints for testing without full auth\n\n🔧 Key integration issues:\n1. Hardcoded dev endpoints in API client\n2. Suboptimal error handling\n3. Missing API base URL configuration\n4. Incomplete authentication flow for protected routes\n5. Insufficient API response type checking\n\nImplementation plan:\n1. Switch to authenticated endpoints\n2. Enhance error handling and loading states\n3. Implement environment-based API configuration\n4. Improve auth integration with route protection\n5. Add thorough API response validation\n</info added on 2025-06-10T07:37:23.228Z>\n<info added on 2025-06-10T07:40:58.136Z>\nMajor progress on frontend-backend integration:\n\n1. Environment Configuration System:\n   - Created `frontend/src/lib/config.ts` with smart environment detection\n   - Automatic API base URL configuration\n   - Feature flags for dev/authenticated endpoints\n   - Configurable timeouts and debugging options\n\n2. Enhanced API Client:\n   - Smart endpoint switching based on environment\n   - Request timeout support with abort controllers\n   - Improved error handling and debug logging\n   - Added authApi functions for centralized auth operations\n   - Enhanced type safety and response handling\n\n3. Upgraded Auth Store:\n   - JWT token expiration detection and validation\n   - Token refresh capabilities\n   - Improved error state management and user feedback\n   - Enhanced security with automatic token cleanup\n   - Better localStorage integration\n\n4. Reusable UI Components:\n   - `LoadingSpinner.svelte` for configurable loading states\n   - `ErrorAlert.svelte` for professional error display\n\n5. Enhanced Login Experience:\n   - Integrated new UI components\n   - Improved form state management and UX\n   - Better error display and dismissal\n\nIntegration improvements:\n- Seamless dev/production endpoint switching\n- Robust error handling throughout the application\n- Consistent loading states across API operations\n- Professional user feedback mechanisms\n- Improved separation of concerns\n\nKey features now working:\n- Automatic environment detection\n- Smart API endpoint routing\n- JWT token management with expiration\n- Enhanced error handling and user feedback\n- Professional loading and error UI components\n- Form validation and state management\n\nThe SvelteKit frontend now has a robust, production-ready integration with the FastAPI backend.\n</info added on 2025-06-10T07:40:58.136Z>",
-          "status": "done"
-        }
-      ]
-    },
-    {
-      "id": 5,
-      "title": "Python Automation Engine Integration",
-      "description": "Implement the primary automation layer using Python, handling 80% of operations with scheduling and script management. Core automation infrastructure is now in place and operational.",
-      "status": "done",
-      "dependencies": [],
-      "priority": "medium",
-      "details": "The automation engine includes a complete framework with AutomationEngine class, comprehensive scheduler using APScheduler, script management system with template support, full REST API for automation management, integration with existing FastAPI backend, and Docker container setup.",
-      "testStrategy": "Conduct thorough integration testing to ensure all components work seamlessly together. Use Docker containers for isolated testing environments.",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Workflow Templates Integration",
-          "description": "Integrate existing n8n workflow templates into the Python automation framework.",
-          "dependencies": [],
-          "details": "Use n8n's template library as a reference to create similar workflows in Python, focusing on best practices and examples.",
-          "status": "done"
-        },
-        {
-          "id": 2,
-          "title": "CRUD Operations Implementation",
-          "description": "Implement CRUD (Create, Read, Update, Delete) operations in the Python automation framework.",
-          "dependencies": [
-            1
-          ],
-          "details": "Develop API endpoints using FastAPI to handle CRUD operations, ensuring compatibility with the existing infrastructure.",
-          "status": "done"
-        },
-        {
-          "id": 3,
-          "title": "Webhook System Development",
-          "description": "Design and implement a webhook system to handle real-time data updates.",
+          "title": "Implement Real-Time Data Updates with SSE",
+          "description": "Enable real-time lead data updates using server-sent events (SSE).",
           "dependencies": [
             2
           ],
-          "details": "Use FastAPI to create webhook endpoints that can receive and process data from external sources, integrating with the CRUD operations and the new automation engine.\n<info added on 2025-06-10T07:46:12.572Z>\nThe webhook system development is now complete. Key accomplishments include:\n\n1. Comprehensive webhook router implementation in `backend/routers/webhooks.py` with registration, secure signature verification, event processing, lifecycle management, and test endpoints.\n\n2. WebhookProcessor class for intelligent event handling, automation engine integration, and event queue management.\n\n3. Webhook automation scripts in `backend/automation/webhook_scripts.py` for lead scoring, enrichment, welcome emails, lead creation, and notifications.\n\n4. FastAPI integration in `backend/main.py` with proper initialization and existing automation infrastructure integration.\n\n5. Security features including signature verification, user-based access control, and secret key management.\n\n6. API endpoints for webhook registration, listing, data reception, deletion, toggling, event history viewing, and testing.\n\nThe system is fully operational, featuring real-time processing, event-driven automation, database and Redis integration, error handling, and logging. It's ready for external webhook calls and automated workflows for lead processing, scoring, enrichment, and notifications.\n</info added on 2025-06-10T07:46:12.572Z>",
-          "status": "done"
+          "details": "Set up SSE in FastAPI and subscribe to real-time updates in SvelteKit. Use Svelte stores for reactive state management.",
+          "status": "pending",
+          "testStrategy": "Check that dashboard updates in real time when lead data changes."
         },
         {
           "id": 4,
-          "title": "Monitoring Subtasks Setup",
-          "description": "Set up monitoring subtasks to track the performance and health of the automation system.",
+          "title": "Develop Lead Overview Cards and Status Indicators",
+          "description": "Design and implement lead overview cards and status indicators.",
           "dependencies": [
-            3
+            1,
+            2
           ],
-          "details": "Implement logging and monitoring tools to ensure the system's reliability and efficiency, using Docker for containerization. Integrate with the existing automation engine and scheduler.\n<info added on 2025-06-10T08:02:11.995Z>\nThe monitoring infrastructure implementation is complete, with the following major accomplishments:\n\n1. Automation Metrics System (backend/automation/metrics.py):\n   - Prometheus metrics collection framework\n   - Comprehensive metric definitions for automation execution, webhooks, scheduler, and system health\n   - Health check functionality with automated status reporting\n   - Error tracking and performance monitoring capabilities\n\n2. Prometheus Alert Rules (monitoring/prometheus/rules/automation_alerts.yml):\n   - 20+ alert rules covering all automation system aspects\n   - Error rate, performance, system health, and business logic monitoring\n   - Capacity planning alerts for scaling decisions\n\n3. Grafana Dashboard (monitoring/grafana/dashboards/automation_dashboard.json):\n   - 14-panel dashboard for real-time monitoring, performance visualization, resource monitoring, and error analysis\n\n4. Metrics Integration:\n   - Integrated into AutomationEngine and WebhookProcessor\n   - Added prometheus_client dependency\n   - Created health check endpoint in automation router\n\n5. Infrastructure Enhancements:\n   - Updated Prometheus configuration\n   - Configured alert rules for automated notifications\n   - Dashboard ready for Grafana import\n   - Monitoring stack integrated with existing infrastructure\n\nTechnical implementation includes Prometheus metrics (Counters, Histograms, Gauges), tuned alert thresholds, and a comprehensive dashboard. The monitoring infrastructure is now production-ready, providing full visibility into the automation system's performance, health, and business impact.\n</info added on 2025-06-10T08:02:11.995Z>",
-          "status": "done"
+          "details": "Create reusable components for lead cards and status indicators. Use Tailwind CSS for styling. Display relevant lead information and status.",
+          "status": "pending",
+          "testStrategy": "Validate that cards and indicators display correct data and update reactively."
         },
         {
           "id": 5,
-          "title": "Integration Testing and Deployment",
-          "description": "Perform integration testing and deploy the complete automation system.",
-          "dependencies": [
-            4
-          ],
-          "details": "Test all components together to ensure seamless integration, then deploy the system using Docker Compose for simplified management. Ensure proper integration with the new AutomationEngine class and APScheduler.\n<info added on 2025-06-10T08:14:06.996Z>\nIntegration testing and deployment Phase 1 completed successfully. Key achievements:\n\n1. Docker infrastructure validated with all core services operational.\n2. Backend system fully integrated with comprehensive API endpoints, authentication, and database connectivity.\n3. Frontend-backend integration enhanced with improved API client, error handling, and user experience.\n4. Automation framework developed, including AutomationEngine, AutomationScheduler, ScriptManager, and webhook system.\n5. Infrastructure monitoring set up with Prometheus metrics, Grafana dashboards, and alert rules.\n\nTechnical accomplishments include complete removal of n8n dependencies, transition to Python-based automation architecture, enhanced error handling and logging, and implementation of a modular, scalable automation framework.\n\nCurrent status: Core LMA platform operational, frontend-backend integration optimized, database and Redis services stable, monitoring infrastructure ready, and automation framework codebase complete.\n\nNext steps: Refine containerization of the automation system, optimize Docker build process for production deployment.\n</info added on 2025-06-10T08:14:06.996Z>",
-          "status": "done"
-        },
-        {
-          "id": 6,
-          "title": "Documentation and User Guide",
-          "description": "Create comprehensive documentation and user guide for the new automation engine.",
-          "dependencies": [
-            1,
-            2
-          ],
-          "details": "Document the AutomationEngine class, APScheduler usage, script management system, and REST API endpoints. Include examples of how to create and manage automation tasks.",
-          "status": "done"
-        },
-        {
-          "id": 7,
-          "title": "Performance Optimization",
-          "description": "Optimize the performance of the automation engine and scheduler.",
+          "title": "Add Quick Action Buttons and Chart.js Integration",
+          "description": "Implement quick action buttons and integrate Chart.js for data visualization.",
           "dependencies": [
             1,
             2,
-            3,
             4
           ],
-          "details": "Analyze and improve the efficiency of the AutomationEngine class and APScheduler. Implement caching mechanisms where appropriate and optimize database queries.",
-          "status": "done"
+          "details": "Add buttons for common lead actions (e.g., edit, delete, assign). Integrate Chart.js to visualize lead metrics and trends.",
+          "status": "pending",
+          "testStrategy": "Test button functionality and ensure charts display accurate data."
         }
       ]
     },
     {
       "id": 6,
-      "title": "Lead Scoring and Enrichment",
-      "description": "Develop Python automation for lead enrichment and ML-based scoring using FastAPI.",
-      "details": "",
-      "testStrategy": "",
+      "title": "Develop Comprehensive Lead List Page",
+      "description": "Implement lead list page with advanced filtering, sorting, and search capabilities.",
+      "details": "Build SvelteKit lead list page with search, filter, and sort functionality. Display all relevant lead information. Use Svelte stores for state. Fetch data from FastAPI backend. Implement pagination for performance. Use Tailwind CSS for responsive design.",
+      "testStrategy": "Test search, filter, sort, and pagination. Validate data display and performance with large datasets.",
       "priority": "medium",
-      "dependencies": [],
+      "dependencies": [
+        3,
+        4
+      ],
       "status": "in-progress",
       "subtasks": [
         {
           "id": 1,
-          "title": "Scoring System Design",
-          "description": "Design the scoring system architecture, including rule-based and ML components.",
+          "title": "Set Up SvelteKit Project and UI Framework",
+          "description": "Initialize a new SvelteKit project and integrate Tailwind CSS for responsive design.",
           "dependencies": [],
-          "details": "Define scoring algorithms and integrate with existing Python automation framework.",
-          "status": "done"
+          "details": "Create project structure, install dependencies, and configure Tailwind CSS for styling.",
+          "status": "pending",
+          "testStrategy": "Verify project setup and Tailwind CSS integration by rendering a test page."
         },
         {
           "id": 2,
-          "title": "Enrichment Pipeline Development",
-          "description": "Develop data enrichment pipelines to enhance data quality and relevance.",
-          "dependencies": [],
-          "details": "Utilize tools like Pandas for data manipulation and integration with scoring system.",
-          "status": "done"
-        },
-        {
-          "id": 3,
-          "title": "ML Integration",
-          "description": "Integrate machine learning models into the scoring system.",
+          "title": "Implement Data Fetching from FastAPI Backend",
+          "description": "Connect the SvelteKit lead list page to the FastAPI backend to fetch lead data.",
           "dependencies": [
             1
           ],
-          "details": "Train and deploy ML models using libraries like scikit-learn or TensorFlow.",
-          "status": "pending"
+          "details": "Create API client functions, fetch lead data, and handle errors.",
+          "status": "pending",
+          "testStrategy": "Test API calls and data retrieval by displaying sample lead data."
+        },
+        {
+          "id": 3,
+          "title": "Build Lead List Display and Pagination",
+          "description": "Display lead information in a table or list with pagination for performance.",
+          "dependencies": [
+            2
+          ],
+          "details": "Render lead data, implement pagination controls, and manage page state.",
+          "status": "pending",
+          "testStrategy": "Check pagination and data display across different page sizes."
         },
         {
           "id": 4,
-          "title": "API Design and Implementation",
-          "description": "Design and implement APIs for data exchange and system integration.",
-          "dependencies": [],
-          "details": "Use FastAPI to create RESTful APIs for accessing and manipulating data.",
-          "status": "done"
+          "title": "Add Advanced Filtering, Sorting, and Search",
+          "description": "Implement advanced filtering, sorting, and search capabilities for the lead list.",
+          "dependencies": [
+            3
+          ],
+          "details": "Add UI controls for filters, sort options, and search input. Use Svelte stores for state management.",
+          "status": "pending",
+          "testStrategy": "Test filtering, sorting, and search functionality with various input scenarios."
         },
         {
           "id": 5,
-          "title": "Behavioral Tracking Implementation",
-          "description": "Implement behavioral tracking features to monitor user interactions.",
+          "title": "Implement Bulk Actions and Status Management",
+          "description": "Enable bulk actions (e.g., select, update status) and lead detail views.",
           "dependencies": [
             4
           ],
-          "details": "Use tracking libraries to log user behavior and integrate with scoring system.",
-          "status": "pending"
-        },
-        {
-          "id": 6,
-          "title": "Source Attribution Development",
-          "description": "Develop source attribution mechanisms to track data origins.",
-          "dependencies": [
-            2
-          ],
-          "details": "Implement data lineage tracking to ensure transparency and accountability.",
-          "status": "pending"
-        },
-        {
-          "id": 7,
-          "title": "Workflow Customization Framework",
-          "description": "Create a framework for customizing workflows based on user needs.",
-          "dependencies": [
-            1,
-            2
-          ],
-          "details": "Use Python workflow automation tools like Luigi for flexible workflow management.",
-          "status": "pending"
-        },
-        {
-          "id": 8,
-          "title": "Integration Testing",
-          "description": "Conduct integration testing to ensure all components work together seamlessly.",
-          "dependencies": [
-            3,
-            4,
-            5,
-            6
-          ],
-          "details": "Test interactions between scoring, enrichment, API, tracking, and attribution components.",
-          "status": "pending"
-        },
-        {
-          "id": 9,
-          "title": "Deployment and Containerization",
-          "description": "Deploy the system using Docker containers and ensure scalability.",
-          "dependencies": [
-            8
-          ],
-          "details": "Configure Docker for efficient deployment and scaling of the application.",
-          "status": "pending"
-        },
-        {
-          "id": 10,
-          "title": "Monitoring and Logging Setup",
-          "description": "Set up monitoring and logging tools to track system performance.",
-          "dependencies": [
-            9
-          ],
-          "details": "Implement logging and monitoring solutions to ensure system reliability.",
-          "status": "pending"
-        },
-        {
-          "id": 11,
-          "title": "Documentation and Training",
-          "description": "Create comprehensive documentation and training materials for users.",
-          "dependencies": [
-            10
-          ],
-          "details": "Develop user guides and training sessions to facilitate adoption and usage.",
-          "status": "pending"
-        },
-        {
-          "id": 12,
-          "title": "Final System Review and Optimization",
-          "description": "Conduct a final review of the system and optimize performance.",
-          "dependencies": [
-            11
-          ],
-          "details": "Evaluate system performance, identify bottlenecks, and implement optimizations.",
-          "status": "pending"
+          "details": "Add checkboxes for bulk selection, status update controls, and navigation to lead detail pages.",
+          "status": "pending",
+          "testStrategy": "Test bulk selection, status updates, and navigation to detail views."
         }
       ]
     },
     {
       "id": 7,
-      "title": "Multi-Channel Outreach System",
-      "description": "Implement email automation through Python scripts and campaign management analytics.",
-      "details": "",
-      "testStrategy": "",
+      "title": "Implement Analytics Backend Calculations",
+      "description": "Develop FastAPI endpoints for analytics data processing and chart data generation.",
+      "details": "Implement FastAPI endpoints for calculating conversion metrics, source performance, scoring distributions, temperature analytics, trend data, and funnel metrics. Use SQL queries and aggregation for analytics. Return data in format suitable for Chart.js/Apache ECharts.",
+      "testStrategy": "Test analytics endpoints with sample data. Validate calculation accuracy and response format.",
       "priority": "medium",
-      "dependencies": [],
-      "status": "pending",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Email Channel Integration",
-          "description": "Implement email integration using Python and FastAPI to send and receive emails.",
-          "dependencies": [],
-          "details": "Use libraries like smtplib for sending emails and imaplib for receiving emails.",
-          "status": "pending"
-        },
-        {
-          "id": 2,
-          "title": "Slack Channel Integration",
-          "description": "Integrate Slack API with FastAPI to send and receive messages.",
-          "dependencies": [],
-          "details": "Use Slack's Webhook API for sending messages and Slack's Events API for receiving messages.",
-          "status": "pending"
-        },
-        {
-          "id": 3,
-          "title": "SMS Channel Integration",
-          "description": "Implement SMS integration using a service like Twilio with FastAPI.",
-          "dependencies": [],
-          "details": "Use Twilio's API to send and receive SMS messages.",
-          "status": "pending"
-        },
-        {
-          "id": 4,
-          "title": "Campaign Management System",
-          "description": "Develop a campaign management system to organize and track campaigns across channels.",
-          "dependencies": [
-            1,
-            2,
-            3
-          ],
-          "details": "Use a database to store campaign data and integrate with channel integrations.",
-          "status": "pending"
-        },
-        {
-          "id": 5,
-          "title": "Analytics System Development",
-          "description": "Create an analytics system to track performance across channels.",
-          "dependencies": [
-            4
-          ],
-          "details": "Use data visualization tools like Matplotlib or Plotly to display analytics.",
-          "status": "pending"
-        },
-        {
-          "id": 6,
-          "title": "UI Component Design",
-          "description": "Design UI components for campaign management and analytics visualization.",
-          "dependencies": [
-            4,
-            5
-          ],
-          "details": "Use a UI framework like React or Vue.js for building the UI.",
-          "status": "pending"
-        },
-        {
-          "id": 7,
-          "title": "Cross-Channel Coordination",
-          "description": "Implement cross-channel coordination to ensure seamless operation across email, Slack, and SMS.",
-          "dependencies": [
-            4,
-            6
-          ],
-          "details": "Use message queues like RabbitMQ for coordinating messages across channels.",
-          "status": "pending"
-        },
-        {
-          "id": 8,
-          "title": "User Experience Design and Testing",
-          "description": "Design and test the user experience for the campaign management and analytics UI.",
-          "dependencies": [
-            6,
-            7
-          ],
-          "details": "Conduct user testing and gather feedback to improve the UI.",
-          "status": "pending"
-        }
-      ]
+      "dependencies": [
+        2,
+        3
+      ],
+      "status": "in-progress",
+      "subtasks": []
     },
     {
       "id": 8,
-      "title": "SaaS Metrics Dashboard",
-      "description": "Create a dashboard with FastAPI analytics calculations and Apache ECharts visualization.",
-      "details": "",
-      "testStrategy": "",
+      "title": "Build Analytics Dashboard with Chart.js/Apache ECharts",
+      "description": "Develop analytics page with comprehensive metrics visualization.",
+      "details": "Build SvelteKit analytics page with Chart.js (v4.4.2) and/or Apache ECharts (v5.4.3) integration. Visualize conversion funnels, source performance, scoring distributions, temperature analytics, and trend data. Use Svelte stores for state. Fetch data from FastAPI analytics endpoints. Implement export functionality for analytics data.",
+      "testStrategy": "Test chart rendering, data visualization, and export functionality. Validate data consistency with backend.",
       "priority": "medium",
-      "dependencies": [],
+      "dependencies": [
+        4,
+        7
+      ],
       "status": "pending",
       "subtasks": [
         {
           "id": 1,
-          "title": "Data Integration",
-          "description": "Integrate data from various sources into a unified dataset.",
+          "title": "Set Up SvelteKit Project and Install Libraries",
+          "description": "Initialize a SvelteKit project and install required libraries (Chart.js v4.4.2 and/or Apache ECharts v5.4.3).",
           "dependencies": [],
-          "details": "Use tools like web scrapers or APIs to collect data and store it in a central data warehouse.",
-          "status": "pending"
+          "details": "Create a new SvelteKit project, install dependencies via npm, and configure the project structure for analytics dashboard development[1][5][3].",
+          "status": "pending",
+          "testStrategy": "Verify project setup by running the development server and checking for successful installation of libraries."
         },
         {
           "id": 2,
-          "title": "Data Aggregation",
-          "description": "Aggregate the integrated data to summarize insights.",
+          "title": "Design Dashboard Layout and Chart Components",
+          "description": "Design the analytics dashboard layout and create reusable chart components for each visualization type.",
           "dependencies": [
             1
           ],
-          "details": "Apply aggregation techniques such as grouping and averaging to extract meaningful data.",
-          "status": "pending"
+          "details": "Implement responsive layout using Svelte components. Create reusable chart components for line, bar, pie, funnel, and heatmap charts[2][1][5].",
+          "status": "pending",
+          "testStrategy": "Test layout responsiveness and component rendering across different screen sizes."
         },
         {
           "id": 3,
-          "title": "Metric Calculation",
-          "description": "Calculate key metrics from aggregated data.",
+          "title": "Integrate Data Fetching and State Management",
+          "description": "Implement data fetching from FastAPI analytics endpoints and manage state using Svelte stores.",
           "dependencies": [
+            1,
             2
           ],
-          "details": "Develop functions to compute metrics such as averages, ranges, and trends.",
-          "status": "pending"
+          "details": "Set up data fetching logic to retrieve analytics data from FastAPI. Use Svelte stores for state management and real-time updates[2][1].",
+          "status": "pending",
+          "testStrategy": "Test data fetching and state updates by simulating API responses and verifying chart updates."
         },
         {
           "id": 4,
-          "title": "Data Visualization",
-          "description": "Create visualizations to represent calculated metrics.",
+          "title": "Implement Chart Visualization and Analytics Features",
+          "description": "Integrate Chart.js and Apache ECharts to visualize conversion funnels, source performance, scoring distributions, temperature analytics, and trend data.",
           "dependencies": [
+            2,
             3
           ],
-          "details": "Use libraries like Matplotlib or Plotly to create interactive visualizations.",
-          "status": "pending"
+          "details": "Configure each chart type with appropriate data and options. Ensure real-time updates and mobile responsiveness[2][1][3].",
+          "status": "pending",
+          "testStrategy": "Test each chart type with sample and live data, and verify real-time updates and mobile compatibility."
         },
         {
           "id": 5,
-          "title": "Dashboard Layout",
-          "description": "Design a user-friendly dashboard layout.",
+          "title": "Add Export Functionality and Finalize Dashboard",
+          "description": "Implement export functionality for analytics data and finalize the dashboard.",
           "dependencies": [
+            3,
             4
           ],
-          "details": "Organize visualizations and metrics into an intuitive dashboard structure.",
-          "status": "pending"
-        },
-        {
-          "id": 6,
-          "title": "Analytics Development",
-          "description": "Develop advanced analytics capabilities.",
-          "dependencies": [
-            5
-          ],
-          "details": "Implement predictive models or machine learning algorithms for deeper insights.",
-          "status": "pending"
-        },
-        {
-          "id": 7,
-          "title": "Performance Optimization",
-          "description": "Optimize the performance of the dashboard and analytics.",
-          "dependencies": [
-            6
-          ],
-          "details": "Use caching, parallel processing, or other optimization techniques to improve speed.",
-          "status": "pending"
-        },
-        {
-          "id": 8,
-          "title": "Workflow Configuration",
-          "description": "Configure workflows for data processing and analytics.",
-          "dependencies": [
-            7
-          ],
-          "details": "Set up automated workflows using tools like Apache Airflow or similar.",
-          "status": "pending"
-        },
-        {
-          "id": 9,
-          "title": "Industry-Specific Package Development",
-          "description": "Develop industry-specific packages for the dashboard.",
-          "dependencies": [
-            8
-          ],
-          "details": "Create custom modules or plugins tailored to specific industry needs.",
-          "status": "pending"
-        },
-        {
-          "id": 10,
-          "title": "Final Integration and Testing",
-          "description": "Integrate all components and conduct thorough testing.",
-          "dependencies": [
-            9
-          ],
-          "details": "Ensure all subtasks are fully integrated and functioning as expected.",
-          "status": "pending"
+          "details": "Add export options (e.g., CSV, PNG) for analytics data. Perform final UI/UX checks and optimizations.",
+          "status": "pending",
+          "testStrategy": "Test export functionality and perform end-to-end user testing for dashboard usability."
         }
       ]
     },
     {
       "id": 9,
-      "title": "CRM Integrations",
-      "description": "Implement Python API clients for Salesforce, HubSpot, and Pipedrive integrations.",
-      "details": "",
-      "testStrategy": "",
+      "title": "Design Workflow System Architecture",
+      "description": "Define workflow system structure and navigation for lead processing.",
+      "details": "Design workflow page structure and navigation for Lead Generation, Lead Enrichment, and Lead Scoring workflows. Define workflow steps, status tracking, and progress indicators. Use Svelte stores for workflow state. Prepare for integration with lead management.",
+      "testStrategy": "Test workflow navigation and structure. Validate workflow state management.",
       "priority": "medium",
-      "dependencies": [],
+      "dependencies": [
+        4
+      ],
       "status": "pending",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Design CRM API Integration",
-          "description": "Develop a unified API design for integrating multiple CRM platforms, ensuring compatibility and scalability.",
-          "dependencies": [],
-          "details": "Focus on creating a modular API structure that can handle different CRM systems' APIs.",
-          "status": "pending"
-        },
-        {
-          "id": 2,
-          "title": "Implement Bidirectional Sync Logic",
-          "description": "Develop logic for bidirectional data synchronization between the CRM platforms and the Python automation engine.",
-          "dependencies": [
-            1
-          ],
-          "details": "Ensure data consistency and handle potential conflicts during sync operations.",
-          "status": "pending"
-        },
-        {
-          "id": 3,
-          "title": "Configure Workflow Automation",
-          "description": "Set up workflow automation processes that integrate with CRM data, using tools like FastAPI and Python automation scripts.",
-          "dependencies": [
-            2
-          ],
-          "details": "Automate tasks such as lead assignment, follow-up emails, and data updates based on CRM events.",
-          "status": "pending"
-        },
-        {
-          "id": 4,
-          "title": "Develop End-to-End Testing Framework",
-          "description": "Create a comprehensive testing framework to validate CRM integrations, sync operations, and workflow automation.",
-          "dependencies": [
-            3
-          ],
-          "details": "Use Docker containers to simulate different environments for testing.",
-          "status": "pending"
-        },
-        {
-          "id": 5,
-          "title": "Implement Robust Error Handling",
-          "description": "Design and implement robust error handling mechanisms to manage integration failures, data inconsistencies, and other potential issues.",
-          "dependencies": [
-            4
-          ],
-          "details": "Ensure that errors are logged, reported, and handled gracefully without disrupting operations.",
-          "status": "pending"
-        },
-        {
-          "id": 6,
-          "title": "Deploy and Monitor Integration",
-          "description": "Deploy the integrated CRM system and monitor its performance, addressing any issues that arise during production.",
-          "dependencies": [
-            5
-          ],
-          "details": "Continuously monitor data consistency, sync operations, and workflow automation to ensure smooth operation.",
-          "status": "pending"
-        }
-      ]
+      "subtasks": []
     },
     {
       "id": 10,
-      "title": "User and Team Management",
-      "description": "Develop role-based access control and multi-tenancy features.",
-      "details": "",
-      "testStrategy": "",
+      "title": "Implement Lead Generation Workflow",
+      "description": "Develop Lead Generation workflow with validation, deduplication, and categorization.",
+      "details": "Build SvelteKit workflow page for Lead Generation. Implement lead validation, deduplication, and initial categorization. Use FastAPI endpoints for workflow execution. Track workflow status and progress. Use Svelte stores for state.",
+      "testStrategy": "Test workflow execution, validation, and status tracking. Validate data consistency with backend.",
       "priority": "medium",
-      "dependencies": [],
+      "dependencies": [
+        3,
+        9
+      ],
       "status": "pending",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Implement RBAC",
-          "description": "Design and implement Role-Based Access Control (RBAC) in the FastAPI backend to manage user roles and permissions.",
-          "dependencies": [],
-          "details": "Use OAuth2PasswordBearer for authentication and integrate with existing user management system.",
-          "status": "pending"
-        },
-        {
-          "id": 2,
-          "title": "Develop Team Management",
-          "description": "Create features for managing teams, including user assignment to teams and team-specific permissions.",
-          "dependencies": [
-            1
-          ],
-          "details": "Integrate team management with RBAC to ensure role-based access within teams.",
-          "status": "pending"
-        },
-        {
-          "id": 3,
-          "title": "Implement Multi-Tenancy",
-          "description": "Design and implement multi-tenancy support in the application to isolate data and configurations between tenants.",
-          "dependencies": [
-            2
-          ],
-          "details": "Use tenant-specific identifiers to manage data access and ensure tenant isolation.",
-          "status": "pending"
-        },
-        {
-          "id": 4,
-          "title": "Configure Tenant-Specific Settings",
-          "description": "Develop a system for configuring tenant-specific settings and preferences.",
-          "dependencies": [
-            3
-          ],
-          "details": "Allow tenants to customize application settings while maintaining isolation.",
-          "status": "pending"
-        },
-        {
-          "id": 5,
-          "title": "Integrate with External Services",
-          "description": "Integrate the application with external services for enhanced functionality and data exchange.",
-          "dependencies": [
-            4
-          ],
-          "details": "Ensure integrations respect tenant isolation and RBAC policies.",
-          "status": "pending"
-        },
-        {
-          "id": 6,
-          "title": "Conduct Security Testing",
-          "description": "Perform comprehensive security testing to ensure the application's security and integrity.",
-          "dependencies": [
-            5
-          ],
-          "details": "Focus on testing RBAC, multi-tenancy, and integration security.",
-          "status": "pending"
-        }
-      ]
+      "subtasks": []
+    },
+    {
+      "id": 11,
+      "title": "Implement Lead Enrichment and Scoring Workflows",
+      "description": "Develop Lead Enrichment and Lead Scoring workflows with data enhancement and scoring logic.",
+      "details": "Build SvelteKit workflow pages for Lead Enrichment and Lead Scoring. Implement data enhancement (company details, social profiles, demographics) and scoring logic (engagement, demographics, behavior). Use FastAPI endpoints for workflow execution. Track workflow status and progress. Use Svelte stores for state.",
+      "testStrategy": "Test workflow execution, data enhancement, and scoring logic. Validate data consistency with backend.",
+      "priority": "medium",
+      "dependencies": [
+        3,
+        9
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 12,
+      "title": "Implement Advanced Features and Optimizations",
+      "description": "Add advanced filtering, bulk operations, and performance optimizations.",
+      "details": "Implement advanced filtering and search capabilities on lead list. Add bulk operations for lead management. Optimize analytics chart rendering and database queries for performance. Enhance mobile responsiveness. Use Svelte stores and FastAPI endpoints for new features.",
+      "testStrategy": "Test advanced filtering, bulk operations, and performance optimizations. Validate mobile responsiveness and chart rendering speed.",
+      "priority": "medium",
+      "dependencies": [
+        6,
+        8,
+        10,
+        11
+      ],
+      "status": "pending",
+      "subtasks": []
     }
   ]
 }

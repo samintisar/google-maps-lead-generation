@@ -120,3 +120,8 @@ htmlcov/
 # Task Master specific ignores
 .taskmaster/logs/
 .taskmaster/temp/
+
+# Added by Task Master AI
+# Task files
+tasks.json
+tasks/ 

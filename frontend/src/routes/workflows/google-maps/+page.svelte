@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { authStore } from '$lib/stores/auth';
+	// Auth store removed
 	import { api } from '$lib/api';
 	// Note: Using manual toast implementation instead of svelte-sonner
 	function toast(message: string, type: 'success' | 'error' = 'success') {
@@ -26,34 +26,19 @@
 	// Form data
 	let location = '';
 	let industry = '';
-	let maxResults = 20;
-	let includeAiEnrichment = true;
-	let openaiApiKey = '';
+	let maxResults = 10;
 
 	// Progress tracking
 	let currentStep = '';
 	let progressPercentage = 0;
-	let totalUrlsFound = 0;
-	let websitesScraped = 0;
-	let emailsFound = 0;
-	let leadsEnriched = 0;
-	let leadsConverted = 0;
+	let leadsGenerated = 0;
 
 	// Polling for status updates
 	let statusInterval: NodeJS.Timeout | null = null;
 
 	onMount(async () => {
-		// Check authentication
-		console.log('Current auth state:', $authStore.user);
-		console.log('Auth token:', $authStore.token);
-		
-		if (!$authStore.user) {
-			console.warn('No user found, redirecting to login');
-			goto('/login');
-			return;
-		}
-
-		console.log('User authenticated, proceeding...');
+		// Authentication check removed
+		console.log('Starting Google Maps workflow...');
 		
 		// Load any stored API key (you might want to get this from workflow credentials)
 		// For now, we'll ask the user to enter it
@@ -71,11 +56,6 @@
 			return;
 		}
 
-		if (includeAiEnrichment && !openaiApiKey.trim()) {
-			toast.error('OpenAI API key is required for AI enrichment');
-			return;
-		}
-
 		try {
 			isRunning = true;
 			workflowStatus = 'starting';
@@ -83,24 +63,19 @@
 			console.log('Starting workflow with data:', {
 				location: location.trim(),
 				industry: industry.trim(),
-				max_results: maxResults,
-				include_ai_enrichment: includeAiEnrichment,
-				has_openai_key: includeAiEnrichment ? !!openaiApiKey.trim() : false
+				max_results: maxResults
 			});
 
-			const response = await api.post('/workflows/google-maps/start', {
+			const response = await api.post('/api/v1/workflows/google-maps/start', {
 				location: location.trim(),
 				industry: industry.trim(),
-				max_results: maxResults,
-				include_ai_enrichment: includeAiEnrichment,
-				openai_api_key: includeAiEnrichment ? openaiApiKey.trim() : null
+				max_results: maxResults
 			}) as any;
 
 			console.log('API Response:', response);
 
 			if (response.success) {
 				executionId = response.data.execution_id;
-				searchExecutionId = response.data.search_execution_id;
 				workflowStatus = 'running';
 				
 				toast.success('Google Maps lead generation started!');
@@ -132,7 +107,7 @@
 		if (!executionId) return;
 
 		try {
-			const response = await api.get(`/workflows/google-maps/status/${executionId}`) as any;
+			const response = await api.get(`/api/v1/workflows/executions/${executionId}/status`) as any;
 			
 			if (response.success) {
 				const data = response.data;
@@ -140,12 +115,11 @@
 				// Update progress tracking
 				currentStep = data.current_step || '';
 				progressPercentage = data.progress_percentage || 0;
-				totalUrlsFound = data.total_urls_found || 0;
-				websitesScraped = data.websites_scraped || 0;
-				emailsFound = data.emails_found || 0;
-				leadsEnriched = data.leads_enriched || 0;
-				leadsConverted = data.leads_converted || 0;
-				leads = data.leads || [];
+				
+				// Extract leads from execution_data
+				const executionData = data.execution_data || {};
+				leadsGenerated = executionData.leads_generated || 0;
+				leads = executionData.leads || [];
 				
 				// Update workflow status
 				workflowStatus = data.status;
@@ -171,25 +145,64 @@
 		}
 	}
 
-	async function convertLead(leadId: number) {
+	async function convertLead(leadIndex: number) {
 		try {
-			const response = await api.post(`/workflows/google-maps/leads/${leadId}/convert`) as any;
+			const lead = leads[leadIndex];
+			if (!lead) return;
+
+			// Create a CRM lead from the Google Maps lead data
+			const leadData: any = {
+				name: lead.company_name || 'Unknown Company',
+				company: lead.company_name || '',
+				industry: lead.industry || '',
+				website: lead.website || '',
+				address: lead.address || '',
+				google_maps_url: lead.google_maps_url || '',
+				notes: `Generated from Google Maps workflow. Rating: ${lead.rating} (${lead.review_count} reviews)`,
+				source: 'Google Maps Workflow',
+				status: 'new',
+				organization_id: 1, // Default organization for demo purposes
+				score: lead.rating ? parseFloat(lead.rating) || 0.0 : 0.0
+			};
+
+			// Only add email if it exists and is valid
+			if (lead.emails?.[0] && lead.emails[0].trim()) {
+				leadData.email = lead.emails[0];
+			}
+
+			// Only add phone if it exists
+			if (lead.phone && lead.phone.trim()) {
+				leadData.phone = lead.phone;
+			}
+
+			const response = await api.post(`/api/v1/leads/`, leadData) as any;
 			
-			if (response.success) {
-				toast.success(`Lead converted successfully! New CRM lead ID: ${response.data.lead_id}`);
+			if (response.id) {
+				toast.success(`Lead converted successfully! New CRM lead ID: ${response.id}`);
 				
 				// Update the lead status in our local array
-				leads = leads.map(lead => 
-					lead.id === leadId 
-						? { ...lead, conversion_status: 'converted', converted_to_lead_id: response.data.lead_id }
-						: lead
+				leads = leads.map((l, index) => 
+					index === leadIndex 
+						? { ...l, conversion_status: 'converted', converted_to_lead_id: response.id }
+						: l
 				);
 			} else {
-				throw new Error(response.message || 'Failed to convert lead');
+				throw new Error('Failed to create lead');
 			}
 		} catch (error: any) {
 			console.error('Error converting lead:', error);
-			toast.error(error.message || 'Failed to convert lead');
+			
+			// Try to extract meaningful error message
+			let errorMessage = 'Failed to convert lead';
+			if (error.message && typeof error.message === 'string') {
+				errorMessage = error.message;
+			} else if (error.detail) {
+				errorMessage = error.detail;
+			} else if (error.toString && error.toString() !== '[object Object]') {
+				errorMessage = error.toString();
+			}
+			
+			toast.error(errorMessage);
 		}
 	}
 
@@ -197,16 +210,11 @@
 		isRunning = false;
 		currentExecution = null;
 		executionId = null;
-		searchExecutionId = null;
 		leads = [];
 		workflowStatus = 'idle';
 		currentStep = '';
 		progressPercentage = 0;
-		totalUrlsFound = 0;
-		websitesScraped = 0;
-		emailsFound = 0;
-		leadsEnriched = 0;
-		leadsConverted = 0;
+		leadsGenerated = 0;
 
 		if (statusInterval) {
 			clearInterval(statusInterval);
@@ -224,15 +232,7 @@
 		}
 	}
 
-	function getEnrichmentStatusColor(status: string) {
-		switch (status) {
-			case 'pending': return 'bg-yellow-100 text-yellow-800';
-			case 'enriched': return 'bg-green-100 text-green-800';
-			case 'failed': return 'bg-red-100 text-red-800';
-			case 'skipped': return 'bg-gray-100 text-gray-800';
-			default: return 'bg-gray-100 text-gray-800';
-		}
-	}
+
 </script>
 
 <svelte:head>
@@ -246,6 +246,7 @@
 			<button 
 				on:click={() => goto('/workflows')}
 				class="text-gray-600 hover:text-gray-800"
+				aria-label="Back to workflows"
 			>
 				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -253,7 +254,7 @@
 			</button>
 			<div>
 				<h1 class="text-3xl font-bold text-gray-900">Google Maps Lead Generation</h1>
-				<p class="text-gray-600 mt-1">Scrape Google Maps for businesses and generate leads with AI enrichment</p>
+				<p class="text-gray-600 mt-1">Generate high-quality business leads using Google Places API with real business data</p>
 			</div>
 		</div>
 	</div>
@@ -309,48 +310,12 @@
 							type="number"
 							bind:value={maxResults}
 							min="1"
-							max="100"
+							max="20"
 							disabled={isRunning}
 							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
 						/>
-						<p class="text-xs text-gray-500 mt-1">Maximum number of leads to generate (1-100)</p>
+						<p class="text-xs text-gray-500 mt-1">Maximum number of leads to generate (1-20)</p>
 					</div>
-
-					<!-- AI Enrichment -->
-					<div>
-						<div class="flex items-center mb-2">
-							<input
-								id="includeAiEnrichment"
-								type="checkbox"
-								bind:checked={includeAiEnrichment}
-								disabled={isRunning}
-								class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-							/>
-							<label for="includeAiEnrichment" class="ml-2 text-sm font-medium text-gray-700">
-								Enable AI Enrichment
-							</label>
-						</div>
-						<p class="text-xs text-gray-500">Use OpenAI to enrich lead data with business intelligence</p>
-					</div>
-
-					<!-- OpenAI API Key -->
-					{#if includeAiEnrichment}
-						<div>
-							<label for="openaiApiKey" class="block text-sm font-medium text-gray-700 mb-2">
-								OpenAI API Key *
-							</label>
-							<input
-								id="openaiApiKey"
-								type="password"
-								bind:value={openaiApiKey}
-								placeholder="sk-..."
-								disabled={isRunning}
-								class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-								required={includeAiEnrichment}
-							/>
-							<p class="text-xs text-gray-500 mt-1">Required for AI enrichment features</p>
-						</div>
-					{/if}
 
 					<!-- Action Buttons -->
 					<div class="space-y-3">
@@ -417,22 +382,10 @@
 							</div>
 
 							<!-- Statistics -->
-							<div class="grid grid-cols-2 gap-3 text-xs">
+							<div class="grid grid-cols-1 gap-3 text-xs">
 								<div class="text-center">
-									<div class="text-gray-500">URLs Found</div>
-									<div class="font-medium text-gray-900">{totalUrlsFound}</div>
-								</div>
-								<div class="text-center">
-									<div class="text-gray-500">Sites Scraped</div>
-									<div class="font-medium text-gray-900">{websitesScraped}</div>
-								</div>
-								<div class="text-center">
-									<div class="text-gray-500">Emails Found</div>
-									<div class="font-medium text-gray-900">{emailsFound}</div>
-								</div>
-								<div class="text-center">
-									<div class="text-gray-500">AI Enriched</div>
-									<div class="font-medium text-gray-900">{leadsEnriched}</div>
+									<div class="text-gray-500">Leads Generated</div>
+									<div class="font-medium text-gray-900">{leadsGenerated}</div>
 								</div>
 							</div>
 						</div>
@@ -447,10 +400,7 @@
 				<div class="p-6 border-b border-gray-200">
 					<h2 class="text-xl font-semibold text-gray-900">Generated Leads</h2>
 					<p class="text-gray-600 mt-1">
-						{leads.length} leads generated
-						{#if leadsEnriched > 0}
-							• {leadsEnriched} enriched with AI
-						{/if}
+						{leads.length} leads generated from Google Places API
 					</p>
 				</div>
 
@@ -467,22 +417,29 @@
 						</div>
 					{:else}
 						<div class="space-y-4">
-							{#each leads as lead (lead.id)}
+							{#each leads as lead, index (index)}
 								<div class="border border-gray-200 rounded-lg p-4">
 									<div class="flex justify-between items-start mb-3">
 										<div>
-											<h3 class="text-lg font-medium text-gray-900">{lead.business_name}</h3>
-											<p class="text-sm text-gray-600">{lead.industry} • {lead.location}</p>
+											<h3 class="text-lg font-medium text-gray-900">{lead.company_name || 'Unknown Business'}</h3>
+											<div class="flex items-center gap-2 text-sm text-gray-600">
+												<span>{lead.industry || 'Business'}</span>
+												{#if lead.rating}
+													<span>•</span>
+													<span>⭐ {lead.rating}</span>
+													{#if lead.review_count}
+														<span>({lead.review_count} reviews)</span>
+													{/if}
+												{/if}
+											</div>
 										</div>
 										<div class="flex items-center gap-2">
-											{#if lead.enrichment_status}
-												<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getEnrichmentStatusColor(lead.enrichment_status)}">
-													{lead.enrichment_status}
-												</span>
-											{/if}
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+												{lead.source || 'Google Places API'}
+											</span>
 											{#if lead.conversion_status !== 'converted'}
 												<button
-													on:click={() => convertLead(lead.id)}
+													on:click={() => convertLead(index)}
 													class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
 												>
 													Convert to CRM
@@ -496,65 +453,69 @@
 									</div>
 
 									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<!-- Contact Information -->
-										<div>
-											<h4 class="text-sm font-medium text-gray-900 mb-2">Contact Information</h4>
-											<div class="space-y-1 text-sm">
-												{#if lead.email}
-													<div>
-														<span class="text-gray-500">Email:</span>
-														<a href="mailto:{lead.email}" class="text-blue-600 hover:text-blue-800 ml-1">{lead.email}</a>
-													</div>
-												{/if}
-												{#if lead.phone}
-													<div>
-														<span class="text-gray-500">Phone:</span>
-														<a href="tel:{lead.phone}" class="text-blue-600 hover:text-blue-800 ml-1">{lead.phone}</a>
-													</div>
-												{/if}
-												{#if lead.website_url}
-													<div>
-														<span class="text-gray-500">Website:</span>
-														<a href={lead.website_url} target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 ml-1">
-															{lead.website_url}
-														</a>
-													</div>
-												{/if}
-											</div>
-										</div>
-
-										<!-- AI Enriched Data -->
-										{#if lead.ai_enriched_data}
-											<div>
-												<h4 class="text-sm font-medium text-gray-900 mb-2">AI Insights</h4>
-												<div class="space-y-1 text-sm">
-													{#if lead.ai_enriched_data.estimated_company_size}
-														<div>
-															<span class="text-gray-500">Company Size:</span>
-															<span class="ml-1">{lead.ai_enriched_data.estimated_company_size}</span>
-														</div>
-													{/if}
-													{#if lead.ai_enriched_data.lead_quality_score}
-														<div>
-															<span class="text-gray-500">Quality Score:</span>
-															<span class="ml-1">{lead.ai_enriched_data.lead_quality_score}/10</span>
-														</div>
-													{/if}
-													{#if lead.ai_enriched_data.business_description}
-														<div>
-															<span class="text-gray-500">Description:</span>
-															<span class="ml-1 text-gray-700">{lead.ai_enriched_data.business_description}</span>
-														</div>
-													{/if}
-													{#if lead.confidence_score}
-														<div>
-															<span class="text-gray-500">Confidence:</span>
-															<span class="ml-1">{(lead.confidence_score * 100).toFixed(0)}%</span>
+									<!-- Contact Information -->
+									<div>
+									<h4 class="text-sm font-medium text-gray-900 mb-2">Contact Information</h4>
+									<div class="space-y-1 text-sm">
+									{#if lead.phone}
+									<div>
+									<span class="text-gray-500">Phone:</span>
+									<a href="tel:{lead.phone}" class="text-blue-600 hover:text-blue-800 ml-1">{lead.phone}</a>
+									</div>
+									{/if}
+									{#if lead.website}
+									<div>
+									<span class="text-gray-500">Website:</span>
+									<a href={lead.website} target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 ml-1">
+									  {lead.website}
+									  </a>
+									 </div>
+									{/if}
+									{#if lead.address}
+									<div>
+									<span class="text-gray-500">Address:</span>
+									<span class="ml-1">{lead.address}</span>
+									</div>
+									{/if}
+									 {#if lead.emails && lead.emails.length > 0}
+									   <div>
+															<span class="text-gray-500">Email:</span>
+															{#each lead.emails as email}
+																<a href="mailto:{email}" class="text-blue-600 hover:text-blue-800 ml-1">{email}</a>
+															{/each}
 														</div>
 													{/if}
 												</div>
 											</div>
+
+										<!-- Google Places Data -->
+										<div>
+										<h4 class="text-sm font-medium text-gray-900 mb-2">Business Details</h4>
+										<div class="space-y-1 text-sm">
+										{#if lead.business_status}
+										<div>
+										<span class="text-gray-500">Status:</span>
+										<span class="ml-1 {lead.business_status === 'OPERATIONAL' ? 'text-green-600' : 'text-red-600'}">
+										{lead.business_status === 'OPERATIONAL' ? 'Open' : lead.business_status}
+										</span>
+										</div>
 										{/if}
+										{#if lead.place_id}
+										<div>
+										<span class="text-gray-500">Place ID:</span>
+										<span class="ml-1 font-mono text-xs">{lead.place_id}</span>
+										</div>
+										{/if}
+										{#if lead.google_maps_url}
+										<div>
+										<span class="text-gray-500">Google Maps:</span>
+										<a href={lead.google_maps_url} target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 ml-1">
+										  View on Maps
+										 </a>
+										</div>
+										{/if}
+										</div>
+										</div>
 									</div>
 								</div>
 							{/each}

@@ -1,254 +1,202 @@
-<context>
 # Overview  
-Modular Lead Management Automation Platform - A comprehensive, Python-powered lead management ecosystem designed to serve multiple industries through customizable automation scripts. The platform provides a flexible foundation with industry-specific customization delivered entirely through Python automation modules, enabling rapid development and deployment for each business type. It combines intelligent automation, configurable lead enrichment, multi-channel outreach capabilities, adaptable metrics tracking, and a programmatic workflow system.
+Modular Lead Management Platform - A streamlined lead management dashboard designed for rapid MVP development and team collaboration. The platform provides essential lead management functionality through a clean, modern interface with comprehensive analytics and configurable workflows. Built with SvelteKit frontend and FastAPI backend, utilizing Neon PostgreSQL for seamless team development.
 
-The platform addresses the critical problem of manual, inefficient lead management processes across industries that result in lost opportunities, inconsistent follow-up, and poor lead qualification. Businesses typically lose 30-40% of leads due to slow response times and inadequate follow-up systems. It provides value through automation of 80% of operations via industry-specific Python automation modules while the FastAPI backend handles universal analytics calculations and metrics processing. Industry customization happens at the Python script layer, enabling rapid deployment across different business types with full programmatic control.
+The platform addresses the critical need for businesses to effectively manage, analyze, and process leads through an intuitive dashboard interface. Instead of complex automation systems, it focuses on providing clear visibility into lead data, comprehensive analytics for decision-making, and structured workflows for lead processing. The system is designed for immediate usability while maintaining a foundation for future enhancements.
 
 # Core Features  
-1. **Universal Lead Enrichment Engine**: Configurable data enrichment system that adapts to any industry through Python automation scripts. Core enrichment includes email validation, domain analysis, social profile matching, and geographic data. Industry-specific enrichment (property data, company firmographics, patient records) delivered through specialized Python modules. Critical for improving lead quality across all business types.
+1. **Lead Management Dashboard**: Central hub for viewing and managing all leads with real-time updates. Provides clean, intuitive interface for lead overview, status tracking, and quick actions. Essential for giving users immediate visibility into their lead pipeline and enabling efficient lead management workflows.
 
-2. **Adaptive Lead Scoring & Prioritization**: Flexible hot/warm/cold lead temperature classification system configurable through Python parameters. Features ML-based predictive scoring with industry-agnostic algorithms that adapt to different conversion patterns. Scoring rules, weighting factors, and qualification criteria all configured through Python modules rather than code changes. Essential for any business to focus on highest-value opportunities.
+2. **Comprehensive Lead List**: Detailed lead listing page with advanced filtering, sorting, and search capabilities. Displays all relevant lead information including contact details, source attribution, status, scores, and interaction history. Critical for users to quickly find, review, and take action on specific leads.
 
-3. **Multi-Channel Outreach Automation**: Universal communication system supporting email, SMS, voice, and social media outreach. Industry-specific templates, drip campaigns, and follow-up sequences delivered through Python automation modules. Core platform handles delivery infrastructure while Python scripts define messaging, timing, and channel selection. Vital for maintaining consistent communication across any industry.
+3. **Advanced Analytics Page**: Rich analytics dashboard featuring comprehensive metrics visualization through charts and graphs. Includes conversion funnels, lead source performance, scoring distributions, temperature analytics, and trend analysis. Provides data-driven insights for optimizing lead management strategies and measuring performance.
 
-4. **Configurable Business Metrics Dashboard**: Universal analytics framework that calculates and visualizes industry-specific KPIs through Python automation configuration. Core metrics (conversion rates, lead source ROI, team performance) with industry-specific overlays (commissions for real estate, MRR for SaaS, patient volume for healthcare) defined in Python automation packages. Provides data-driven insights for any business type.
+4. **Structured Workflow System**: Organized workflow pages containing three primary workflows - Lead Generation, Lead Enrichment, and Lead Scoring. Each workflow provides clear processes, status tracking, and actionable steps. Foundation for systematizing lead management operations and ensuring consistent processing.
 
-5. **Industry-Agnostic Intelligence Engine**: ML-powered analytics system with universal prediction algorithms that adapt to different business models through Python automation parameters. Core features include conversion probability, lead freshness decay, and behavioral tracking. Industry-specific intelligence (property trends, software adoption patterns, patient compliance) delivered through specialized Python automation logic.
+5. **Lead Generation Workflow**: Systematic process for capturing and importing leads from various sources. Includes lead validation, deduplication, and initial categorization. Ensures consistent lead intake and proper data quality from the start.
 
-6. **Universal Platform Integrations**: Flexible integration system supporting Python-based connectors for CRMs, communication tools, marketing platforms, and industry-specific software. Integration configuration and data mapping handled through Python automation scripts, not manual configuration. Essential for seamless automation integration with any existing business technology stack.
+6. **Lead Enrichment Workflow**: Process for enhancing lead data with additional information including company details, social profiles, and demographic data. Improves lead quality and provides more context for sales activities.
 
-7. **Flexible User & Team Management**: Universal role-based access control system adaptable to any organizational structure. Lead assignment rules, performance dashboards, and team hierarchies configured through Python automation parameters. Multi-tenant architecture supporting individual users to large enterprises across any industry.
-
-8. **Python Automation Templates**: Core Python automation templates for essential business operations:
-   - **Lead Scoring & Nurturing**: AI-powered scoring with Apollo.io enrichment automation
-   - **Social Media Outreach**: Automated social media engagement and nurturing campaigns
-   - **CRM Synchronization**: Bidirectional sync with major CRM platforms using Python API clients
-   - **Template Expansion**: Additional automation templates developed based on client needs and optimization
-   Focused on practical, immediately usable Python automations that can be easily tested and modified for client requirements.
+7. **Lead Scoring Workflow**: Framework for evaluating and scoring leads based on multiple criteria including engagement, demographics, and behavioral indicators. Helps prioritize leads and focus efforts on highest-potential opportunities.
 
 # User Experience  
-**Primary User Personas (Industry-Agnostic):**
-- Sales Representatives (Any Industry): Need easy lead access, automated follow-up, and priority identification
-- Team Leaders/Managers: Require team oversight, lead distribution, performance tracking, and workflow management
-- Business Owners/Directors: Focus on team productivity, ROI tracking, territory/department management, and business analytics
-- Operations Teams: Want workflow optimization, process automation, integration management, and performance insights
+**Primary User Personas:**
+- Sales Representatives: Need quick access to lead information, clear priority indicators, and streamlined lead processing workflows
+- Sales Managers: Require comprehensive analytics, team performance visibility, and lead distribution oversight  
+- Business Owners: Focus on conversion metrics, ROI tracking, and overall pipeline health
+- Operations Teams: Want efficient lead processing, data quality management, and workflow optimization
 
 **Key User Flows:**
-1. Lead Capture → Universal Enrichment → Scoring → Assignment → Outreach → Nurturing → Conversion
-2. Template Selection → Parameter Configuration → Testing → Deployment → Performance Monitoring
-3. Analytics Review: Dashboard Access → KPI Tracking → Performance Analysis → Workflow Optimization
-4. Workflow Management: Template Access → Client-Specific Configuration → Testing → Optimization
+1. Dashboard Access → Lead Overview → Individual Lead Review → Action Taking
+2. Lead List → Search/Filter → Lead Selection → Status Updates → Workflow Execution
+3. Analytics Review → Metric Analysis → Performance Insights → Strategy Adjustments
+4. Workflow Management → Process Selection → Step Execution → Status Tracking → Completion
 
 **UI/UX Considerations:**
-- Clean, intuitive dashboard with customizable widgets
-- Mobile-responsive design for on-the-go access
-- Visual workflow builder with drag-and-drop simplicity
-- Real-time notifications and updates
-- Progressive disclosure of complex features
-- Contextual help and onboarding flows
-</context>
-<PRD>
+- Clean, modern interface with intuitive navigation
+- Mobile-responsive design for access across devices
+- Fast loading times with efficient data presentation
+- Clear visual hierarchy and progressive disclosure
+- Contextual actions and streamlined workflows
+- Real-time updates and immediate feedback
+
 # Technical Architecture  
 **System Components:**
-- **Frontend**: SvelteKit with TypeScript for high-performance UI, Tailwind CSS for responsive design, built-in Svelte stores for state management, and Chart.js/Apache ECharts for advanced analytics visualization including line charts, bar charts, pie charts, funnel charts, and heatmaps
-- **Backend API**: Python FastAPI focused on complex analytics, SaaS metrics calculations (MRR/ARR, CAC, LTV, churn rates), ML-based lead scoring, behavioral tracking, and advanced data processing
-- **Primary Automation Layer**: Python automation engine handling 80% of operations including lead enrichment, CRUD operations, outreach automation, and CRM integrations via Python API clients and automation libraries
-- **Analytics Engine**: Dedicated processing layer for lead scoring algorithms, time-decay analysis, conversion funnel tracking, cohort analysis, and predictive modeling using ML frameworks
-- **Database**: PostgreSQL for structured data storage with optimized schemas for analytics queries, Redis for caching and session management, and time-series data optimization for metrics tracking
-- **Infrastructure**: Docker containerization with Docker Compose orchestration for simplified deployment and reliability
-- **Automation Scheduler**: Python-based scheduling system using `schedule` or `apscheduler` for cron jobs, automated tasks, and workflow execution
+- **Frontend**: SvelteKit with TypeScript for high-performance UI, Tailwind CSS for responsive design, and Chart.js/Apache ECharts for analytics visualization including line charts, bar charts, pie charts, funnel charts, and heatmaps
+- **Backend API**: Python FastAPI focused on lead management operations, analytics calculations, and workflow processing
+- **Database**: Neon PostgreSQL for cloud-based structured data storage enabling team collaboration, with optimized schemas for lead data and analytics queries
+- **Infrastructure**: Docker containerization with Docker Compose for development environment consistency
+- **State Management**: Built-in Svelte stores for reactive state management across components
 
 **Data Models:**
-- **Lead Entity**: contact_info, industry_context (flexible JSON), hot_warm_cold_temperature, qualification_status, interaction_history, source_attribution, engagement_metrics, conversion_probability
-- **Industry Package Entity**: package_type, automation_templates, configuration_schema, default_parameters, integration_mappings, custom_fields_definition
-- **Universal Analytics**: conversion_rates, lead_source_performance, team_productivity, industry_specific_metrics (configurable JSON), automation_performance
-- **Scoring Entity**: lead_score_history, temperature_changes, behavioral_events, engagement_tracking, industry_factors (configurable), qualification_criteria
-- **Automation Entity**: script_definitions, triggers, conditions, parameters, execution_history, tier_restrictions, industry_packages, parameter_overrides
-- **User Entity**: authentication, roles, permissions, team_assignments, performance_metrics, industry_context, automation_access_level
-- **Organization Entity**: tenant_isolation, billing_info, user_count, industry_package_subscriptions, custom_settings, integration_configs
+- **Lead Entity**: contact_info, company_details, lead_source, lead_status, lead_score, lead_temperature, interaction_history, enrichment_data, creation_date, last_updated
+- **Analytics Entity**: conversion_metrics, source_performance, scoring_distributions, temperature_analytics, trend_data, funnel_metrics
+- **Workflow Entity**: workflow_type, workflow_steps, current_status, completion_percentage, assigned_leads, execution_history
+- **User Entity**: basic_profile, role, permissions, dashboard_preferences (authentication removed for MVP)
+- **Organization Entity**: company_info, settings, lead_count, user_count, subscription_status
 
 **APIs and Integrations:**
-- **Universal CRM APIs**: HubSpot, Salesforce, Pipedrive, and 100+ CRMs via Python API clients for bidirectional data sync
-- **Communication APIs**: Gmail, Outlook, Slack, Teams, SMS providers, call tracking systems for universal outreach via Python libraries
-- **Marketing APIs**: Facebook Ads, Google Ads, LinkedIn Ads, email marketing platforms via Python API integrations
-- **Industry-Specific APIs**: Delivered through Python automation packages (MLS for real estate, medical APIs for healthcare, etc.)
-- **Business Intelligence APIs**: Analytics platforms, reporting tools, data warehouses via Python connectors
-- **Productivity APIs**: Calendar systems, task management, file storage, collaboration tools
+- **Lead Management APIs**: CRUD operations for leads, bulk operations, search and filtering endpoints
+- **Analytics APIs**: Metrics calculation, chart data generation, performance reporting
+- **Workflow APIs**: Workflow execution, status tracking, step management
+- **Data Export APIs**: CSV/Excel export functionality for leads and analytics
+- **Future Integration Readiness**: Structured for future HubSpot, Salesforce, and other CRM integrations
 
 **Infrastructure Requirements:**
-- **Container Orchestration**: Docker containers with Docker Compose for simplified multi-service deployment
-- **Cloud Provider**: AWS/Azure or single-server deployment with backup strategies
-- **CDN**: CloudFront for global performance optimization (optional for MVP)
-- **Monitoring**: Application performance monitoring with logging and alerting
-- **Security**: SSL/TLS encryption, Lucia authentication library for secure session management and user authentication, data encryption at rest
+- **Database**: Neon PostgreSQL for team collaboration and scalability
+- **Container Orchestration**: Docker containers with Docker Compose for consistent development
+- **Cloud Deployment**: Prepared for cloud deployment with environment configuration
+- **Security**: Basic API security, data encryption, prepared for future authentication integration
 
 # Development Roadmap  
-**Phase 1 - Foundation MVP (Core Infrastructure)**
-- Basic FastAPI backend with Lucia authentication integration
-- PostgreSQL database with core data models (User, Lead, Organization)
-- SvelteKit frontend with Lucia authentication (login/signup), dashboard shell, and basic navigation
-- Python automation engine setup and basic scheduling system connection
-- Simple lead import/export functionality (CSV)
-- Basic lead listing and detail views
+**Phase 1 - Core Foundation (MVP)**
+- SvelteKit frontend setup with Tailwind CSS and responsive design
+- FastAPI backend with basic lead management endpoints
+- Neon PostgreSQL database schema and connection setup
+- Basic lead CRUD operations (Create, Read, Update, Delete)
+- Simple dashboard with lead overview and basic statistics
+- Lead list page with search, filter, and sorting capabilities
 
-**Phase 2 - Lead Management Core**
-- Complete lead CRUD operations with form-based data entry
-- Basic lead scoring implementation (rule-based, no ML)
-- Simple lead enrichment automation (email validation, domain extraction)
-- Basic search and filtering capabilities
-- Lead assignment and routing functionality
-- Simple notification system (email alerts)
+**Phase 2 - Analytics Dashboard**
+- Comprehensive analytics page with Chart.js/Apache ECharts integration
+- Lead conversion funnel visualization
+- Source performance metrics and charts
+- Lead scoring distribution analysis
+- Temperature analytics (hot/warm/cold leads)
+- Trend analysis with time-series data
+- Export functionality for analytics data
 
-**Phase 3 - Automation Engine**
-- Full Python automation integration with script management
-- Email automation scripts (SMTP integration, templates)
-- Basic drip campaign functionality
-- Lead enrichment automation (WHOIS, website scraping)
-- CRM integration (starting with HubSpot)
-- Webhook system for external integrations
+**Phase 3 - Workflow System**
+- Workflow page structure and navigation
+- Lead Generation workflow implementation
+- Lead Enrichment workflow development
+- Lead Scoring workflow creation
+- Workflow status tracking and progress indicators
+- Integration between workflows and lead management
 
-**Phase 4 - Analytics Dashboard & Automation Optimization**
-- SaaS metrics dashboard with Chart.js visualizations and real-time KPI tracking using test data
-- Advanced lead scoring through Python automation with AI and Apollo.io integration
-- Simple automation templates: lead scoring/nurturing, social media outreach, CRM sync
-- Client-specific automation customization and testing procedures
-- Performance reporting and export capabilities with comprehensive analytics tables
-- Real-time data refresh mechanisms and interactive dashboard components
-- Automation monitoring and optimization tools for client needs
-- Template expansion based on practical client requirements
+**Phase 4 - Enhanced Features**
+- Advanced filtering and search capabilities
+- Bulk operations for lead management
+- Enhanced analytics with cohort analysis
+- Workflow optimization and customization
+- Performance improvements and optimization
+- Mobile responsiveness enhancements
 
-**Phase 5 - Advanced Features**
-- Multi-channel outreach (SMS, Slack integration)
-- Advanced automation templates and marketplace
-- Team management and role-based permissions
-- Advanced analytics and cohort analysis
-- Mobile app or progressive web app
-- White-label and multi-tenant capabilities
+**Phase 5 - Integration Preparation**
+- Authentication system integration
+- User management and permissions
+- API authentication and security
+- Integration framework for external platforms
+- HubSpot integration preparation
+- Monitoring and logging system setup
 
-**Phase 6 - Enterprise Features**
-- Advanced security and compliance features
-- Custom integrations and API marketplace
-- Advanced AI and machine learning capabilities
-- Enterprise reporting and analytics
-- Advanced automation and AI agents
-- Scalability optimizations and performance enhancements
+**Phase 6 - Advanced Integrations**
+- HubSpot bidirectional sync implementation
+- Salesforce integration
+- Lead outreach workflow development
+- Advanced automation capabilities
+- Enterprise features and scaling
+- Comprehensive monitoring and analytics
 
-# Optimized Task Execution Order for Python-First Architecture
+# Logical Dependency Chain
+**Foundation Layer (Must be completed first):**
+1. Database schema design and Neon setup - Required for all data operations
+2. FastAPI backend core - Essential for frontend data access
+3. SvelteKit frontend foundation - Needed for user interface
 
-**Phase 1 - Infrastructure Foundation (Tasks 1-3):**
-1. **Task 1: Setup Core Infrastructure** - No dependencies
-   - Git, Docker, Docker Compose, CI/CD, monitoring
-   - Foundation for all subsequent development
+**Core Functionality Layer (Build upon foundation):**
+4. Lead CRUD operations - Basic lead management functionality
+5. Dashboard page - Central user interface for lead overview
+6. Lead list page - Essential for lead browsing and management
 
-2. **Task 3: Database Schema Design** - Depends on Task 1
-   - PostgreSQL schema for User, Lead, Organization, Automation entities
-   - Required before Python automation can interact with data
+**Analytics Layer (Requires core functionality):**
+7. Analytics backend calculations - Data processing for visualizations
+8. Analytics frontend with charts - User-facing analytics dashboard
 
-3. **Task 2: Enhanced FastAPI Backend** - Depends on Task 1
-   - Analytics-focused API for SaaS metrics calculation
-   - Lucia authentication integration for secure access
-   - Python automation management endpoints
+**Workflow Layer (Requires analytics foundation):**
+9. Workflow system architecture - Framework for lead processing
+10. Individual workflow implementations - Specific lead processing workflows
 
-**Phase 2 - Core Automation Layer (Tasks 5, 4):**
-4. **Task 5: Python Automation Engine Integration** - Depends on Tasks 1, 3
-   - Primary automation layer handling 80% of operations
-   - Scheduling system, script management, error handling
-   - Must be established before frontend can connect to automations
-
-5. **Task 4: SvelteKit Frontend MVP** - Depends on Tasks 1, 5
-   - High-performance UI with Tailwind CSS and Lucia authentication integration
-   - Connects to Python automations and FastAPI backend
-   - Built-in Svelte stores for state management with Lucia session handling
-
-**Phase 3 - Business Logic Implementation (Tasks 6, 7, 8, 9):**
-6. **Task 6: Lead Scoring and Enrichment** - Depends on Tasks 3, 5
-   - Python automation for automated enrichment
-   - ML-based scoring using FastAPI for complex calculations
-
-7. **Task 7: Multi-Channel Outreach System** - Depends on Tasks 5, 6
-   - Email automation through Python scripts
-   - Campaign management and analytics
-
-8. **Task 8: SaaS Metrics Dashboard** - Depends on Tasks 2, 4
-   - FastAPI analytics calculations with Apache ECharts visualization
-   - Real-time updates through SvelteKit reactive stores
-
-9. **Task 9: CRM Integrations** - Depends on Task 5
-   - Python API clients for Salesforce, HubSpot, Pipedrive
-   - Custom integration implementation using Python libraries
-
-**Phase 4 - Advanced Features (Task 10):**
-10. **Task 10: User and Team Management** - Depends on Tasks 2, 4
-    - Role-based access control and multi-tenancy
-    - Team collaboration features
-
-**Key Architectural Benefits:**
-- Python automation handles 80% of operations with full programmatic control
-- FastAPI focused on complex analytics and SaaS metrics plus automation management
-- SvelteKit provides better performance than React
-- Custom Python API clients allow for more flexible integrations
-- Docker Compose simplifies deployment and reduces infrastructure overhead
-- Full control over automation logic and execution
-- Easier debugging and custom feature development
+**Enhancement Layer (Builds upon all previous layers):**
+11. Advanced features and optimizations
+12. Integration preparation and future enhancements
 
 # Risks and Mitigations  
 **Technical Challenges:**
-- Risk: n8n integration complexity and performance bottlenecks
-  Mitigation: Start with simple workflows, implement caching, use async processing
-- Risk: Database performance with large lead volumes
-  Mitigation: Implement proper indexing, query optimization, database sharding strategies
-- Risk: Third-party API rate limits and reliability
-  Mitigation: Implement retry logic, fallback systems, and API usage monitoring
+- Risk: Neon database performance with complex analytics queries
+  Mitigation: Implement proper indexing, query optimization, and caching strategies
+- Risk: Chart.js performance with large datasets
+  Mitigation: Implement data pagination, lazy loading, and chart optimization techniques
+- Risk: SvelteKit deployment complexity
+  Mitigation: Use Docker containerization and established deployment patterns
 
 **MVP Definition Challenges:**
-- Risk: Feature creep leading to delayed MVP
-  Mitigation: Strict scope definition, regular milestone reviews, focus on core user value
-- Risk: Over-engineering early components
-  Mitigation: Build for current needs, implement clean architecture for future scaling
-- Risk: User interface complexity overwhelming users
-  Mitigation: Progressive disclosure, extensive user testing, simple onboarding flows
+- Risk: Feature creep delaying core functionality
+  Mitigation: Strict focus on essential features, clear MVP boundaries, iterative development
+- Risk: Over-engineering analytics before core features
+  Mitigation: Build basic analytics first, enhance iteratively based on user feedback
+- Risk: Complex workflow system overwhelming development timeline
+  Mitigation: Start with simple workflow structures, add complexity incrementally
 
 **Resource Constraints:**
-- Risk: Limited development resources for complex integrations
-  Mitigation: Prioritize high-impact integrations, use existing libraries, phased rollout
-- Risk: Third-party service costs scaling with usage
-  Mitigation: Monitor usage closely, implement cost controls, negotiate volume pricing
-- Risk: Technical debt accumulation in rapid development
-  Mitigation: Regular code reviews, automated testing, refactoring sprints
+- Risk: Team coordination with shared Neon database
+  Mitigation: Implement database migration strategies, clear development protocols
+- Risk: Limited time for comprehensive testing
+  Mitigation: Focus testing on critical user paths, implement automated testing incrementally
+- Risk: Authentication system complexity when added later
+  Mitigation: Design with authentication in mind, maintain clean separation of concerns
 
 **Market and Product Risks:**
-- Risk: Competition from established CRM platforms
-  Mitigation: Focus on unique automation and workflow features, target underserved niches
-- Risk: User adoption challenges with complex automation
-  Mitigation: Extensive documentation, tutorial content, template marketplace
-- Risk: Integration maintenance overhead
-  Mitigation: Focus on stable, well-documented APIs, implement monitoring and alerting
+- Risk: User adoption without immediate automation benefits
+  Mitigation: Focus on clear value proposition through analytics and workflow organization
+- Risk: Competition from feature-rich CRM platforms
+  Mitigation: Emphasize simplicity, speed, and user experience advantages
+- Risk: Scaling challenges with simple architecture
+  Mitigation: Design with future scaling in mind, maintain clean architecture patterns
 
 # Appendix  
 **Research Findings:**
-- n8n provides robust workflow automation with 400+ integrations
-- FastAPI offers excellent performance for Python backends with automatic API documentation
-- SvelteKit ecosystem provides excellent performance and developer experience for UI development
-- PostgreSQL offers excellent performance for structured data with JSONB for flexible schemas
+- SvelteKit provides excellent performance and developer experience for rapid development
+- FastAPI offers automatic API documentation and excellent Python ecosystem integration
+- Neon PostgreSQL enables team collaboration while maintaining PostgreSQL compatibility
+- Chart.js and Apache ECharts provide comprehensive visualization capabilities
 
 **Technical Specifications:**
-- Minimum Node.js 18+ for n8n compatibility
-- Python 3.9+ for FastAPI and modern async support
-- PostgreSQL 14+ for advanced JSON features
-- Redis 6+ for improved memory efficiency
-- Docker containers for consistent deployment environments
+- Node.js 18+ for SvelteKit development
+- Python 3.9+ for FastAPI backend
+- Neon PostgreSQL for cloud database
+- Docker and Docker Compose for development environment
+- Modern browser support for SvelteKit applications
 
-**Integration Priorities:**
+**Integration Priorities for Future Phases:**
 1. HubSpot (most requested CRM integration)
-2. Gmail/Google Workspace (universal email platform)
-3. Slack (team communication standard)
-4. Google Sheets (ubiquitous data source)
-5. Salesforce (enterprise CRM requirement)
+2. Salesforce (enterprise market requirement)
+3. Email platforms (Gmail, Outlook for outreach)
+4. Social media platforms (LinkedIn, Twitter for lead research)
+5. Data enrichment services (Clearbit, ZoomInfo)
 
 **Performance Targets:**
 - Dashboard load time: <2 seconds
-- Workflow execution: <30 seconds for standard operations
-- API response time: <200ms for standard queries
+- Lead list pagination: <1 second per page
+- Analytics chart rendering: <3 seconds
+- Database query response: <200ms for standard operations
 - Support for 10,000+ leads per organization
-- 99.9% uptime SLA for production systems
-</PRD>

@@ -72,7 +72,7 @@
 	async function deleteLead() {
 		if (!$currentLead) return;
 
-		if (confirm(`Are you sure you want to delete ${$currentLead.first_name} ${$currentLead.last_name}?`)) {
+		if (confirm(`Are you sure you want to delete ${$currentLead.name}?`)) {
 			const result = await leadsStore.deleteLead($currentLead.id);
 			if (result) {
 				goto('/dashboard/leads');
@@ -93,16 +93,14 @@
 
 	// Get status badge color
 	function getStatusColor(status: LeadStatus) {
-		const colors = {
+		const colors: Record<LeadStatus, string> = {
 			[LeadStatus.NEW]: 'bg-blue-100 text-blue-800',
 			[LeadStatus.CONTACTED]: 'bg-yellow-100 text-yellow-800',
 			[LeadStatus.QUALIFIED]: 'bg-green-100 text-green-800',
 			[LeadStatus.PROPOSAL]: 'bg-purple-100 text-purple-800',
 			[LeadStatus.NEGOTIATION]: 'bg-orange-100 text-orange-800',
-			[LeadStatus.WON]: 'bg-green-100 text-green-800',
-			[LeadStatus.LOST]: 'bg-red-100 text-red-800',
-			[LeadStatus.NURTURING]: 'bg-indigo-100 text-indigo-800',
-			[LeadStatus.UNRESPONSIVE]: 'bg-gray-100 text-gray-800',
+			[LeadStatus.CLOSED_WON]: 'bg-green-100 text-green-800',
+			[LeadStatus.CLOSED_LOST]: 'bg-red-100 text-red-800',
 		};
 		return colors[status] || 'bg-gray-100 text-gray-800';
 	}
@@ -110,7 +108,7 @@
 
 <svelte:head>
 	<title>
-		{$currentLead ? `${$currentLead.first_name} ${$currentLead.last_name}` : 'Lead Details'} - LMA Platform
+		{$currentLead ? $currentLead.name : 'Lead Details'} - LMA Platform
 	</title>
 </svelte:head>
 
@@ -160,13 +158,13 @@
 						<div class="flex-shrink-0 h-12 w-12">
 							<div class="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center">
 								<span class="text-lg font-medium text-gray-700">
-									{$currentLead.first_name?.[0]}{$currentLead.last_name?.[0]}
+								{$currentLead.name?.[0]}
 								</span>
 							</div>
 						</div>
 						<div class="ml-4">
 							<h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-								{$currentLead.first_name} {$currentLead.last_name}
+							{$currentLead.name}
 							</h1>
 							<div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-4">
 								<div class="mt-2 flex items-center text-sm text-gray-500">
@@ -237,25 +235,16 @@
 							<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Contact Information</h3>
 							
 							{#if isEditing}
-								<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-									<div>
-										<label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
-										<input
-											type="text"
-											id="first_name"
-											bind:value={editForm.first_name}
-											class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-										/>
-									</div>
-									<div>
-										<label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
-										<input
-											type="text"
-											id="last_name"
-											bind:value={editForm.last_name}
-											class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-										/>
-									</div>
+							<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<div>
+							<label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+							<input
+							type="text"
+							id="name"
+							bind:value={editForm.name}
+							class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+							/>
+							</div>
 									<div>
 										<label for="email" class="block text-sm font-medium text-gray-700">Email</label>
 										<input
@@ -298,69 +287,24 @@
 							<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Company Information</h3>
 							
 							{#if isEditing}
-								<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-									<div>
-										<label for="company" class="block text-sm font-medium text-gray-700">Company</label>
-										<input
-											type="text"
-											id="company"
-											bind:value={editForm.company}
-											class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-										/>
-									</div>
-									<div>
-										<label for="job_title" class="block text-sm font-medium text-gray-700">Job Title</label>
-										<input
-											type="text"
-											id="job_title"
-											bind:value={editForm.job_title}
-											class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-										/>
-									</div>
-									<div>
-										<label for="industry" class="block text-sm font-medium text-gray-700">Industry</label>
-										<input
-											type="text"
-											id="industry"
-											bind:value={editForm.industry}
-											class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-										/>
-									</div>
-									<div>
-										<label for="website" class="block text-sm font-medium text-gray-700">Website</label>
-										<input
-											type="url"
-											id="website"
-											bind:value={editForm.website}
-											class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-										/>
-									</div>
-								</div>
+							<div class="grid grid-cols-1 gap-4">
+							<div>
+							<label for="company" class="block text-sm font-medium text-gray-700">Company</label>
+							<input
+							type="text"
+							id="company"
+							bind:value={editForm.company}
+							class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+							/>
+							</div>
+							</div>
 							{:else}
-								<dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-									<div>
-										<dt class="text-sm font-medium text-gray-500">Company</dt>
-										<dd class="mt-1 text-sm text-gray-900">{$currentLead.company || '-'}</dd>
-									</div>
-									<div>
-										<dt class="text-sm font-medium text-gray-500">Job Title</dt>
-										<dd class="mt-1 text-sm text-gray-900">{$currentLead.job_title || '-'}</dd>
-									</div>
-									<div>
-										<dt class="text-sm font-medium text-gray-500">Industry</dt>
-										<dd class="mt-1 text-sm text-gray-900">{$currentLead.industry || '-'}</dd>
-									</div>
-									{#if $currentLead.website}
-										<div>
-											<dt class="text-sm font-medium text-gray-500">Website</dt>
-											<dd class="mt-1 text-sm text-gray-900">
-												<a href={$currentLead.website} target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-500">
-													{$currentLead.website}
-												</a>
-											</dd>
-										</div>
-									{/if}
-								</dl>
+							<dl class="grid grid-cols-1 gap-x-4 gap-y-6">
+							<div>
+							<dt class="text-sm font-medium text-gray-500">Company</dt>
+							<dd class="mt-1 text-sm text-gray-900">{$currentLead.company || '-'}</dd>
+							</div>
+							</dl>
 							{/if}
 						</div>
 					</div>
@@ -451,25 +395,6 @@
 									<dt class="text-sm font-medium text-gray-500">Source</dt>
 									<dd class="mt-1 text-sm text-gray-900">{($currentLead.source || 'unknown').replace('_', ' ').toUpperCase()}</dd>
 								</div>
-								
-								<div>
-									<dt class="text-sm font-medium text-gray-500">Interest Level</dt>
-									<dd class="mt-1 text-sm text-gray-900">{$currentLead.interest_level}/10</dd>
-								</div>
-
-								{#if $currentLead.budget}
-									<div>
-										<dt class="text-sm font-medium text-gray-500">Budget</dt>
-										<dd class="mt-1 text-sm text-gray-900">${$currentLead.budget.toLocaleString()}</dd>
-									</div>
-								{/if}
-
-								{#if $currentLead.timeline}
-									<div>
-										<dt class="text-sm font-medium text-gray-500">Timeline</dt>
-										<dd class="mt-1 text-sm text-gray-900">{$currentLead.timeline}</dd>
-									</div>
-								{/if}
 
 								<div>
 									<dt class="text-sm font-medium text-gray-500">Created</dt>

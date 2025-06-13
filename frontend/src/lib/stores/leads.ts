@@ -1,4 +1,4 @@
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get as getStore } from 'svelte/store';
 import { leadApi } from '$lib/api';
 import type { Lead, LeadCreate, LeadUpdate, LeadFilters, ListResponse } from '$lib/types';
 
@@ -120,17 +120,17 @@ export const leadsStore = {
 				filters: { ...state.filters, ...newFilters },
 			}));
 
-			const currentState = get(leadsStore);
-			const response: ListResponse<Lead> = await leadApi.getLeads(currentState.filters);
+			const currentState = getStore(leadsStore);
+			const leads = await leadApi.getLeads(currentState.filters);
 
 			update(state => ({
 				...state,
-				leads: response.items,
+				leads,
 				pagination: {
-					total: response.total,
-					page: response.page,
-					per_page: response.per_page,
-					pages: response.pages,
+					total: leads.length,
+					page: 1,
+					per_page: leads.length,
+					pages: 1,
 				},
 				loading: { ...state.loading, list: false },
 			}));
@@ -252,7 +252,7 @@ export const leadsStore = {
 	// Update lead status
 	async updateLeadStatus(id: number, status: string) {
 		try {
-			await leadApi.updateLeadStatus(id, status);
+			await leadApi.updateLead(id, { status: status as any });
 			
 			// Update local state
 			update(state => ({
@@ -270,26 +270,7 @@ export const leadsStore = {
 		}
 	},
 
-	// Assign lead to user
-	async assignLead(id: number, userId: number) {
-		try {
-			await leadApi.assignLead(id, userId);
-			
-			// Update local state
-			update(state => ({
-				...state,
-				leads: state.leads.map(lead =>
-					lead.id === id ? { ...lead, assigned_to_id: userId } : lead
-				),
-				currentLead: state.currentLead?.id === id 
-					? { ...state.currentLead, assigned_to_id: userId } 
-					: state.currentLead,
-			}));
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Failed to assign lead';
-			showError(errorMessage);
-		}
-	},
+
 
 	// Set current lead
 	setCurrentLead(lead: Lead | null) {

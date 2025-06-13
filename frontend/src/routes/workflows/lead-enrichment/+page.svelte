@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api';
-	import { authStore } from '$lib/stores/auth';
+	// Auth store removed
 
 	// UI State
 	let activeTab = 'credentials';
@@ -48,10 +48,7 @@
 	let storedCredentials: any[] = [];
 
 	onMount(async () => {
-		if (!$authStore.user) {
-			goto('/login');
-			return;
-		}
+		// Authentication check removed
 		
 		await loadStoredCredentials();
 		await loadWorkflowStats();
@@ -339,8 +336,9 @@
 
 					<div class="space-y-4">
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">API Key (Legacy)</label>
+							<label for="hubspot-api-key" class="block text-sm font-medium text-gray-700 mb-2">API Key (Legacy)</label>
 							<input
+								id="hubspot-api-key"
 								type="password"
 								bind:value={credentials.hubspot.hubspot_api_key}
 								placeholder="pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -348,8 +346,9 @@
 							/>
 						</div>
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">Access Token (OAuth)</label>
+							<label for="hubspot-access-token" class="block text-sm font-medium text-gray-700 mb-2">Access Token (OAuth)</label>
 							<input
+								id="hubspot-access-token"
 								type="password"
 								bind:value={credentials.hubspot.hubspot_access_token}
 								placeholder="pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -395,8 +394,9 @@
 
 					<div class="space-y-4">
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+							<label for="openai-api-key" class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
 							<input
+								id="openai-api-key"
 								type="password"
 								bind:value={credentials.openai.openai_api_key}
 								placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -443,8 +443,9 @@
 					<div class="space-y-4">
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
-								<label class="block text-sm font-medium text-gray-700 mb-2">Project ID</label>
+								<label for="google-project-id" class="block text-sm font-medium text-gray-700 mb-2">Project ID</label>
 								<input
+									id="google-project-id"
 									type="text"
 									bind:value={credentials.google.project_id}
 									placeholder="your-project-id"
@@ -452,8 +453,9 @@
 								/>
 							</div>
 							<div>
-								<label class="block text-sm font-medium text-gray-700 mb-2">Client Email</label>
+								<label for="google-client-email" class="block text-sm font-medium text-gray-700 mb-2">Client Email</label>
 								<input
+									id="google-client-email"
 									type="email"
 									bind:value={credentials.google.client_email}
 									placeholder="service-account@project.iam.gserviceaccount.com"
@@ -461,8 +463,9 @@
 								/>
 							</div>
 							<div>
-								<label class="block text-sm font-medium text-gray-700 mb-2">Client ID</label>
+								<label for="google-client-id" class="block text-sm font-medium text-gray-700 mb-2">Client ID</label>
 								<input
+									id="google-client-id"
 									type="text"
 									bind:value={credentials.google.client_id}
 									placeholder="123456789012345678901"
@@ -470,8 +473,9 @@
 								/>
 							</div>
 							<div>
-								<label class="block text-sm font-medium text-gray-700 mb-2">Private Key ID</label>
+								<label for="google-private-key-id" class="block text-sm font-medium text-gray-700 mb-2">Private Key ID</label>
 								<input
+									id="google-private-key-id"
 									type="text"
 									bind:value={credentials.google.private_key_id}
 									placeholder="1234567890abcdef1234567890abcdef12345678"
@@ -480,8 +484,9 @@
 							</div>
 						</div>
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">Private Key</label>
+							<label for="google-private-key" class="block text-sm font-medium text-gray-700 mb-2">Private Key</label>
 							<textarea
+								id="google-private-key"
 								bind:value={credentials.google.private_key}
 								placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
 								rows="6"
@@ -532,8 +537,9 @@
 					<div class="space-y-4">
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
-								<label class="block text-sm font-medium text-gray-700 mb-2">Max Leads to Process</label>
+								<label for="max-leads" class="block text-sm font-medium text-gray-700 mb-2">Max Leads to Process</label>
 								<input
+									id="max-leads"
 									type="number"
 									bind:value={workflowSettings.lead_filters.limit}
 									min="1"
@@ -542,8 +548,9 @@
 								/>
 							</div>
 							<div>
-								<label class="block text-sm font-medium text-gray-700 mb-2">Lead Status Filter</label>
+								<label for="lead-status-filter" class="block text-sm font-medium text-gray-700 mb-2">Lead Status Filter</label>
 								<select
+									id="lead-status-filter"
 									bind:value={workflowSettings.lead_filters.status}
 									class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 								>
@@ -556,10 +563,11 @@
 							</div>
 						</div>
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">
+							<label for="validation-threshold" class="block text-sm font-medium text-gray-700 mb-2">
 								Validation Threshold ({(workflowSettings.validation_threshold * 100).toFixed(0)}%)
 							</label>
 							<input
+								id="validation-threshold"
 								type="range"
 								bind:value={workflowSettings.validation_threshold}
 								min="0.5"

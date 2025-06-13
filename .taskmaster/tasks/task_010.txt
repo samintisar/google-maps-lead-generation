@@ -1,49 +1,11 @@
 # Task ID: 10
-# Title: User and Team Management
+# Title: Implement Lead Generation Workflow
 # Status: pending
-# Dependencies: None
+# Dependencies: 3, 9
 # Priority: medium
-# Description: Develop role-based access control and multi-tenancy features.
+# Description: Develop Lead Generation workflow with validation, deduplication, and categorization.
 # Details:
-
+Build SvelteKit workflow page for Lead Generation. Implement lead validation, deduplication, and initial categorization. Use FastAPI endpoints for workflow execution. Track workflow status and progress. Use Svelte stores for state.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Implement RBAC [pending]
-### Dependencies: None
-### Description: Design and implement Role-Based Access Control (RBAC) in the FastAPI backend to manage user roles and permissions.
-### Details:
-Use OAuth2PasswordBearer for authentication and integrate with existing user management system.
-
-## 2. Develop Team Management [pending]
-### Dependencies: 10.1
-### Description: Create features for managing teams, including user assignment to teams and team-specific permissions.
-### Details:
-Integrate team management with RBAC to ensure role-based access within teams.
-
-## 3. Implement Multi-Tenancy [pending]
-### Dependencies: 10.2
-### Description: Design and implement multi-tenancy support in the application to isolate data and configurations between tenants.
-### Details:
-Use tenant-specific identifiers to manage data access and ensure tenant isolation.
-
-## 4. Configure Tenant-Specific Settings [pending]
-### Dependencies: 10.3
-### Description: Develop a system for configuring tenant-specific settings and preferences.
-### Details:
-Allow tenants to customize application settings while maintaining isolation.
-
-## 5. Integrate with External Services [pending]
-### Dependencies: 10.4
-### Description: Integrate the application with external services for enhanced functionality and data exchange.
-### Details:
-Ensure integrations respect tenant isolation and RBAC policies.
-
-## 6. Conduct Security Testing [pending]
-### Dependencies: 10.5
-### Description: Perform comprehensive security testing to ensure the application's security and integrity.
-### Details:
-Focus on testing RBAC, multi-tenancy, and integration security.
-
+Test workflow execution, validation, and status tracking. Validate data consistency with backend.

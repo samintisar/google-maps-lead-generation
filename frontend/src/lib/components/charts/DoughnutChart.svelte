@@ -1,18 +1,14 @@
 <!-- Doughnut Chart Component -->
 <script lang="ts">
 	import BaseChart from './BaseChart.svelte';
-	import { dashboardCharts } from '$lib/utils/chartData';
-	import type { DashboardMetrics } from '$lib/types';
 	import type { ChartOptions } from 'chart.js';
 
 	// Props
-	export let metrics: DashboardMetrics | null = null;
-	export let chartType: 'status' | 'source' = 'status';
+	export let data: any = null;
 	export let title: string = '';
 	export let height: number = 300;
 	export let loading: boolean = false;
 	export let error: string | null = null;
-	export let customData: any = null;
 	export let customOptions: ChartOptions = {};
 	export let cutout: string = '50%'; // Size of the hole in the center
 	export let showCenterText: boolean = false;
@@ -27,21 +23,21 @@
 				labels: {
 					usePointStyle: true,
 					padding: 15,
-					generateLabels: (chart) => {
-						const data = chart.data;
-						if (data.labels && data.datasets[0] && Array.isArray(data.datasets[0].backgroundColor)) {
-							return data.labels.map((label, i) => ({
-								text: label as string,
-								fillStyle: (data.datasets[0].backgroundColor as string[])[i] || '#ddd',
-								strokeStyle: Array.isArray(data.datasets[0].borderColor) 
-									? (data.datasets[0].borderColor as string[])[i] || '#fff'
-									: '#fff',
-								lineWidth: 2,
-								pointStyle: 'circle'
-							}));
-						}
-						return [];
-					}
+								generateLabels: (chart) => {
+				const chartData = chart.data;
+				if (chartData.labels && chartData.datasets[0] && Array.isArray(chartData.datasets[0].backgroundColor)) {
+					return chartData.labels.map((label, i) => ({
+						text: label as string,
+						fillStyle: (chartData.datasets[0].backgroundColor as string[])[i] || '#ddd',
+						strokeStyle: Array.isArray(chartData.datasets[0].borderColor) 
+							? (chartData.datasets[0].borderColor as string[])[i] || '#fff'
+							: '#fff',
+						lineWidth: 2,
+						pointStyle: 'circle'
+					}));
+				}
+				return [];
+			}
 				}
 			},
 			tooltip: {
@@ -74,34 +70,16 @@
 
 	// Merged options
 	$: mergedOptions = { ...finalOptions, ...customOptions };
-
-	// Generate chart data based on metrics and chart type
-	$: chartData = (() => {
-		if (customData) return customData;
-		if (!metrics) return null;
-
-		switch (chartType) {
-			case 'status':
-				return dashboardCharts.leadStatusDistribution(metrics);
-			case 'source':
-				return dashboardCharts.leadSourceDistribution(metrics);
-			default:
-				return null;
-		}
-	})();
-
-	// Chart title
-	$: chartTitle = title || (chartType === 'status' ? 'Lead Status Distribution' : 'Lead Source Distribution');
 </script>
 
 <div class="doughnut-chart-container">
-	{#if chartTitle}
-		<h3 class="text-lg font-medium text-gray-900 mb-4">{chartTitle}</h3>
+	{#if title}
+		<h3 class="text-lg font-medium text-gray-900 mb-4">{title}</h3>
 	{/if}
 	
 	<BaseChart
 		type="doughnut"
-		data={chartData}
+		{data}
 		options={mergedOptions}
 		{height}
 		{loading}
@@ -109,7 +87,7 @@
 		emptyMessage="No data available for doughnut chart"
 	/>
 	
-	{#if showCenterText && centerText && chartData}
+	{#if showCenterText && centerText && data}
 		<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
 			<div class="text-center">
 				<div class="text-2xl font-bold text-gray-900">{centerText}</div>

@@ -1,19 +1,14 @@
 <!-- Bar Chart Component -->
 <script lang="ts">
 	import BaseChart from './BaseChart.svelte';
-	import { revenueCharts, funnelCharts } from '$lib/utils/chartData';
-	import type { RevenueMetrics, FunnelMetrics } from '$lib/types';
 	import type { ChartOptions } from 'chart.js';
 
 	// Props
-	export let revenueMetrics: RevenueMetrics | null = null;
-	export let funnelMetrics: FunnelMetrics | null = null;
-	export let chartType: 'revenue_by_period' | 'funnel_stages' | 'custom' = 'revenue_by_period';
+	export let data: any = null;
 	export let title: string = '';
 	export let height: number = 300;
 	export let loading: boolean = false;
 	export let error: string | null = null;
-	export let customData: any = null;
 	export let customOptions: ChartOptions = {};
 	export let horizontal: boolean = false;
 	export let showValues: boolean = false;
@@ -80,13 +75,6 @@
 					size: 11
 				},
 				formatter: (value: number) => {
-					if (chartType === 'revenue_by_period') {
-						return new Intl.NumberFormat('en-US', {
-							style: 'currency',
-							currency: 'USD',
-							minimumFractionDigits: 0
-						}).format(value);
-					}
 					return value.toLocaleString();
 				}
 			}
@@ -95,42 +83,16 @@
 
 	// Merged options
 	$: mergedOptions = { ...finalOptions, ...customOptions };
-
-	// Generate chart data based on metrics and chart type
-	$: chartData = (() => {
-		if (customData) return customData;
-
-		switch (chartType) {
-			case 'revenue_by_period':
-				return revenueMetrics ? revenueCharts.revenueByPeriod(revenueMetrics) : null;
-			case 'funnel_stages':
-				return funnelMetrics ? funnelCharts.funnelStageBar(funnelMetrics) : null;
-			default:
-				return null;
-		}
-	})();
-
-	// Chart title
-	$: chartTitle = title || (() => {
-		switch (chartType) {
-			case 'revenue_by_period':
-				return 'Revenue by Period';
-			case 'funnel_stages':
-				return 'Funnel Conversion Stages';
-			default:
-				return 'Bar Chart';
-		}
-	})();
 </script>
 
 <div class="bar-chart-container">
-	{#if chartTitle}
-		<h3 class="text-lg font-medium text-gray-900 mb-4">{chartTitle}</h3>
+	{#if title}
+		<h3 class="text-lg font-medium text-gray-900 mb-4">{title}</h3>
 	{/if}
 	
 	<BaseChart
 		type="bar"
-		data={chartData}
+		{data}
 		options={mergedOptions}
 		{height}
 		{loading}

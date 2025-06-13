@@ -3,7 +3,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { Chart } from '$lib/utils/chartSetup';
 	import type { ChartConfiguration, ChartType, ChartOptions } from 'chart.js';
-	import { formatters } from '$lib/utils/chartData';
+	import { formatters } from '$lib/utils/chartSetup';
 
 	// Props
 	export let type: ChartType;

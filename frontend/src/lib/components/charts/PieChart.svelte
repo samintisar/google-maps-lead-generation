@@ -1,18 +1,14 @@
 <!-- Pie Chart Component -->
 <script lang="ts">
 	import BaseChart from './BaseChart.svelte';
-	import { dashboardCharts } from '$lib/utils/chartData';
-	import type { DashboardMetrics } from '$lib/types';
 	import type { ChartOptions } from 'chart.js';
 
 	// Props
-	export let metrics: DashboardMetrics | null = null;
-	export let chartType: 'status' | 'source' = 'status';
+	export let data: any = null;
 	export let title: string = '';
 	export let height: number = 300;
 	export let loading: boolean = false;
 	export let error: string | null = null;
-	export let customData: any = null;
 	export let customOptions: ChartOptions = {};
 
 	// Specific pie chart options
@@ -24,13 +20,13 @@
 					usePointStyle: true,
 					padding: 15,
 					generateLabels: (chart) => {
-						const data = chart.data;
-						if (data.labels && data.datasets[0] && Array.isArray(data.datasets[0].backgroundColor)) {
-							return data.labels.map((label, i) => ({
+						const chartData = chart.data;
+						if (chartData.labels && chartData.datasets[0] && Array.isArray(chartData.datasets[0].backgroundColor)) {
+							return chartData.labels.map((label, i) => ({
 								text: label as string,
-								fillStyle: (data.datasets[0].backgroundColor as string[])[i] || '#ddd',
-								strokeStyle: Array.isArray(data.datasets[0].borderColor) 
-									? (data.datasets[0].borderColor as string[])[i] || '#fff'
+								fillStyle: (chartData.datasets[0].backgroundColor as string[])[i] || '#ddd',
+								strokeStyle: Array.isArray(chartData.datasets[0].borderColor) 
+									? (chartData.datasets[0].borderColor as string[])[i] || '#fff'
 									: '#fff',
 								lineWidth: 2,
 								pointStyle: 'circle'
@@ -58,42 +54,16 @@
 
 	// Merged options
 	$: mergedOptions = { ...pieOptions, ...customOptions };
-
-	// Generate chart data based on metrics and chart type
-	$: chartData = (() => {
-		if (customData) return customData;
-		if (!metrics) {
-			console.log('PieChart: No metrics provided');
-			return null;
-		}
-
-		let result;
-		switch (chartType) {
-			case 'status':
-				result = dashboardCharts.leadStatusDistribution(metrics);
-				console.log('PieChart leadStatusDistribution result:', result);
-				return result;
-			case 'source':
-				result = dashboardCharts.leadSourceDistribution(metrics);
-				console.log('PieChart leadSourceDistribution result:', result);
-				return result;
-			default:
-				return null;
-		}
-	})();
-
-	// Chart title
-	$: chartTitle = title || (chartType === 'status' ? 'Lead Status Distribution' : 'Lead Source Distribution');
 </script>
 
 <div class="pie-chart-container">
-	{#if chartTitle}
-		<h3 class="text-lg font-medium text-gray-900 mb-4">{chartTitle}</h3>
+	{#if title}
+		<h3 class="text-lg font-medium text-gray-900 mb-4">{title}</h3>
 	{/if}
 	
 	<BaseChart
 		type="pie"
-		data={chartData}
+		{data}
 		options={mergedOptions}
 		{height}
 		{loading}

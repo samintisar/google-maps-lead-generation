@@ -6,22 +6,19 @@
 
 	// Form data
 	let formData: LeadCreate = {
-		first_name: '',
-		last_name: '',
+		name: '',
 		email: '',
 		phone: '',
 		company: '',
-		job_title: '',
-		industry: '',
-		website: '',
 		source: LeadSource.WEBSITE,
 		status: LeadStatus.NEW,
 		notes: '',
-		interest_level: 5,
-		budget: undefined,
-		timeline: '',
 		organization_id: 1 // TODO: Get from user session/context
 	};
+
+	// Additional form fields not in LeadCreate
+	let firstName = '';
+	let lastName = '';
 
 	// Form validation
 	let errors: Record<string, string> = {};
@@ -29,29 +26,17 @@
 	function validateForm() {
 		errors = {};
 
-		if (!formData.first_name.trim()) {
-			errors.first_name = 'First name is required';
+		if (!formData.name?.trim()) {
+			errors.name = 'Name is required';
 		}
 
-		if (!formData.last_name.trim()) {
-			errors.last_name = 'Last name is required';
-		}
+			if (!formData.email?.trim()) {
+		errors.email = 'Email is required';
+	} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+		errors.email = 'Please enter a valid email address';
+	}
 
-		if (!formData.email.trim()) {
-			errors.email = 'Email is required';
-		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-			errors.email = 'Please enter a valid email address';
-		}
-
-		if ((formData.interest_level ?? 5) < 1 || (formData.interest_level ?? 5) > 10) {
-			errors.interest_level = 'Interest level must be between 1 and 10';
-		}
-
-		if (formData.budget && formData.budget < 0) {
-			errors.budget = 'Budget must be a positive number';
-		}
-
-		return Object.keys(errors).length === 0;
+	return Object.keys(errors).length === 0;
 	}
 
 	// Submit form
@@ -72,9 +57,9 @@
 		) as LeadCreate;
 
 		const result = await leadsStore.createLead(cleanedData);
-		if (result?.data) {
+		if (result) {
 			// Navigate to the new lead's detail page
-			goto(`/dashboard/leads/${result.data.id}`);
+			goto(`/dashboard/leads/${result.id}`);
 		}
 	}
 
@@ -118,34 +103,18 @@
 					
 					<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 						<div>
-							<label for="first_name" class="block text-sm font-medium text-gray-700">
-								First Name <span class="text-red-500">*</span>
+							<label for="name" class="block text-sm font-medium text-gray-700">
+								Name <span class="text-red-500">*</span>
 							</label>
 							<input
 								type="text"
-								id="first_name"
-								bind:value={formData.first_name}
-								class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md {errors.first_name ? 'border-red-300' : ''}"
+								id="name"
+								bind:value={formData.name}
+								class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md {errors.name ? 'border-red-300' : ''}"
 								required
 							/>
-							{#if errors.first_name}
-								<p class="mt-1 text-sm text-red-600">{errors.first_name}</p>
-							{/if}
-						</div>
-
-						<div>
-							<label for="last_name" class="block text-sm font-medium text-gray-700">
-								Last Name <span class="text-red-500">*</span>
-							</label>
-							<input
-								type="text"
-								id="last_name"
-								bind:value={formData.last_name}
-								class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md {errors.last_name ? 'border-red-300' : ''}"
-								required
-							/>
-							{#if errors.last_name}
-								<p class="mt-1 text-sm text-red-600">{errors.last_name}</p>
+							{#if errors.name}
+								<p class="mt-1 text-sm text-red-600">{errors.name}</p>
 							{/if}
 						</div>
 
@@ -194,39 +163,6 @@
 								placeholder="Acme Corp"
 							/>
 						</div>
-
-						<div>
-							<label for="job_title" class="block text-sm font-medium text-gray-700">Job Title</label>
-							<input
-								type="text"
-								id="job_title"
-								bind:value={formData.job_title}
-								class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-								placeholder="Marketing Director"
-							/>
-						</div>
-
-						<div>
-							<label for="industry" class="block text-sm font-medium text-gray-700">Industry</label>
-							<input
-								type="text"
-								id="industry"
-								bind:value={formData.industry}
-								class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-								placeholder="Technology"
-							/>
-						</div>
-
-						<div>
-							<label for="website" class="block text-sm font-medium text-gray-700">Website</label>
-							<input
-								type="url"
-								id="website"
-								bind:value={formData.website}
-								class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-								placeholder="https://example.com"
-							/>
-						</div>
 					</div>
 				</div>
 			</div>
@@ -263,65 +199,15 @@
 						</div>
 
 						<div>
-							<label for="interest_level" class="block text-sm font-medium text-gray-700">
-								Interest Level (1-10)
-							</label>
-							<input
-								type="number"
-								id="interest_level"
-								bind:value={formData.interest_level}
-								min="1"
-								max="10"
-								class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md {errors.interest_level ? 'border-red-300' : ''}"
-							/>
-							{#if errors.interest_level}
-								<p class="mt-1 text-sm text-red-600">{errors.interest_level}</p>
-							{/if}
+							<label for="notes" class="block text-sm font-medium text-gray-700">Initial Notes</label>
+							<textarea
+								id="notes"
+								bind:value={formData.notes}
+								rows="4"
+								class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+								placeholder="Add any initial notes about this lead..."
+							></textarea>
 						</div>
-
-						<div>
-							<label for="budget" class="block text-sm font-medium text-gray-700">Estimated Budget ($)</label>
-							<input
-								type="number"
-								id="budget"
-								bind:value={formData.budget}
-								min="0"
-								step="100"
-								class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md {errors.budget ? 'border-red-300' : ''}"
-								placeholder="10000"
-							/>
-							{#if errors.budget}
-								<p class="mt-1 text-sm text-red-600">{errors.budget}</p>
-							{/if}
-						</div>
-
-						<div class="sm:col-span-2">
-							<label for="timeline" class="block text-sm font-medium text-gray-700">Decision Timeline</label>
-							<input
-								type="text"
-								id="timeline"
-								bind:value={formData.timeline}
-								class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-								placeholder="Q2 2024"
-							/>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="bg-white shadow rounded-lg">
-				<div class="px-4 py-5 sm:p-6">
-					<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Notes</h3>
-					
-					<div>
-						<label for="notes" class="block text-sm font-medium text-gray-700">Initial Notes</label>
-						<textarea
-							id="notes"
-							bind:value={formData.notes}
-							rows="4"
-							class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
-							placeholder="Add any initial notes about this lead..."
-						></textarea>
 					</div>
 				</div>
 			</div>

@@ -10,7 +10,9 @@ services:
     environment:
       - ENVIRONMENT=development
       - PORT=8000
-      - DATABASE_URL=postgresql://lma_db_owner:npg_mRQX3eAio4tL@ep-old-butterfly-a6ids19o-pooler.us-west-2.aws.neon.tech/lma_db?sslmode=require
+      - DATABASE_URL=${DATABASE_URL}
+    env_file:
+      - .env
     networks:
       - lma-network
     logging:
@@ -31,14 +33,12 @@ services:
       - NODE_ENV=development
       - PORT=5173
       - PUBLIC_API_URL=http://localhost:18000/api
-      - DATABASE_URL=postgresql://lma_db_owner:npg_mRQX3eAio4tL@ep-old-butterfly-a6ids19o-pooler.us-west-2.aws.neon.tech/lma_db?sslmode=require
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/static:/app/static
       - /app/node_modules
     depends_on:
       - backend
-      # - postgres
     networks:
       - lma-network
     logging:
@@ -50,3 +50,5 @@ services:
 networks:
   lma-network:
     driver: bridge
+
+

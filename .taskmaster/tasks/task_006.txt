@@ -1,85 +1,43 @@
 # Task ID: 6
-# Title: Lead Scoring and Enrichment
+# Title: Develop Comprehensive Lead List Page
 # Status: in-progress
-# Dependencies: None
+# Dependencies: 3, 4
 # Priority: medium
-# Description: Develop Python automation for lead enrichment and ML-based scoring using FastAPI.
+# Description: Implement lead list page with advanced filtering, sorting, and search capabilities.
 # Details:
-
+Build SvelteKit lead list page with search, filter, and sort functionality. Display all relevant lead information. Use Svelte stores for state. Fetch data from FastAPI backend. Implement pagination for performance. Use Tailwind CSS for responsive design.
 
 # Test Strategy:
-
+Test search, filter, sort, and pagination. Validate data display and performance with large datasets.
 
 # Subtasks:
-## 1. Scoring System Design [done]
+## 1. Set Up SvelteKit Project and UI Framework [pending]
 ### Dependencies: None
-### Description: Design the scoring system architecture, including rule-based and ML components.
+### Description: Initialize a new SvelteKit project and integrate Tailwind CSS for responsive design.
 ### Details:
-Define scoring algorithms and integrate with existing Python automation framework.
+Create project structure, install dependencies, and configure Tailwind CSS for styling.
 
-## 2. Enrichment Pipeline Development [done]
-### Dependencies: None
-### Description: Develop data enrichment pipelines to enhance data quality and relevance.
-### Details:
-Utilize tools like Pandas for data manipulation and integration with scoring system.
-
-## 3. ML Integration [pending]
+## 2. Implement Data Fetching from FastAPI Backend [pending]
 ### Dependencies: 6.1
-### Description: Integrate machine learning models into the scoring system.
+### Description: Connect the SvelteKit lead list page to the FastAPI backend to fetch lead data.
 ### Details:
-Train and deploy ML models using libraries like scikit-learn or TensorFlow.
+Create API client functions, fetch lead data, and handle errors.
 
-## 4. API Design and Implementation [done]
-### Dependencies: None
-### Description: Design and implement APIs for data exchange and system integration.
-### Details:
-Use FastAPI to create RESTful APIs for accessing and manipulating data.
-
-## 5. Behavioral Tracking Implementation [pending]
-### Dependencies: 6.4
-### Description: Implement behavioral tracking features to monitor user interactions.
-### Details:
-Use tracking libraries to log user behavior and integrate with scoring system.
-
-## 6. Source Attribution Development [pending]
+## 3. Build Lead List Display and Pagination [pending]
 ### Dependencies: 6.2
-### Description: Develop source attribution mechanisms to track data origins.
+### Description: Display lead information in a table or list with pagination for performance.
 ### Details:
-Implement data lineage tracking to ensure transparency and accountability.
+Render lead data, implement pagination controls, and manage page state.
 
-## 7. Workflow Customization Framework [pending]
-### Dependencies: 6.1, 6.2
-### Description: Create a framework for customizing workflows based on user needs.
+## 4. Add Advanced Filtering, Sorting, and Search [pending]
+### Dependencies: 6.3
+### Description: Implement advanced filtering, sorting, and search capabilities for the lead list.
 ### Details:
-Use Python workflow automation tools like Luigi for flexible workflow management.
+Add UI controls for filters, sort options, and search input. Use Svelte stores for state management.
 
-## 8. Integration Testing [pending]
-### Dependencies: 6.3, 6.4, 6.5, 6.6
-### Description: Conduct integration testing to ensure all components work together seamlessly.
+## 5. Implement Bulk Actions and Status Management [pending]
+### Dependencies: 6.4
+### Description: Enable bulk actions (e.g., select, update status) and lead detail views.
 ### Details:
-Test interactions between scoring, enrichment, API, tracking, and attribution components.
-
-## 9. Deployment and Containerization [pending]
-### Dependencies: 6.8
-### Description: Deploy the system using Docker containers and ensure scalability.
-### Details:
-Configure Docker for efficient deployment and scaling of the application.
-
-## 10. Monitoring and Logging Setup [pending]
-### Dependencies: 6.9
-### Description: Set up monitoring and logging tools to track system performance.
-### Details:
-Implement logging and monitoring solutions to ensure system reliability.
-
-## 11. Documentation and Training [pending]
-### Dependencies: 6.10
-### Description: Create comprehensive documentation and training materials for users.
-### Details:
-Develop user guides and training sessions to facilitate adoption and usage.
-
-## 12. Final System Review and Optimization [pending]
-### Dependencies: 6.11
-### Description: Conduct a final review of the system and optimize performance.
-### Details:
-Evaluate system performance, identify bottlenecks, and implement optimizations.
+Add checkboxes for bulk selection, status update controls, and navigation to lead detail pages.
 

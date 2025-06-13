@@ -1,25 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import { 
-		metricsStore, 
-		dashboardMetrics, 
-		metricsLoading, 
-		metricsError,
-		formatCurrency,
-		formatPercentage,
-		cleanupMetricsAutoRefresh
-	} from '$lib/stores/metrics';
-	import { authStore } from '$lib/stores/auth';
-
-	// Load metrics when component mounts
-	onMount(async () => {
-		await metricsStore.loadDashboardMetrics();
-	});
-
-	// Clean up auto-refresh when component unmounts
-	onDestroy(() => {
-		cleanupMetricsAutoRefresh();
-	});
+	// Metrics and auth stores removed - showing static dashboard
 </script>
 
 <svelte:head>
@@ -38,29 +18,13 @@
 			<div class="bg-white overflow-hidden shadow rounded-lg mb-6">
 				<div class="px-4 py-5 sm:p-6">
 					<h2 class="text-lg font-medium text-gray-900 mb-2">
-						Welcome back, {$authStore.user?.username || 'User'}!
+						Welcome to LMA Platform!
 					</h2>
 					<p class="text-sm text-gray-600">
 						Here's an overview of your lead management activity.
 					</p>
 				</div>
 			</div>
-
-			<!-- Error message -->
-			{#if $metricsError}
-				<div class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
-					<div class="flex">
-						<div class="flex-shrink-0">
-							<svg class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-							</svg>
-						</div>
-						<div class="ml-3">
-							<p class="text-sm text-red-800">{$metricsError}</p>
-						</div>
-					</div>
-				</div>
-			{/if}
 
 			<!-- Stats grid -->
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -75,15 +39,7 @@
 							<div class="ml-5 w-0 flex-1">
 								<dl>
 									<dt class="text-sm font-medium text-gray-500 truncate">Total Leads</dt>
-									<dd class="text-lg font-medium text-gray-900">
-										{#if $metricsLoading.dashboard}
-											<div class="animate-pulse bg-gray-200 h-6 w-16 rounded"></div>
-										{:else if $dashboardMetrics}
-											{$dashboardMetrics.overview.total_leads.toLocaleString()}
-										{:else}
-											--
-										{/if}
-									</dd>
+									<dd class="text-lg font-medium text-gray-900">--</dd>
 								</dl>
 							</div>
 						</div>
@@ -101,15 +57,7 @@
 							<div class="ml-5 w-0 flex-1">
 								<dl>
 									<dt class="text-sm font-medium text-gray-500 truncate">New This Period</dt>
-									<dd class="text-lg font-medium text-gray-900">
-										{#if $metricsLoading.dashboard}
-											<div class="animate-pulse bg-gray-200 h-6 w-16 rounded"></div>
-										{:else if $dashboardMetrics}
-											{$dashboardMetrics.overview.new_leads.toLocaleString()}
-										{:else}
-											--
-										{/if}
-									</dd>
+									<dd class="text-lg font-medium text-gray-900">--</dd>
 								</dl>
 							</div>
 						</div>
@@ -127,15 +75,7 @@
 							<div class="ml-5 w-0 flex-1">
 								<dl>
 									<dt class="text-sm font-medium text-gray-500 truncate">Won Deals</dt>
-									<dd class="text-lg font-medium text-gray-900">
-										{#if $metricsLoading.dashboard}
-											<div class="animate-pulse bg-gray-200 h-6 w-16 rounded"></div>
-										{:else if $dashboardMetrics}
-											{$dashboardMetrics.overview.won_leads.toLocaleString()}
-										{:else}
-											--
-										{/if}
-									</dd>
+									<dd class="text-lg font-medium text-gray-900">--</dd>
 								</dl>
 							</div>
 						</div>
@@ -153,15 +93,7 @@
 							<div class="ml-5 w-0 flex-1">
 								<dl>
 									<dt class="text-sm font-medium text-gray-500 truncate">Revenue</dt>
-									<dd class="text-lg font-medium text-gray-900">
-										{#if $metricsLoading.dashboard}
-											<div class="animate-pulse bg-gray-200 h-6 w-16 rounded"></div>
-										{:else if $dashboardMetrics}
-											{formatCurrency($dashboardMetrics.overview.total_revenue)}
-										{:else}
-											--
-										{/if}
-									</dd>
+									<dd class="text-lg font-medium text-gray-900">--</dd>
 								</dl>
 							</div>
 						</div>
