@@ -2,7 +2,8 @@
 Lead Management Domain Models.
 """
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float, ForeignKey
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -13,7 +14,7 @@ class Lead(Base):
     __tablename__ = "leads"
     
     id = Column(Integer, primary_key=True, index=True)
-    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True, default=1)
     name = Column(String(255), nullable=False)
     email = Column(String(255), index=True)
     phone = Column(String(50))
@@ -26,6 +27,22 @@ class Lead(Base):
     source = Column(String(100))
     score = Column(Float, default=0.0)
     notes = Column(Text)
+    
+    # Enrichment fields from Perplexity API
+    linkedin_profile = Column(String(500))  # LinkedIn profile URL
+    twitter_profile = Column(String(500))   # Twitter/X profile URL
+    facebook_profile = Column(String(500))  # Facebook profile URL
+    instagram_profile = Column(String(500)) # Instagram profile URL
+    ideal_customer_profile = Column(Text)   # Descriptive ICP analysis
+    pain_points = Column(Text)              # Identified pain points
+    key_goals = Column(Text)                # Business goals and objectives
+    company_description = Column(Text)      # Company overview from web research
+    recent_news = Column(Text)              # Recent company news/updates
+    key_personnel = Column(JSONB)           # Key decision makers and contacts (PostgreSQL JSONB)
+    enrichment_status = Column(String(50), default="pending")  # pending, completed, failed
+    enriched_at = Column(DateTime(timezone=True))  # When enrichment was completed
+    enrichment_confidence = Column(Float, default=0.0)  # Confidence score of enrichment data
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
@@ -49,7 +66,7 @@ class Activity(Base):
     status = Column(String(100), default="completed")
     scheduled_at = Column(DateTime(timezone=True))
     completed_at = Column(DateTime(timezone=True))
-    activity_data = Column(JSON)  # Flexible field for activity-specific data
+    activity_data = Column(JSONB)  # Flexible field for activity-specific data (PostgreSQL JSONB)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
@@ -68,7 +85,7 @@ class LeadScoringRule(Base):
     name = Column(String(255), nullable=False)
     description = Column(Text)
     rule_type = Column(String(100), nullable=False)  # demographic, behavioral, engagement
-    conditions = Column(JSON)  # Rule conditions and criteria
+    conditions = Column(JSONB)  # Rule conditions and criteria (PostgreSQL JSONB)
     score_value = Column(Float, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -1,79 +1,94 @@
 """
-Core configuration settings for the LMA backend.
+Application configuration settings.
+Centralized configuration management with environment variable support.
+PostgreSQL/Neon database only - no SQLite support.
 """
-from pydantic_settings import BaseSettings
-from typing import Optional
+
 import os
-from cryptography.fernet import Fernet
+from functools import lru_cache
+from typing import Optional
+from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 class Settings(BaseSettings):
-    """Application settings."""
-    
-    # Database settings  
-    database_url: str = os.getenv("DATABASE_URL", "postgresql://lma_db_owner:npg_mRQX3eAio4tL@ep-old-butterfly-a6ids19o-pooler.us-west-2.aws.neon.tech/lma_db?sslmode=require")
-    postgres_db: Optional[str] = None
-    postgres_user: Optional[str] = None  
-    postgres_password: Optional[str] = None
-    
-    # Redis settings
-    redis_url: str = "redis://redis:6379"
-    
-    # n8n settings
-    n8n_webhook_url: str = "https://your-n8n-cloud-instance.app.n8n.cloud/webhook"
-    n8n_api_base_url: str = "https://your-n8n-cloud-instance.app.n8n.cloud/api/v1"
-    n8n_email: str = "admin@lma.com"  # Default fallback - update with your n8n Cloud email
-    n8n_password: str = "Admin123"    # Default fallback - update with your n8n Cloud password
-    n8n_basic_auth_user: Optional[str] = None
-    n8n_basic_auth_password: Optional[str] = None
-    n8n_encryption_key: Optional[str] = None
-    n8n_api_key: Optional[str] = None  # Add API key for n8n Cloud authentication
-    
-    # Security settings
-    secret_key: str = "your-secret-key-here-change-in-production"
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
-    jwt_secret_key: Optional[str] = None
-    jwt_algorithm: Optional[str] = None
-    jwt_expiration_hours: Optional[str] = None
-    
-    # Workflow encryption key for credentials
-    encryption_key: str = Fernet.generate_key().decode()
+    """Application settings with environment variable support."""
     
     # Application settings
+    app_name: str = "Lead Management Application"
+    version: str = "3.0.0"
     environment: str = "development"
     debug: bool = True
+    port: int = 18000
     
-    # API Keys for AI services
-    anthropic_api_key: Optional[str] = None
+    # Database settings - REQUIRE PostgreSQL/Neon (no SQLite fallback)
+    database_url: str = os.getenv("DATABASE_URL", "")
+    
+    # API Keys (loaded from .env file)
     perplexity_api_key: Optional[str] = None
+    openai_api_key: Optional[str] = None
+    google_places_api_key: Optional[str] = None
+    anthropic_api_key: Optional[str] = None  # Added from .env
     
-    # Frontend settings
+    # Frontend/App configuration (from .env)
+    secret_key: Optional[str] = None
     vite_api_url: Optional[str] = None
-    vite_n8n_webhook_url: Optional[str] = None
-    
-    # Docker settings
+    public_api_url: Optional[str] = None
     compose_project_name: Optional[str] = None
     
-    def get_database_url(self) -> str:
-        """Get database URL with development fallback to SQLite."""
-        # Try PostgreSQL first
-        if "postgres" not in self.database_url or self.environment == "development":
-            # Check if we can connect to PostgreSQL
-            try:
-                import psycopg2
-                # Try to connect to postgres
-                conn = psycopg2.connect(self.database_url)
-                conn.close()
-                return self.database_url
-            except Exception:
-                # Fall back to SQLite for development
-                return "sqlite:///./lma_dev.db"
-        return self.database_url
+    # CORS settings
+    cors_origins: list = [
+        "http://localhost:3000",
+        "http://localhost:15173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:15173"
+    ]
+    
+    # Logging settings
+    log_level: str = "INFO"
+    
+    # Database connection settings for PostgreSQL/Neon
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
+    db_pool_timeout: int = 30
+    db_pool_recycle: int = 3600  # 1 hour
+    
+    @property
+    def is_postgresql(self) -> bool:
+        """Check if using PostgreSQL (Neon) database."""
+        return self.database_url.startswith(("postgresql://", "postgres://"))
+    
+    def __post_init__(self):
+        """Validate database URL is set and is PostgreSQL only."""
+        if not self.database_url:
+            raise ValueError(
+                "DATABASE_URL environment variable is required. "
+                "Please set it in your .env file with your Neon PostgreSQL connection string."
+            )
+        if not self.is_postgresql:
+            if self.database_url.startswith("sqlite:"):
+                raise ValueError(
+                    "SQLite databases are not supported. This application requires PostgreSQL/Neon. "
+                    "Please update your DATABASE_URL to use a PostgreSQL connection string."
+                )
+            else:
+                raise ValueError(
+                    "Only PostgreSQL/Neon databases are supported. "
+                    "DATABASE_URL must start with 'postgresql://' or 'postgres://'"
+                )
     
     class Config:
         env_file = ".env"
-        extra = "ignore"  # Ignore extra fields instead of raising validation errors
+        case_sensitive = False
+        extra = "ignore"  # Ignore extra environment variables
 
-# Global settings instance
-settings = Settings()
+
+@lru_cache()
+def get_settings() -> Settings:
+    """Get cached application settings."""
+    settings = Settings()
+    settings.__post_init__()
+    return settings

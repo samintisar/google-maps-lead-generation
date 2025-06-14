@@ -120,11 +120,38 @@ class LeadUpdate(BaseSchema):
     source: Optional[str] = Field(None, max_length=100)
     score: Optional[float] = Field(None, ge=0.0)
     notes: Optional[str] = None
+    # Enrichment fields
+    linkedin_profile: Optional[str] = Field(None, max_length=500)
+    twitter_profile: Optional[str] = Field(None, max_length=500)
+    facebook_profile: Optional[str] = Field(None, max_length=500)
+    instagram_profile: Optional[str] = Field(None, max_length=500)
+    ideal_customer_profile: Optional[str] = None
+    pain_points: Optional[str] = None
+    key_goals: Optional[str] = None
+    company_description: Optional[str] = None
+    recent_news: Optional[str] = None
+    key_personnel: Optional[List[Dict[str, Any]]] = None
+    enrichment_status: Optional[str] = Field(None, max_length=50)
+    enrichment_confidence: Optional[float] = Field(None, ge=0.0, le=1.0)
 
 
 class Lead(LeadBase):
     id: int
     organization_id: int
+    # Enrichment fields
+    linkedin_profile: Optional[str] = None
+    twitter_profile: Optional[str] = None
+    facebook_profile: Optional[str] = None
+    instagram_profile: Optional[str] = None
+    ideal_customer_profile: Optional[str] = None
+    pain_points: Optional[str] = None
+    key_goals: Optional[str] = None
+    company_description: Optional[str] = None
+    recent_news: Optional[str] = None
+    key_personnel: Optional[List[Dict[str, Any]]] = None
+    enrichment_status: Optional[str] = None
+    enriched_at: Optional[datetime] = None
+    enrichment_confidence: Optional[float] = None
     created_at: datetime
     updated_at: datetime
 
@@ -308,6 +335,18 @@ class Integration(IntegrationBase):
 
 
 # Response schemas with relationships
+# Lead enrichment schemas
+class LeadEnrichmentRequest(BaseSchema):
+    lead_id: int
+
+
+class LeadEnrichmentResponse(BaseSchema):
+    success: bool
+    message: str
+    enrichment_data: Optional[Dict[str, Any]] = None
+    confidence_score: Optional[float] = None
+
+
 class LeadWithActivities(Lead):
     activities: List[Activity] = []
 

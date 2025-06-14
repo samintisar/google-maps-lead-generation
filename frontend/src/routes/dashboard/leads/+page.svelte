@@ -106,19 +106,30 @@
 		return value.replace('_', ' ').toUpperCase();
 	}
 
-	// Get temperature badge color
-	function getTemperatureColor(temperature: string | undefined): string {
-		const temp = (temperature || '').toLowerCase();
-		switch (temp) {
-			case 'hot':
-				return 'bg-red-100 text-red-800';
-			case 'warm':
-				return 'bg-yellow-100 text-yellow-800';
-			case 'cold':
-				return 'bg-blue-100 text-blue-800';
-			default:
-				return 'bg-gray-100 text-gray-800';
+	// Get enrichment status badge color
+	function getEnrichmentStatusColor(status?: string) {
+		switch (status) {
+			case 'completed': return 'bg-green-100 text-green-800';
+			case 'pending': return 'bg-yellow-100 text-yellow-800';
+			case 'failed': return 'bg-red-100 text-red-800';
+			default: return 'bg-gray-100 text-gray-800';
 		}
+	}
+
+	// Check if lead has enrichment data
+	function hasEnrichmentData(lead: Lead): boolean {
+		return !!(
+			lead.linkedin_profile ||
+			lead.twitter_profile ||
+			lead.facebook_profile ||
+			lead.instagram_profile ||
+			lead.ideal_customer_profile ||
+			lead.pain_points ||
+			lead.key_goals ||
+			lead.company_description ||
+			lead.recent_news ||
+			(lead.key_personnel && lead.key_personnel.length > 0)
+		);
 	}
 </script>
 
@@ -292,7 +303,7 @@
 									Score
 								</th>
 								<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Temperature
+									Enrichment
 								</th>
 								<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 									Created
@@ -345,9 +356,18 @@
 										</div>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
-										<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-											COLD
-										</span>
+										<div class="flex items-center space-x-2">
+											<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {getEnrichmentStatusColor(lead.enrichment_status)}">
+												{(lead.enrichment_status || 'not enriched').replace('_', ' ').toUpperCase()}
+											</span>
+											{#if hasEnrichmentData(lead)}
+												<span class="text-xs text-green-600" title="Has enrichment data">
+													<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+														<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+													</svg>
+												</span>
+											{/if}
+										</div>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 										{formatDate(lead.created_at)}

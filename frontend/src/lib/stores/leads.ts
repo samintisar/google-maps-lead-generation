@@ -1,6 +1,6 @@
 import { writable, derived, get as getStore } from 'svelte/store';
 import { leadApi } from '$lib/api';
-import type { Lead, LeadCreate, LeadUpdate, LeadFilters, ListResponse } from '$lib/types';
+import type { Lead, LeadCreate, LeadUpdate, LeadFilters, ListResponse, LeadEnrichmentResponse, LeadEnrichmentStatus } from '$lib/types';
 
 // Store state interface
 interface LeadsState {
@@ -12,6 +12,7 @@ interface LeadsState {
 		create: boolean;
 		update: boolean;
 		delete: boolean;
+		enrich: boolean;
 	};
 	error: string | null;
 	pagination: {
@@ -33,6 +34,7 @@ const initialState: LeadsState = {
 		create: false,
 		update: false,
 		delete: false,
+		enrich: false,
 	},
 	error: null,
 	pagination: {
@@ -268,6 +270,79 @@ export const leadsStore = {
 			const errorMessage = error instanceof Error ? error.message : 'Failed to update lead status';
 			showError(errorMessage);
 		}
+	},
+
+	// Enrich a lead with Perplexity data
+	async enrichLead(id: number): Promise<LeadEnrichmentResponse | null> {
+		try {
+			update(state => ({
+				...state,
+				loading: { ...state.loading, enrich: true },
+				error: null,
+			}));
+
+			const response = await leadApi.enrichLead(id);
+
+			// Update enrichment status in local state
+			update(state => ({
+				...state,
+				leads: state.leads.map(lead =>
+					lead.id === id ? { ...lead, enrichment_status: 'pending' } : lead
+				),
+				currentLead: state.currentLead?.id === id 
+					? { ...state.currentLead, enrichment_status: 'pending' } 
+					: state.currentLead,
+				loading: { ...state.loading, enrich: false },
+			}));
+
+			return response;
+		} catch (error) {
+			update(state => ({
+				...state,
+				loading: { ...state.loading, enrich: false },
+			}));
+
+			const errorMessage = error instanceof Error ? error.message : 'Failed to enrich lead';
+			showError(errorMessage);
+			return null;
+		}
+	},
+
+	// Get enrichment status for a lead
+	async getEnrichmentStatus(id: number): Promise<LeadEnrichmentStatus | null> {
+		try {
+			const status = await leadApi.getEnrichmentStatus(id);
+			return status;
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Failed to get enrichment status';
+			showError(errorMessage);
+			return null;
+		}
+	},
+
+	// Poll for enrichment completion
+	async pollEnrichmentStatus(id: number, maxAttempts: number = 30): Promise<boolean> {
+		let attempts = 0;
+		
+		while (attempts < maxAttempts) {
+			const status = await this.getEnrichmentStatus(id);
+			
+			if (status?.enrichment_status === 'completed') {
+				// Reload the lead to get updated enrichment data
+				await this.loadLead(id);
+				return true;
+			} else if (status?.enrichment_status === 'failed') {
+				showError('Lead enrichment failed. Please try again.');
+				return false;
+			}
+			
+			// Wait 2 seconds before next poll
+			await new Promise(resolve => setTimeout(resolve, 2000));
+			attempts++;
+		}
+		
+		showError('Lead enrichment is taking longer than expected. Please check back later.');
+		return false;
 	},
 
 

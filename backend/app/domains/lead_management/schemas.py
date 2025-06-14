@@ -21,6 +21,20 @@ class LeadBase(BaseModel):
     source: Optional[str] = None
     score: Optional[float] = 0.0
     notes: Optional[str] = None
+    # Enrichment fields
+    linkedin_profile: Optional[str] = None
+    twitter_profile: Optional[str] = None
+    facebook_profile: Optional[str] = None
+    instagram_profile: Optional[str] = None
+    ideal_customer_profile: Optional[str] = None
+    pain_points: Optional[str] = None
+    key_goals: Optional[str] = None
+    company_description: Optional[str] = None
+    recent_news: Optional[str] = None
+    key_personnel: Optional[str] = None  # JSON string
+    enrichment_status: Optional[str] = None
+    enriched_at: Optional[datetime] = None
+    enrichment_confidence: Optional[float] = None
 
 
 class LeadCreate(LeadBase):
@@ -40,6 +54,19 @@ class LeadUpdate(BaseModel):
     source: Optional[str] = None
     score: Optional[float] = None
     notes: Optional[str] = None
+    # Enrichment fields
+    linkedin_profile: Optional[str] = None
+    twitter_profile: Optional[str] = None
+    facebook_profile: Optional[str] = None
+    instagram_profile: Optional[str] = None
+    ideal_customer_profile: Optional[str] = None
+    pain_points: Optional[str] = None
+    key_goals: Optional[str] = None
+    company_description: Optional[str] = None
+    recent_news: Optional[str] = None
+    key_personnel: Optional[str] = None
+    enrichment_status: Optional[str] = None
+    enrichment_confidence: Optional[float] = None
 
 
 class Lead(LeadBase):

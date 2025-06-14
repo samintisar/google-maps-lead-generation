@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { leadsStore, currentLead, leadsLoading, leadsError } from '$lib/stores/leads';
@@ -13,10 +13,21 @@
 	let isEditing = false;
 	let editForm: Partial<Lead> = {};
 
+	// Enrichment state
+	let isEnriching = false;
+	let enrichmentPolling: NodeJS.Timeout | null = null;
+
 	// Load lead on mount
 	onMount(() => {
 		if (leadId) {
 			leadsStore.loadLead(leadId);
+		}
+	});
+
+	// Cleanup polling on destroy
+	onDestroy(() => {
+		if (enrichmentPolling) {
+			clearInterval(enrichmentPolling);
 		}
 	});
 
@@ -86,6 +97,39 @@
 		await leadsStore.updateLeadStatus($currentLead.id, newStatus);
 	}
 
+	// Enrich lead with Perplexity data
+	async function enrichLead() {
+		if (!$currentLead || isEnriching) return;
+
+		isEnriching = true;
+		const response = await leadsStore.enrichLead($currentLead.id);
+		
+		if (response?.success) {
+			// Start polling for completion
+			enrichmentPolling = setInterval(async () => {
+				const status = await leadsStore.getEnrichmentStatus($currentLead!.id);
+				
+				if (status?.enrichment_status === 'completed') {
+					// Reload lead to get updated data
+					await leadsStore.loadLead($currentLead!.id);
+					isEnriching = false;
+					if (enrichmentPolling) {
+						clearInterval(enrichmentPolling);
+						enrichmentPolling = null;
+					}
+				} else if (status?.enrichment_status === 'failed') {
+					isEnriching = false;
+					if (enrichmentPolling) {
+						clearInterval(enrichmentPolling);
+						enrichmentPolling = null;
+					}
+				}
+			}, 3000); // Poll every 3 seconds
+		} else {
+			isEnriching = false;
+		}
+	}
+
 	// Format date
 	function formatDate(dateString: string) {
 		return new Date(dateString).toLocaleString();
@@ -103,6 +147,32 @@
 			[LeadStatus.CLOSED_LOST]: 'bg-red-100 text-red-800',
 		};
 		return colors[status] || 'bg-gray-100 text-gray-800';
+	}
+
+	// Get enrichment status color
+	function getEnrichmentStatusColor(status?: string) {
+		switch (status) {
+			case 'completed': return 'bg-green-100 text-green-800';
+			case 'pending': return 'bg-yellow-100 text-yellow-800';
+			case 'failed': return 'bg-red-100 text-red-800';
+			default: return 'bg-gray-100 text-gray-800';
+		}
+	}
+
+	// Check if lead has enrichment data
+	function hasEnrichmentData(lead: Lead): boolean {
+		return !!(
+			lead.linkedin_profile ||
+			lead.twitter_profile ||
+			lead.facebook_profile ||
+			lead.instagram_profile ||
+			lead.ideal_customer_profile ||
+			lead.pain_points ||
+			lead.key_goals ||
+			lead.company_description ||
+			lead.recent_news ||
+			(lead.key_personnel && lead.key_personnel.length > 0)
+		);
 	}
 </script>
 
@@ -186,6 +256,29 @@
 					</div>
 				</div>
 				<div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+					<!-- Enrichment button -->
+					{#if !isEditing}
+						<button
+							type="button"
+							onclick={enrichLead}
+							disabled={isEnriching || $leadsLoading.enrich}
+							class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							{#if isEnriching || $leadsLoading.enrich}
+								<svg class="-ml-1 mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								</svg>
+								Enriching...
+							{:else}
+								<svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+								</svg>
+								Enrich Lead
+							{/if}
+						</button>
+					{/if}
+
 					{#if isEditing}
 						<button
 							type="button"
@@ -235,16 +328,16 @@
 							<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Contact Information</h3>
 							
 							{#if isEditing}
-							<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-							<div>
-							<label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-							<input
-							type="text"
-							id="name"
-							bind:value={editForm.name}
-							class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-							/>
-							</div>
+								<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+									<div>
+										<label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+										<input
+											type="text"
+											id="name"
+											bind:value={editForm.name}
+											class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+										/>
+									</div>
 									<div>
 										<label for="email" class="block text-sm font-medium text-gray-700">Email</label>
 										<input
@@ -287,27 +380,261 @@
 							<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Company Information</h3>
 							
 							{#if isEditing}
-							<div class="grid grid-cols-1 gap-4">
-							<div>
-							<label for="company" class="block text-sm font-medium text-gray-700">Company</label>
-							<input
-							type="text"
-							id="company"
-							bind:value={editForm.company}
-							class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-							/>
-							</div>
-							</div>
+								<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+									<div>
+										<label for="company" class="block text-sm font-medium text-gray-700">Company</label>
+										<input
+											type="text"
+											id="company"
+											bind:value={editForm.company}
+											class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+										/>
+									</div>
+									<div>
+										<label for="industry" class="block text-sm font-medium text-gray-700">Industry</label>
+										<input
+											type="text"
+											id="industry"
+											bind:value={editForm.industry}
+											class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+										/>
+									</div>
+									<div>
+										<label for="website" class="block text-sm font-medium text-gray-700">Website</label>
+										<input
+											type="url"
+											id="website"
+											bind:value={editForm.website}
+											class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+										/>
+									</div>
+									<div>
+										<label for="address" class="block text-sm font-medium text-gray-700">Address</label>
+										<input
+											type="text"
+											id="address"
+											bind:value={editForm.address}
+											class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+										/>
+									</div>
+								</div>
 							{:else}
-							<dl class="grid grid-cols-1 gap-x-4 gap-y-6">
-							<div>
-							<dt class="text-sm font-medium text-gray-500">Company</dt>
-							<dd class="mt-1 text-sm text-gray-900">{$currentLead.company || '-'}</dd>
-							</div>
-							</dl>
+								<dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+									<div>
+										<dt class="text-sm font-medium text-gray-500">Company</dt>
+										<dd class="mt-1 text-sm text-gray-900">{$currentLead.company || '-'}</dd>
+									</div>
+									{#if $currentLead.industry}
+										<div>
+											<dt class="text-sm font-medium text-gray-500">Industry</dt>
+											<dd class="mt-1 text-sm text-gray-900">{$currentLead.industry}</dd>
+										</div>
+									{/if}
+									{#if $currentLead.website}
+										<div>
+											<dt class="text-sm font-medium text-gray-500">Website</dt>
+											<dd class="mt-1 text-sm text-gray-900">
+												<a href={$currentLead.website} target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-500">
+													{$currentLead.website}
+												</a>
+											</dd>
+										</div>
+									{/if}
+									{#if $currentLead.address}
+										<div>
+											<dt class="text-sm font-medium text-gray-500">Address</dt>
+											<dd class="mt-1 text-sm text-gray-900">{$currentLead.address}</dd>
+										</div>
+									{/if}
+								</dl>
 							{/if}
 						</div>
 					</div>
+
+					<!-- Social Media Profiles -->
+					{#if hasEnrichmentData($currentLead) || isEditing}
+						<div class="bg-white shadow rounded-lg">
+							<div class="px-4 py-5 sm:p-6">
+								<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Social Media Profiles</h3>
+								
+								{#if isEditing}
+									<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+										<div>
+											<label for="linkedin_profile" class="block text-sm font-medium text-gray-700">LinkedIn Profile</label>
+											<input
+												type="url"
+												id="linkedin_profile"
+												bind:value={editForm.linkedin_profile}
+												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+											/>
+										</div>
+										<div>
+											<label for="twitter_profile" class="block text-sm font-medium text-gray-700">Twitter Profile</label>
+											<input
+												type="url"
+												id="twitter_profile"
+												bind:value={editForm.twitter_profile}
+												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+											/>
+										</div>
+										<div>
+											<label for="facebook_profile" class="block text-sm font-medium text-gray-700">Facebook Profile</label>
+											<input
+												type="url"
+												id="facebook_profile"
+												bind:value={editForm.facebook_profile}
+												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+											/>
+										</div>
+										<div>
+											<label for="instagram_profile" class="block text-sm font-medium text-gray-700">Instagram Profile</label>
+											<input
+												type="url"
+												id="instagram_profile"
+												bind:value={editForm.instagram_profile}
+												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+											/>
+										</div>
+									</div>
+								{:else}
+									<dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+										{#if $currentLead.linkedin_profile}
+											<div>
+												<dt class="text-sm font-medium text-gray-500">LinkedIn</dt>
+												<dd class="mt-1 text-sm text-gray-900">
+													<a href={$currentLead.linkedin_profile} target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-500">
+														View Profile
+													</a>
+												</dd>
+											</div>
+										{/if}
+										{#if $currentLead.twitter_profile}
+											<div>
+												<dt class="text-sm font-medium text-gray-500">Twitter</dt>
+												<dd class="mt-1 text-sm text-gray-900">
+													<a href={$currentLead.twitter_profile} target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-500">
+														View Profile
+													</a>
+												</dd>
+											</div>
+										{/if}
+										{#if $currentLead.facebook_profile}
+											<div>
+												<dt class="text-sm font-medium text-gray-500">Facebook</dt>
+												<dd class="mt-1 text-sm text-gray-900">
+													<a href={$currentLead.facebook_profile} target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-500">
+														View Profile
+													</a>
+												</dd>
+											</div>
+										{/if}
+										{#if $currentLead.instagram_profile}
+											<div>
+												<dt class="text-sm font-medium text-gray-500">Instagram</dt>
+												<dd class="mt-1 text-sm text-gray-900">
+													<a href={$currentLead.instagram_profile} target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-500">
+														View Profile
+													</a>
+												</dd>
+											</div>
+										{/if}
+									</dl>
+								{/if}
+							</div>
+						</div>
+					{/if}
+
+					<!-- Business Intelligence -->
+					{#if hasEnrichmentData($currentLead) || isEditing}
+						<div class="bg-white shadow rounded-lg">
+							<div class="px-4 py-5 sm:p-6">
+								<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Business Intelligence</h3>
+								
+								{#if isEditing}
+									<div class="space-y-4">
+										<div>
+											<label for="ideal_customer_profile" class="block text-sm font-medium text-gray-700">Ideal Customer Profile</label>
+											<textarea
+												id="ideal_customer_profile"
+												bind:value={editForm.ideal_customer_profile}
+												rows="3"
+												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+											></textarea>
+										</div>
+										<div>
+											<label for="pain_points" class="block text-sm font-medium text-gray-700">Pain Points</label>
+											<textarea
+												id="pain_points"
+												bind:value={editForm.pain_points}
+												rows="3"
+												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+											></textarea>
+										</div>
+										<div>
+											<label for="key_goals" class="block text-sm font-medium text-gray-700">Key Goals</label>
+											<textarea
+												id="key_goals"
+												bind:value={editForm.key_goals}
+												rows="3"
+												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+											></textarea>
+										</div>
+										<div>
+											<label for="company_description" class="block text-sm font-medium text-gray-700">Company Description</label>
+											<textarea
+												id="company_description"
+												bind:value={editForm.company_description}
+												rows="4"
+												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+											></textarea>
+										</div>
+										<div>
+											<label for="recent_news" class="block text-sm font-medium text-gray-700">Recent News</label>
+											<textarea
+												id="recent_news"
+												bind:value={editForm.recent_news}
+												rows="3"
+												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+											></textarea>
+										</div>
+									</div>
+								{:else}
+									<div class="space-y-6">
+										{#if $currentLead.ideal_customer_profile}
+											<div>
+												<dt class="text-sm font-medium text-gray-500 mb-2">Ideal Customer Profile</dt>
+												<dd class="text-sm text-gray-900 whitespace-pre-wrap">{$currentLead.ideal_customer_profile}</dd>
+											</div>
+										{/if}
+										{#if $currentLead.pain_points}
+											<div>
+												<dt class="text-sm font-medium text-gray-500 mb-2">Pain Points</dt>
+												<dd class="text-sm text-gray-900 whitespace-pre-wrap">{$currentLead.pain_points}</dd>
+											</div>
+										{/if}
+										{#if $currentLead.key_goals}
+											<div>
+												<dt class="text-sm font-medium text-gray-500 mb-2">Key Goals</dt>
+												<dd class="text-sm text-gray-900 whitespace-pre-wrap">{$currentLead.key_goals}</dd>
+											</div>
+										{/if}
+										{#if $currentLead.company_description}
+											<div>
+												<dt class="text-sm font-medium text-gray-500 mb-2">Company Description</dt>
+												<dd class="text-sm text-gray-900 whitespace-pre-wrap">{$currentLead.company_description}</dd>
+											</div>
+										{/if}
+										{#if $currentLead.recent_news}
+											<div>
+												<dt class="text-sm font-medium text-gray-500 mb-2">Recent News</dt>
+												<dd class="text-sm text-gray-900 whitespace-pre-wrap">{$currentLead.recent_news}</dd>
+											</div>
+										{/if}
+									</div>
+								{/if}
+							</div>
+						</div>
+					{/if}
 
 					<!-- Notes and Details -->
 					{#if $currentLead.notes || isEditing}
@@ -370,11 +697,11 @@
 									<div class="grid grid-cols-2 gap-2">
 										{#each Object.values(LeadStatus) as status}
 											{#if status !== $currentLead.status}
-																							<button
-												type="button"
-												onclick={() => updateStatus(status)}
-												class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-											>
+												<button
+													type="button"
+													onclick={() => updateStatus(status)}
+													class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+												>
 													{(status || 'unknown').replace('_', ' ').toUpperCase()}
 												</button>
 											{/if}
@@ -382,6 +709,50 @@
 									</div>
 								</div>
 							</div>
+						</div>
+					</div>
+
+					<!-- Enrichment Status -->
+					<div class="bg-white shadow rounded-lg">
+						<div class="px-4 py-5 sm:p-6">
+							<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Enrichment Status</h3>
+							
+							<dl class="space-y-4">
+								<div>
+									<dt class="text-sm font-medium text-gray-500">Status</dt>
+									<dd class="mt-1">
+										<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {getEnrichmentStatusColor($currentLead.enrichment_status)}">
+											{($currentLead.enrichment_status || 'not enriched').replace('_', ' ').toUpperCase()}
+										</span>
+									</dd>
+								</div>
+
+								{#if $currentLead.enrichment_confidence}
+									<div>
+										<dt class="text-sm font-medium text-gray-500">Confidence Score</dt>
+										<dd class="mt-1">
+											<div class="flex items-center">
+												<div class="text-lg font-bold text-gray-900">{Math.round(($currentLead.enrichment_confidence || 0) * 100)}%</div>
+												<div class="ml-3 flex-1">
+													<div class="w-full bg-gray-200 rounded-full h-2">
+														<div 
+															class="bg-purple-600 h-2 rounded-full" 
+															style="width: {($currentLead.enrichment_confidence || 0) * 100}%"
+														></div>
+													</div>
+												</div>
+											</div>
+										</dd>
+									</div>
+								{/if}
+
+								{#if $currentLead.enriched_at}
+									<div>
+										<dt class="text-sm font-medium text-gray-500">Last Enriched</dt>
+										<dd class="mt-1 text-sm text-gray-900">{formatDate($currentLead.enriched_at)}</dd>
+									</div>
+								{/if}
+							</dl>
 						</div>
 					</div>
 
@@ -412,4 +783,4 @@
 			</div>
 		{/if}
 	</div>
-</div> 
+</div>
