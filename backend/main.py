@@ -101,9 +101,15 @@ async def root():
     }
 
 
+@app.get("/health")
+async def simple_health_check():
+    """Simple health check endpoint for Docker/monitoring."""
+    return {"status": "healthy", "version": "3.0.0"}
+
+
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint for monitoring."""
+    """Detailed health check endpoint for monitoring."""
     db_status = "healthy" if test_connection() else "unhealthy"
     return {
         "status": "healthy" if db_status == "healthy" else "degraded",

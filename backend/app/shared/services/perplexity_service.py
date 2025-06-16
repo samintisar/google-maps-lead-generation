@@ -72,60 +72,31 @@ class PerplexityEnrichmentService:
         
         company_name = lead.company or "the company"
         
-        # Build comprehensive query with system instructions
+        # Build comprehensive query with system instructions for JSON output
         search_query = f"""
-        You are a business intelligence researcher. Provide detailed, accurate, and up-to-date information about companies and their business context. Focus on actionable insights for sales and business development.
-        
-        Research the following business and provide detailed insights:
-        
+        You are a business intelligence researcher. Research the following business and provide detailed insights in STRICT JSON format.
+
+        Business to research:
         {' | '.join(query_parts)}
-        
-        Please provide comprehensive information about {company_name} including:
-        
-        1. SOCIAL MEDIA PROFILES:
-           - LinkedIn company page URL
-           - Twitter/X profile URL
-           - Facebook business page URL
-           - Instagram business profile URL
-        
-        2. IDEAL CUSTOMER PROFILE (ICP):
-           - Detailed description of their target customers
-           - Customer demographics and firmographics
-           - Industries they typically serve
-           - Company size they target
-        
-        3. PAIN POINTS:
-           - Current business challenges they face
-           - Industry-specific problems
-           - Operational difficulties
-           - Market pressures
-        
-        4. KEY BUSINESS GOALS:
-           - Current strategic objectives
-           - Growth targets
-           - Market expansion plans
-           - Digital transformation initiatives
-        
-        5. COMPANY OVERVIEW:
-           - Business model and value proposition
-           - Core products and services
-           - Market position and competitive advantages
-           - Company culture and values
-        
-        6. RECENT NEWS & UPDATES:
-           - Recent press releases
-           - Funding announcements
-           - Product launches
-           - Strategic partnerships
-           - Leadership changes
-        
-        7. KEY PERSONNEL:
-           - CEO/Founder information
-           - Key decision makers
-           - Department heads
-           - Contact information if publicly available
-        
-        Please provide specific, actionable insights that would be valuable for sales outreach and relationship building.
+
+        Please respond with ONLY a valid JSON object containing exactly these 6 fields for {company_name}:
+
+        {{
+            "company_description": "Brief overview of the business model, value proposition, core products/services, and market position (2-3 sentences)",
+            "ideal_customer_profile": "Detailed description of their target customers, demographics, company sizes they serve, and industries they focus on (2-3 sentences)",
+            "pain_points": "Current business challenges, industry problems, operational difficulties, and market pressures they face (2-3 sentences)",
+            "key_goals": "Strategic objectives, growth targets, market expansion plans, and key business initiatives (2-3 sentences)",
+            "recent_news": "Recent company news, press releases, funding, product launches, or strategic partnerships. If none found, state 'No recent news found' (1-2 sentences)",
+            "key_personnel": "Key decision makers, CEO/founder info, department heads, or contact information if publicly available. If limited info, state 'Limited personnel information available' (1-2 sentences)"
+        }}
+
+        CRITICAL REQUIREMENTS:
+        - Respond with ONLY valid JSON - no additional text before or after
+        - Each field must be a simple string (no arrays or nested objects)
+        - Keep responses concise but informative (1-3 sentences per field)
+        - If information is not available for a field, state that clearly
+        - Do not include social media URLs in these fields
+        - Focus on actionable business intelligence for sales outreach
         """
         
         return search_query.strip()
@@ -142,10 +113,16 @@ class PerplexityEnrichmentService:
             "model": self.model,
             "messages": [
                 {
+                    "role": "system",
+                    "content": "You are a business intelligence researcher. Always respond with valid JSON only. No additional text or formatting."
+                },
+                {
                     "role": "user",
                     "content": query
                 }
-            ]
+            ],
+            "temperature": 0.2,  # Lower temperature for more consistent JSON output
+            "max_tokens": 2000
         }
         
         try:
@@ -177,29 +154,51 @@ class PerplexityEnrichmentService:
             content = api_response.get("choices", [{}])[0].get("message", {}).get("content", "")
             citations = api_response.get("citations", [])
             
-            # Initialize structured data
+            # Initialize structured data with defaults
             structured_data = {
                 "linkedin_profile": None,
                 "twitter_profile": None,
                 "facebook_profile": None,
                 "instagram_profile": None,
-                "ideal_customer_profile": None,
-                "pain_points": None,
-                "key_goals": None,
-                "company_description": None,
-                "recent_news": None,
-                "key_personnel": [],
+                "ideal_customer_profile": "No customer profile information available",
+                "pain_points": "No pain points identified",
+                "key_goals": "No key goals identified",
+                "company_description": "No company description available",
+                "recent_news": "No recent news found",
+                "key_personnel": "No personnel information available",
                 "enrichment_confidence": 0.0,
                 "raw_response": content,
                 "citations": citations,
                 "enriched_at": datetime.utcnow().isoformat()
             }
             
-            # Extract social media profiles using keyword matching
-            structured_data.update(self._extract_social_profiles(content))
+            # Try to parse JSON from the response
+            try:
+                # Clean the content - remove any markdown formatting
+                cleaned_content = content.strip()
+                if cleaned_content.startswith('```json'):
+                    cleaned_content = cleaned_content[7:]
+                if cleaned_content.endswith('```'):
+                    cleaned_content = cleaned_content[:-3]
+                cleaned_content = cleaned_content.strip()
+                
+                # Parse the JSON
+                parsed_data = json.loads(cleaned_content)
+                
+                # Update structured data with parsed JSON
+                if isinstance(parsed_data, dict):
+                    for key in ["company_description", "ideal_customer_profile", "pain_points", 
+                               "key_goals", "recent_news", "key_personnel"]:
+                        if key in parsed_data and parsed_data[key]:
+                            structured_data[key] = str(parsed_data[key]).strip()
+                
+            except json.JSONDecodeError as e:
+                # Fallback to text parsing if JSON fails
+                print(f"JSON parsing failed: {e}. Falling back to text extraction.")
+                structured_data.update(self._extract_business_intelligence_fallback(content))
             
-            # Extract business intelligence
-            structured_data.update(self._extract_business_intelligence(content))
+            # Extract social media profiles from the raw content
+            structured_data.update(self._extract_social_profiles(content))
             
             # Calculate confidence score based on amount of data found
             structured_data["enrichment_confidence"] = self._calculate_confidence_score(structured_data)
@@ -213,12 +212,12 @@ class PerplexityEnrichmentService:
                 "twitter_profile": None,
                 "facebook_profile": None,
                 "instagram_profile": None,
-                "ideal_customer_profile": None,
-                "pain_points": None,
-                "key_goals": None,
-                "company_description": None,
-                "recent_news": None,
-                "key_personnel": [],
+                "ideal_customer_profile": "Error occurred during enrichment",
+                "pain_points": "Error occurred during enrichment",
+                "key_goals": "Error occurred during enrichment",
+                "company_description": "Error occurred during enrichment",
+                "recent_news": "Error occurred during enrichment",
+                "key_personnel": "Error occurred during enrichment",
                 "enrichment_confidence": 0.0,
                 "error": str(e),
                 "enriched_at": datetime.utcnow().isoformat()
@@ -294,49 +293,65 @@ class PerplexityEnrichmentService:
         
         return profiles
     
-    def _extract_business_intelligence(self, content: str) -> Dict[str, Any]:
-        """Extract business intelligence from content using section parsing."""
+    def _extract_business_intelligence_fallback(self, content: str) -> Dict[str, Any]:
+        """Fallback method to extract business intelligence from unstructured content."""
         
         intelligence = {
-            "ideal_customer_profile": None,
-            "pain_points": None,
-            "key_goals": None,
-            "company_description": None,
-            "recent_news": None,
-            "key_personnel": []
+            "ideal_customer_profile": "No customer profile information available",
+            "pain_points": "No pain points identified",
+            "key_goals": "No key goals identified", 
+            "company_description": "No company description available",
+            "recent_news": "No recent news found",
+            "key_personnel": "No personnel information available"
         }
         
-        # Split content into sections
-        sections = content.split('\n\n')
+        # Split content into sections and look for relevant information
+        sections = content.split('\n')
+        current_section = ""
         
-        for section in sections:
-            section_lower = section.lower()
+        for line in sections:
+            line_lower = line.lower().strip()
             
-            # ICP extraction
-            if any(keyword in section_lower for keyword in ['ideal customer', 'target customer', 'customer profile', 'icp']):
-                intelligence["ideal_customer_profile"] = section.strip()
+            # Skip empty lines
+            if not line_lower:
+                continue
+                
+            # Look for section headers or content patterns
+            if any(keyword in line_lower for keyword in ['customer profile', 'ideal customer', 'target customer', 'icp']):
+                current_section = "ideal_customer_profile"
+                continue
+            elif any(keyword in line_lower for keyword in ['pain point', 'challenge', 'problem', 'difficulty']):
+                current_section = "pain_points"
+                continue
+            elif any(keyword in line_lower for keyword in ['goal', 'objective', 'strategy', 'plan']):
+                current_section = "key_goals"
+                continue
+            elif any(keyword in line_lower for keyword in ['company', 'business model', 'overview', 'description']):
+                current_section = "company_description"
+                continue
+            elif any(keyword in line_lower for keyword in ['recent', 'news', 'announcement', 'update']):
+                current_section = "recent_news"
+                continue
+            elif any(keyword in line_lower for keyword in ['personnel', 'team', 'leadership', 'ceo', 'founder']):
+                current_section = "key_personnel"
+                continue
             
-            # Pain points extraction
-            elif any(keyword in section_lower for keyword in ['pain point', 'challenge', 'problem', 'difficulty']):
-                intelligence["pain_points"] = section.strip()
-            
-            # Goals extraction
-            elif any(keyword in section_lower for keyword in ['goal', 'objective', 'strategy', 'plan', 'target']):
-                intelligence["key_goals"] = section.strip()
-            
-            # Company description extraction
-            elif any(keyword in section_lower for keyword in ['company overview', 'business model', 'about', 'description']):
-                intelligence["company_description"] = section.strip()
-            
-            # Recent news extraction
-            elif any(keyword in section_lower for keyword in ['recent', 'news', 'announcement', 'update', 'press release']):
-                intelligence["recent_news"] = section.strip()
-            
-            # Key personnel extraction
-            elif any(keyword in section_lower for keyword in ['personnel', 'team', 'leadership', 'executive', 'ceo', 'founder']):
-                # For now, store as text - could be enhanced to parse individual people
-                if section.strip():
-                    intelligence["key_personnel"] = [{"role": "Leadership Team", "info": section.strip()}]
+            # Add content to current section if we have one
+            if current_section and line.strip() and not line.startswith('#'):
+                if intelligence[current_section] in ["No customer profile information available", 
+                                                    "No pain points identified", 
+                                                    "No key goals identified",
+                                                    "No company description available",
+                                                    "No recent news found",
+                                                    "No personnel information available"]:
+                    intelligence[current_section] = line.strip()
+                else:
+                    intelligence[current_section] += " " + line.strip()
+        
+        # Clean up the extracted text
+        for key in intelligence:
+            if intelligence[key] and len(intelligence[key]) > 500:
+                intelligence[key] = intelligence[key][:500] + "..."
         
         return intelligence
     
@@ -346,17 +361,27 @@ class PerplexityEnrichmentService:
         score = 0.0
         max_score = 10.0
         
-        # Social profiles (2 points each, max 8)
+        # Social profiles (1 point each, max 4)
         social_fields = ["linkedin_profile", "twitter_profile", "facebook_profile", "instagram_profile"]
         for field in social_fields:
             if data.get(field):
-                score += 2.0
+                score += 1.0
         
-        # Business intelligence (0.5 points each, max 2)
-        business_fields = ["ideal_customer_profile", "pain_points", "key_goals", "company_description"]
+        # Business intelligence (1 point each, max 6)
+        business_fields = ["ideal_customer_profile", "pain_points", "key_goals", 
+                          "company_description", "recent_news", "key_personnel"]
         for field in business_fields:
-            if data.get(field):
-                score += 0.5
+            field_value = data.get(field)
+            # Only count if we have actual data (not default messages)
+            if (field_value and 
+                field_value not in ["No customer profile information available", 
+                                   "No pain points identified", 
+                                   "No key goals identified",
+                                   "No company description available",
+                                   "No recent news found",
+                                   "No personnel information available",
+                                   "Error occurred during enrichment"]):
+                score += 1.0
         
         # Normalize to 0-1 scale
         return min(score / max_score, 1.0)

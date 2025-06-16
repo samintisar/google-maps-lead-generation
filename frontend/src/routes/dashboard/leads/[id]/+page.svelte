@@ -132,7 +132,12 @@
 
 	// Format date
 	function formatDate(dateString: string) {
-		return new Date(dateString).toLocaleString();
+		if (!dateString) return 'N/A';
+		try {
+			return new Date(dateString).toLocaleString();
+		} catch {
+			return 'Invalid date';
+		}
 	}
 
 	// Get status badge color
@@ -171,7 +176,7 @@
 			lead.key_goals ||
 			lead.company_description ||
 			lead.recent_news ||
-			(lead.key_personnel && lead.key_personnel.length > 0)
+			lead.key_personnel
 		);
 	}
 </script>
@@ -228,20 +233,20 @@
 						<div class="flex-shrink-0 h-12 w-12">
 							<div class="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center">
 								<span class="text-lg font-medium text-gray-700">
-								{$currentLead.name?.[0]}
+								{$currentLead.name?.[0] || '?'}
 								</span>
 							</div>
 						</div>
 						<div class="ml-4">
 							<h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-							{$currentLead.name}
+							{$currentLead.name || 'Unknown'}
 							</h1>
 							<div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-4">
 								<div class="mt-2 flex items-center text-sm text-gray-500">
 									<svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
 									</svg>
-									{$currentLead.email}
+									{$currentLead.email || 'No email'}
 								</div>
 								{#if $currentLead.company}
 									<div class="mt-2 flex items-center text-sm text-gray-500">
@@ -545,10 +550,9 @@
 					{/if}
 
 					<!-- Business Intelligence -->
-					{#if hasEnrichmentData($currentLead) || isEditing}
-						<div class="bg-white shadow rounded-lg">
-							<div class="px-4 py-5 sm:p-6">
-								<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Business Intelligence</h3>
+					<div class="bg-white shadow rounded-lg">
+						<div class="px-4 py-5 sm:p-6">
+							<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Business Intelligence</h3>
 								
 								{#if isEditing}
 									<div class="space-y-4">
@@ -557,7 +561,7 @@
 											<textarea
 												id="ideal_customer_profile"
 												bind:value={editForm.ideal_customer_profile}
-												rows="3"
+												rows="6"
 												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
 											></textarea>
 										</div>
@@ -566,7 +570,7 @@
 											<textarea
 												id="pain_points"
 												bind:value={editForm.pain_points}
-												rows="3"
+												rows="6"
 												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
 											></textarea>
 										</div>
@@ -575,7 +579,7 @@
 											<textarea
 												id="key_goals"
 												bind:value={editForm.key_goals}
-												rows="3"
+												rows="4"
 												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
 											></textarea>
 										</div>
@@ -584,7 +588,7 @@
 											<textarea
 												id="company_description"
 												bind:value={editForm.company_description}
-												rows="4"
+												rows="6"
 												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
 											></textarea>
 										</div>
@@ -593,48 +597,86 @@
 											<textarea
 												id="recent_news"
 												bind:value={editForm.recent_news}
-												rows="3"
+												rows="6"
+												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+											></textarea>
+										</div>
+										<div>
+											<label for="key_personnel" class="block text-sm font-medium text-gray-700">Key Personnel</label>
+											<textarea
+												id="key_personnel"
+												bind:value={editForm.key_personnel}
+												rows="4"
 												class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
 											></textarea>
 										</div>
 									</div>
-								{:else}
-									<div class="space-y-6">
-										{#if $currentLead.ideal_customer_profile}
-											<div>
-												<dt class="text-sm font-medium text-gray-500 mb-2">Ideal Customer Profile</dt>
-												<dd class="text-sm text-gray-900 whitespace-pre-wrap">{$currentLead.ideal_customer_profile}</dd>
-											</div>
-										{/if}
-										{#if $currentLead.pain_points}
-											<div>
-												<dt class="text-sm font-medium text-gray-500 mb-2">Pain Points</dt>
-												<dd class="text-sm text-gray-900 whitespace-pre-wrap">{$currentLead.pain_points}</dd>
-											</div>
-										{/if}
-										{#if $currentLead.key_goals}
-											<div>
-												<dt class="text-sm font-medium text-gray-500 mb-2">Key Goals</dt>
-												<dd class="text-sm text-gray-900 whitespace-pre-wrap">{$currentLead.key_goals}</dd>
-											</div>
-										{/if}
-										{#if $currentLead.company_description}
-											<div>
-												<dt class="text-sm font-medium text-gray-500 mb-2">Company Description</dt>
-												<dd class="text-sm text-gray-900 whitespace-pre-wrap">{$currentLead.company_description}</dd>
-											</div>
-										{/if}
-										{#if $currentLead.recent_news}
-											<div>
-												<dt class="text-sm font-medium text-gray-500 mb-2">Recent News</dt>
-												<dd class="text-sm text-gray-900 whitespace-pre-wrap">{$currentLead.recent_news}</dd>
-											</div>
-										{/if}
+																{:else}
+									<div class="space-y-4">
+										<div>
+											<label for="readonly_ideal_customer_profile" class="block text-sm font-medium text-gray-700 mb-2">Ideal Customer Profile</label>
+											<textarea
+												id="readonly_ideal_customer_profile"
+												readonly
+												value={$currentLead.ideal_customer_profile || 'No ideal customer profile available'}
+												rows="6"
+												class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-50 text-gray-700 resize-none cursor-default"
+											></textarea>
+										</div>
+										<div>
+											<label for="readonly_pain_points" class="block text-sm font-medium text-gray-700 mb-2">Pain Points</label>
+											<textarea
+												id="readonly_pain_points"
+												readonly
+												value={$currentLead.pain_points || 'No pain points identified'}
+												rows="6"
+												class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-50 text-gray-700 resize-none cursor-default"
+											></textarea>
+										</div>
+										<div>
+											<label for="readonly_key_goals" class="block text-sm font-medium text-gray-700 mb-2">Key Goals</label>
+											<textarea
+												id="readonly_key_goals"
+												readonly
+												value={$currentLead.key_goals || 'No key goals identified'}
+												rows="4"
+												class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-50 text-gray-700 resize-none cursor-default"
+											></textarea>
+										</div>
+										<div>
+											<label for="readonly_company_description" class="block text-sm font-medium text-gray-700 mb-2">Company Description</label>
+											<textarea
+												id="readonly_company_description"
+												readonly
+												value={$currentLead.company_description || 'No company description available'}
+												rows="6"
+												class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-50 text-gray-700 resize-none cursor-default"
+											></textarea>
+										</div>
+										<div>
+											<label for="readonly_recent_news" class="block text-sm font-medium text-gray-700 mb-2">Recent News</label>
+											<textarea
+												id="readonly_recent_news"
+												readonly
+												value={$currentLead.recent_news || 'No recent news available'}
+												rows="6"
+												class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-50 text-gray-700 resize-none cursor-default"
+											></textarea>
+										</div>
+										<div>
+											<label for="readonly_key_personnel" class="block text-sm font-medium text-gray-700 mb-2">Key Personnel</label>
+											<textarea
+												id="readonly_key_personnel"
+												readonly
+												value={typeof $currentLead.key_personnel === 'string' ? $currentLead.key_personnel : ($currentLead.key_personnel ? JSON.stringify($currentLead.key_personnel, null, 2) : 'No key personnel information available')}
+												rows="4"
+												class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-50 text-gray-700 resize-none cursor-default"
+											></textarea>
+										</div>
 									</div>
 								{/if}
 							</div>
 						</div>
-					{/if}
 
 					<!-- Notes and Details -->
 					{#if $currentLead.notes || isEditing}
@@ -678,12 +720,12 @@
 									<dt class="text-sm font-medium text-gray-500">Lead Score</dt>
 									<dd class="mt-1">
 										<div class="flex items-center">
-											<div class="text-2xl font-bold text-gray-900">{$currentLead.score}/100</div>
+											<div class="text-2xl font-bold text-gray-900">{$currentLead.score || 0}/100</div>
 											<div class="ml-3 flex-1">
 												<div class="w-full bg-gray-200 rounded-full h-3">
 													<div 
 														class="bg-indigo-600 h-3 rounded-full" 
-														style="width: {$currentLead.score}%"
+														style="width: {$currentLead.score || 0}%"
 													></div>
 												</div>
 											</div>

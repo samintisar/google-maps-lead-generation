@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     version: str = "3.0.0"
     environment: str = "development"
     debug: bool = True
-    port: int = 18000
+    port: int = 8000
     
     # Database settings - REQUIRE PostgreSQL/Neon (no SQLite fallback)
     database_url: str = os.getenv("DATABASE_URL", "")

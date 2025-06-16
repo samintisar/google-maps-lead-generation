@@ -239,7 +239,9 @@ async def enrich_lead(
         # Check if already enriched recently
         if db_lead.enrichment_status == "completed" and db_lead.enriched_at:
             from datetime import timedelta
-            if datetime.utcnow() - db_lead.enriched_at < timedelta(days=7):
+            # Convert both to offset-naive for comparison
+            enriched_at_naive = db_lead.enriched_at.replace(tzinfo=None) if db_lead.enriched_at.tzinfo else db_lead.enriched_at
+            if datetime.utcnow() - enriched_at_naive < timedelta(days=7):
                 logger.info(f"Lead {lead_id} was recently enriched, returning existing data")
                 return {
                     "success": True,

@@ -130,6 +130,24 @@
 				'Missing field completion',
 				'Data quality scoring'
 			]
+		},
+		{
+			id: 'voice-agent',
+			title: 'AI Voice Sales Agent',
+			description: 'Demonstrate an intelligent voice agent that handles sales calls, qualifies leads, answers FAQs, and books appointments automatically.',
+			icon: '🎤',
+			category: 'Sales & Marketing',
+			services: ['ElevenLabs', 'OpenAI', 'Calendar API'],
+			status: 'active',
+			estimatedTime: '2-5 minutes',
+			features: [
+				'Real-time voice conversations',
+				'Automated FAQ responses',
+				'Lead qualification questions',
+				'Appointment scheduling',
+				'Human transfer capability',
+				'Live conversation transcripts'
+			]
 		}
 	];
 
@@ -287,6 +305,8 @@
 			goto(`/workflows/${workflowId}`);
 		} else if (workflowId === 'google-maps-lead-gen') {
 			goto('/workflows/google-maps');
+		} else if (workflowId === 'voice-agent') {
+			goto('/workflows/voice-agent');
 		} else {
 			// For coming soon workflows
 			alert('This workflow is coming soon! Stay tuned for updates.');

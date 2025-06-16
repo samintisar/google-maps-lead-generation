@@ -79,6 +79,10 @@
 	let loading = false;
 	let enriching = false;
 
+	// Business Intelligence Panel State
+	let currentPage = 0;
+	let itemsPerPage = 10;
+
 	// Stats
 	let totalLeads = 0;
 	let enrichedCount = 0;
@@ -154,6 +158,52 @@
 			recentEnrichments = (response as Lead[]).filter(l => l.enriched_at);
 		} catch (error) {
 			console.error('Failed to load recent enrichments:', error);
+		}
+	}
+
+	// Business Intelligence Panel Functions
+	function getEnrichedLeads() {
+		return leads
+			.filter(lead => lead.enrichment_status === 'completed')
+			.sort((a, b) => {
+				const dateA = a.enriched_at ? new Date(a.enriched_at).getTime() : 0;
+				const dateB = b.enriched_at ? new Date(b.enriched_at).getTime() : 0;
+				return dateB - dateA; // Most recent first
+			});
+	}
+
+	function getPaginatedLeads() {
+		const enrichedLeads = getEnrichedLeads();
+		const startIndex = currentPage * itemsPerPage;
+		return enrichedLeads.slice(startIndex, startIndex + itemsPerPage);
+	}
+
+	function getTotalPages() {
+		const enrichedLeads = getEnrichedLeads();
+		return Math.ceil(enrichedLeads.length / itemsPerPage);
+	}
+
+	function openLeadDetails(lead: Lead) {
+		goto(`/dashboard/leads/${lead.id}`);
+	}
+
+
+
+	function nextPage() {
+		if (currentPage < getTotalPages() - 1) {
+			currentPage++;
+		}
+	}
+
+	function previousPage() {
+		if (currentPage > 0) {
+			currentPage--;
+		}
+	}
+
+	function goToPage(page: number) {
+		if (page >= 0 && page < getTotalPages()) {
+			currentPage = page;
 		}
 	}
 
@@ -597,8 +647,8 @@
 					<!-- Filters -->
 					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">Lead Status Filter</label>
-							<select bind:value={statusFilter} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+							<label for="status-filter" class="block text-sm font-medium text-gray-700 mb-2">Lead Status Filter</label>
+							<select id="status-filter" bind:value={statusFilter} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
 								{#each statusOptions as option}
 									<option value={option.value}>{option.label}</option>
 								{/each}
@@ -606,8 +656,8 @@
 						</div>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">Source Filter</label>
-							<select bind:value={sourceFilter} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+							<label for="source-filter" class="block text-sm font-medium text-gray-700 mb-2">Source Filter</label>
+							<select id="source-filter" bind:value={sourceFilter} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
 								{#each sourceOptions as option}
 									<option value={option.value}>{option.label}</option>
 								{/each}
@@ -615,8 +665,9 @@
 						</div>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">Search (Name/Company/Email)</label>
+							<label for="search-filter" class="block text-sm font-medium text-gray-700 mb-2">Search (Name/Company/Email)</label>
 							<input 
+								id="search-filter"
 								type="text" 
 								bind:value={companyFilter}
 								placeholder="Search leads..."
@@ -625,8 +676,9 @@
 						</div>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">Date From</label>
+							<label for="date-from-filter" class="block text-sm font-medium text-gray-700 mb-2">Date From</label>
 							<input 
+								id="date-from-filter"
 								type="date" 
 								bind:value={dateFromFilter}
 								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -634,8 +686,9 @@
 						</div>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">Date To</label>
+							<label for="date-to-filter" class="block text-sm font-medium text-gray-700 mb-2">Date To</label>
 							<input 
+								id="date-to-filter"
 								type="date" 
 								bind:value={dateToFilter}
 								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -643,8 +696,9 @@
 						</div>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">Batch Size</label>
+							<label for="batch-size-filter" class="block text-sm font-medium text-gray-700 mb-2">Batch Size</label>
 							<input 
+								id="batch-size-filter"
 								type="number" 
 								bind:value={batchSize}
 								min="1" 
@@ -782,9 +836,9 @@
 		{:else if activeTab === 'results'}
 			<div class="space-y-6">
 				<div>
-					<h3 class="text-lg font-medium text-gray-900 mb-4">Enrichment Results</h3>
+					<h3 class="text-lg font-medium text-gray-900 mb-4">Business Intelligence</h3>
 					<p class="text-gray-600 mb-6">
-						View and manage your enriched lead data.
+						View and manage your enriched lead data. Click on any lead to view and edit detailed business intelligence.
 					</p>
 				</div>
 
@@ -794,99 +848,111 @@
 						<p class="mt-2 text-gray-600">Loading results...</p>
 					</div>
 				{:else}
-					<!-- Enriched leads display -->
-					{#each leads.filter(lead => lead.enrichment_status === 'completed') as lead (lead.id)}
-						<div class="border border-gray-200 rounded-lg p-4 mb-4">
-							<div class="flex items-start justify-between mb-3">
-								<div>
-									<h4 class="text-lg font-semibold text-gray-900">{lead.name || 'No Name'}</h4>
-									<p class="text-gray-600">{lead.email || 'No Email'}</p>
-									{#if lead.company}
-										<p class="text-gray-600">{lead.company}</p>
-									{/if}
-								</div>
-								{#if lead.enrichment_confidence}
-									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-										{Math.round(lead.enrichment_confidence * 100)}% confidence
-									</span>
-								{/if}
-							</div>
-
-							<!-- Social Profiles -->
-							{#if lead.linkedin_profile || lead.twitter_profile || lead.facebook_profile || lead.instagram_profile}
-								<div class="mb-3">
-									<h5 class="text-sm font-semibold text-gray-700 mb-2">Social Profiles</h5>
-									<div class="flex flex-wrap gap-2">
-										{#if lead.linkedin_profile}
-											<a href={lead.linkedin_profile} target="_blank" class="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-800 hover:bg-blue-200">
-												LinkedIn
-											</a>
-										{/if}
-										{#if lead.twitter_profile}
-											<a href={lead.twitter_profile} target="_blank" class="inline-flex items-center px-2 py-1 rounded text-xs bg-sky-100 text-sky-800 hover:bg-sky-200">
-												Twitter
-											</a>
-										{/if}
-										{#if lead.facebook_profile}
-											<a href={lead.facebook_profile} target="_blank" class="inline-flex items-center px-2 py-1 rounded text-xs bg-indigo-100 text-indigo-800 hover:bg-indigo-200">
-												Facebook
-											</a>
-										{/if}
-										{#if lead.instagram_profile}
-											<a href={lead.instagram_profile} target="_blank" class="inline-flex items-center px-2 py-1 rounded text-xs bg-pink-100 text-pink-800 hover:bg-pink-200">
-												Instagram
-											</a>
-										{/if}
-									</div>
-								</div>
-							{/if}
-
-							<!-- Company & Business Info -->
-							<div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-								{#if lead.company_description}
-									<div>
-										<h5 class="font-semibold text-gray-700 mb-1">Company Description</h5>
-										<p class="text-gray-600">{lead.company_description}</p>
-									</div>
-								{/if}
-								{#if lead.pain_points}
-									<div>
-										<h5 class="font-semibold text-gray-700 mb-1">Pain Points</h5>
-										<p class="text-gray-600">{lead.pain_points}</p>
-									</div>
-								{/if}
-								{#if lead.key_goals}
-									<div>
-										<h5 class="font-semibold text-gray-700 mb-1">Key Goals</h5>
-										<p class="text-gray-600">{lead.key_goals}</p>
-									</div>
-								{/if}
-								{#if lead.ideal_customer_profile}
-									<div>
-										<h5 class="font-semibold text-gray-700 mb-1">Ideal Customer Profile</h5>
-										<p class="text-gray-600">{lead.ideal_customer_profile}</p>
-									</div>
-								{/if}
-								{#if lead.recent_news}
-									<div>
-										<h5 class="font-semibold text-gray-700 mb-1">Recent News</h5>
-										<p class="text-gray-600">{lead.recent_news}</p>
-									</div>
-								{/if}
-								{#if lead.key_personnel}
-									<div>
-										<h5 class="font-semibold text-gray-700 mb-1">Key Personnel</h5>
-										<p class="text-gray-600">{typeof lead.key_personnel === 'string' ? lead.key_personnel : JSON.stringify(lead.key_personnel)}</p>
-									</div>
-								{/if}
-							</div>
-
-							{#if lead.enriched_at}
-								<div class="mt-3 pt-3 border-t border-gray-200">
-									<p class="text-xs text-gray-500">Enriched on {new Date(lead.enriched_at).toLocaleDateString()}</p>
-								</div>
-							{/if}
+					{@const paginatedLeads = getPaginatedLeads()}
+					{@const totalPages = getTotalPages()}
+					{@const enrichedLeadsCount = getEnrichedLeads().length}
+					
+					{#if enrichedLeadsCount > 0}
+						<!-- Summary -->
+						<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+							<p class="text-sm text-blue-800">
+								Showing {Math.min(currentPage * itemsPerPage + 1, enrichedLeadsCount)} - {Math.min((currentPage + 1) * itemsPerPage, enrichedLeadsCount)} of {enrichedLeadsCount} enriched leads
+							</p>
 						</div>
+
+						<!-- Lead List -->
+						<div class="bg-white border border-gray-200 rounded-lg">
+							{#each paginatedLeads as lead, index (lead.id)}
+								<div 
+									class="border-b border-gray-200 last:border-b-0 p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+									on:click={() => openLeadDetails(lead)}
+									role="button"
+									tabindex="0"
+									on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') openLeadDetails(lead) }}
+								>
+									<div class="flex items-center justify-between">
+										<div class="flex-1">
+											<div class="flex items-center space-x-4">
+												<div class="flex-1">
+													<h4 class="text-lg font-medium text-gray-900">{lead.name || 'No Name'}</h4>
+													<p class="text-gray-600">{lead.email || 'No Email'}</p>
+													{#if lead.company}
+														<p class="text-sm text-gray-500">{lead.company}</p>
+													{/if}
+												</div>
+												<div class="text-right space-y-2">
+													<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+														{lead.status === 'new' ? 'bg-blue-100 text-blue-800' : 
+														 lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
+														 lead.status === 'qualified' ? 'bg-green-100 text-green-800' :
+														 lead.status === 'converted' ? 'bg-purple-100 text-purple-800' :
+														 'bg-gray-100 text-gray-800'}">
+														{lead.status || 'unknown'}
+													</span>
+													{#if lead.enrichment_confidence}
+														<div>
+															<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+																{Math.round(lead.enrichment_confidence * 100)}% confidence
+															</span>
+														</div>
+													{/if}
+													{#if lead.enriched_at}
+														<div>
+															<p class="text-xs text-gray-500">
+																Enriched {new Date(lead.enriched_at).toLocaleDateString()}
+															</p>
+														</div>
+													{/if}
+												</div>
+											</div>
+										</div>
+										<div class="ml-4">
+											<svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+											</svg>
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+
+						<!-- Pagination -->
+						{#if totalPages > 1}
+							<div class="flex items-center justify-between mt-6">
+								<div class="flex items-center space-x-2">
+									<button
+										class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+										disabled={currentPage === 0}
+										on:click={previousPage}
+									>
+										Previous
+									</button>
+									
+									<div class="flex space-x-1">
+										{#each Array(totalPages) as _, pageIndex}
+											<button
+												class="px-3 py-2 text-sm font-medium rounded-md {currentPage === pageIndex ? 'bg-blue-600 text-white' : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'}"
+												on:click={() => goToPage(pageIndex)}
+											>
+												{pageIndex + 1}
+											</button>
+										{/each}
+									</div>
+									
+									<button
+										class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+										disabled={currentPage === totalPages - 1}
+										on:click={nextPage}
+									>
+										Next
+									</button>
+								</div>
+								
+								<p class="text-sm text-gray-700">
+									Page {currentPage + 1} of {totalPages}
+								</p>
+							</div>
+						{/if}
 					{:else}
 						<div class="text-center py-8 text-gray-500">
 							<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -894,15 +960,22 @@
 							</svg>
 							<p class="mt-2">No enriched leads found. Start enriching leads to see results here.</p>
 						</div>
-					{/each}
+					{/if}
 				{/if}
 			</div>
 		{/if}
 	</div>
 </div>
 
-<style>
-	.tab {
-		transition: all 0.2s ease-in-out;
-	}
-</style>
+
+
+<!-- Save Status -->
+{#if saveStatus}
+	<div class="fixed bottom-4 right-4 z-50">
+		<div class="bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-sm">
+			<p class="text-sm text-gray-700">{saveStatus}</p>
+		</div>
+	</div>
+{/if}
+
+
