@@ -1,3 +1,11 @@
-# allow crawling everything by default
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap
+Sitemap: https://yourdomain.com/sitemap.xml
+
+# Block crawling of API endpoints
+Disallow: /api/
+
+# Block crawling of admin or internal pages if any
+# Disallow: /admin/

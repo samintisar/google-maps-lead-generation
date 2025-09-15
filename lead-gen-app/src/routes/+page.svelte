@@ -61,8 +61,49 @@
 </script>
 
 <svelte:head>
-	<title>Google Maps Lead Generation</title>
-	<meta name="description" content="Search for businesses using Google Maps and save leads for export" />
+	<title>Google Maps Lead Generation - Find Business Leads Fast</title>
+	<meta name="description" content="Powerful Google Maps lead generation tool. Search local businesses, extract contact details, and export leads instantly. Perfect for sales teams and marketers." />
+	<meta name="keywords" content="lead generation, Google Maps, business search, sales leads, contact extraction, local business finder, B2B leads" />
+
+	<!-- Open Graph Tags -->
+	<meta property="og:title" content="Google Maps Lead Generation - Find Business Leads Fast" />
+	<meta property="og:description" content="Powerful Google Maps lead generation tool. Search local businesses, extract contact details, and export leads instantly." />
+	<meta property="og:url" content="https://yourdomain.com" />
+	<meta property="og:image" content="https://yourdomain.com/og-image.jpg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+
+	<!-- Twitter Card Tags -->
+	<meta name="twitter:title" content="Google Maps Lead Generation - Find Business Leads Fast" />
+	<meta name="twitter:description" content="Powerful Google Maps lead generation tool. Search local businesses, extract contact details, and export leads instantly." />
+	<meta name="twitter:image" content="https://yourdomain.com/twitter-image.jpg" />
+
+	<!-- Structured Data -->
+	<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "SoftwareApplication",
+			"name": "Google Maps Lead Generation",
+			"description": "Powerful lead generation tool that helps businesses find and export local business contacts using Google Maps data",
+			"applicationCategory": "BusinessApplication",
+			"operatingSystem": "Web Browser",
+			"offers": {
+				"@type": "Offer",
+				"price": "0",
+				"priceCurrency": "USD"
+			},
+			"featureList": [
+				"Google Maps business search",
+				"Lead contact extraction",
+				"Data export functionality",
+				"Mobile responsive design"
+			],
+			"provider": {
+				"@type": "Organization",
+				"name": "Lead Generation Tool"
+			}
+		}
+	</script>
 </svelte:head>
 
 <div class="min-h-screen flex flex-col">

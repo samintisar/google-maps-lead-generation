@@ -124,4 +124,10 @@ htmlcov/
 # Added by Task Master AI
 # Task files
 tasks.json
-tasks/ 
+tasks/
+
+# Ignore everything except lead-gen-app/ and README.md
+.claude/
+.cursor/
+.mcp.json
+.playwright-mcp/
