@@ -66,21 +66,30 @@
 </svelte:head>
 
 <div class="min-h-screen flex flex-col">
+	<!-- Page Title -->
+	<div class="bg-background border-b-2 border-foreground py-6">
+		<div class="container mx-auto px-4">
+			<h1 class="text-3xl lg:text-4xl font-bold text-center hover:text-primary transition-colors duration-200">Google Maps Lead Generation</h1>
+		</div>
+	</div>
+
 	<!-- Header with Search -->
 	<header class="flex-shrink-0">
 		<SearchBar on:search={handleSearch} />
 	</header>
 
 	<!-- Main Content Area -->
-	<div class="flex-1 flex overflow-hidden max-h-[calc(100vh-120px)]">
+	<div class="flex-1 flex overflow-hidden max-h-[calc(100vh-180px)]">
 		<!-- Desktop Layout -->
-		<div class="hidden md:flex w-full">
+		<div class="hidden md:flex w-full p-4 gap-4">
 			<!-- Map Side -->
-			<div class="w-1/2 border-r-2 border-foreground">
+			<div class="w-1/2 border-2 border-foreground bg-background p-2">
 				{#if apiKeyLoaded && apiKey}
-					<MapView {apiKey} on:placeSelected={handlePlaceSelected} />
+					<div class="h-full">
+						<MapView {apiKey} on:placeSelected={handlePlaceSelected} />
+					</div>
 				{:else}
-					<div class="w-full h-full bg-muted border-2 border-foreground flex items-center justify-center">
+					<div class="w-full h-full bg-muted flex items-center justify-center">
 						<div class="text-center p-4">
 							<h3 class="text-lg font-semibold mb-2">Loading Map...</h3>
 							<p class="text-sm text-muted-foreground">Initializing Google Maps</p>
@@ -90,7 +99,7 @@
 			</div>
 
 			<!-- Results/Leads Side -->
-			<div class="w-1/2 flex flex-col">
+			<div class="w-1/2 flex flex-col border-2 border-foreground bg-background">
 				<!-- Tab Headers for Desktop -->
 				<div class="flex border-b-2 border-foreground bg-background">
 					<button
@@ -119,13 +128,15 @@
 		</div>
 
 		<!-- Mobile Layout -->
-		<div class="md:hidden flex flex-col w-full">
+		<div class="md:hidden flex flex-col w-full p-4 gap-4">
 			<!-- Map (always visible on mobile) -->
-			<div class="flex-1">
+			<div class="h-80 border-2 border-foreground bg-background p-2">
 				{#if apiKeyLoaded && apiKey}
-					<MapView {apiKey} on:placeSelected={handlePlaceSelected} />
+					<div class="h-full">
+						<MapView {apiKey} on:placeSelected={handlePlaceSelected} />
+					</div>
 				{:else}
-					<div class="w-full h-full bg-muted border-2 border-foreground flex items-center justify-center">
+					<div class="w-full h-full bg-muted flex items-center justify-center">
 						<div class="text-center p-4">
 							<h3 class="text-lg font-semibold mb-2">Loading Map...</h3>
 							<p class="text-sm text-muted-foreground">Initializing Google Maps</p>
@@ -135,7 +146,7 @@
 			</div>
 
 			<!-- Bottom Content (based on active tab) -->
-			<div class="h-64 border-t-2 border-foreground bg-background">
+			<div class="h-48 border-2 border-foreground bg-background">
 				{#if $activeTab === 'results'}
 					<ResultsList on:placeSelected={handlePlaceSelected} />
 				{:else}
