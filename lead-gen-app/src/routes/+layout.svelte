@@ -1,8 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { onMount } from 'svelte';
-	import { leadsStore } from '$lib/stores/leads';
-	import { isMobile } from '$lib/stores/app';
+	import { leadsStore, isMobile } from '$lib/stores';
 
 	let { children } = $props();
 

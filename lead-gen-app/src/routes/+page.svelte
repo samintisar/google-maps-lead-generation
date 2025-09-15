@@ -6,7 +6,7 @@
 	import ResultsList from '$lib/components/ResultsList.svelte';
 	import LeadsTable from '$lib/components/LeadsTable.svelte';
 	import MobileTabs from '$lib/components/MobileTabs.svelte';
-	import { searchResults, selectedPlace, isLoading, activeTab, isMobile } from '$lib/stores/app';
+	import { searchResults, selectedPlace, isLoading, activeTab, isMobile } from '$lib/stores';
 	import { searchPlaces } from '$lib/utils/maps';
 	import type { PlaceResult } from '$lib/types';
 
