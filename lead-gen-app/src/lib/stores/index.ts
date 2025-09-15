@@ -1,2 +1,2 @@
-export { leadsStore } from './leads.js';
-export { isMobile, selectedPlace, searchResults } from './app.js';
+export { leadsStore } from './leads';
+export { isMobile, selectedPlace, searchResults } from './app';
