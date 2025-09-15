@@ -1,1 +1,0 @@
-// API proxying handled by /api/[...path]/+server.ts route 

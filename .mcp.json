@@ -1,0 +1,19 @@
+{
+    "mcpServers": {
+      "playwright": {
+        "type": "stdio",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@playwright/mcp@latest"
+        ]
+      },
+      "Ref": {
+        "type": "http",
+        "url": "https://api.ref.tools/mcp?apiKey=ref-5b7d573dd0d074272c96",
+        "headers": {}
+      }
+    }
+}
