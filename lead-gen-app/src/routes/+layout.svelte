@@ -2,10 +2,18 @@
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { leadsStore, isMobile } from '$lib/stores';
+	import { inject } from '@vercel/analytics';
+	import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
 
 	let { children } = $props();
 
 	onMount(() => {
+		// Initialize Vercel Analytics
+		inject();
+
+		// Initialize Vercel Speed Insights
+		injectSpeedInsights();
+
 		// Initialize leads from localStorage
 		leadsStore.init();
 
