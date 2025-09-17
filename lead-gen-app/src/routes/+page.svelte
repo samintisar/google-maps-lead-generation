@@ -187,7 +187,7 @@
 			</div>
 
 			<!-- Bottom Content (based on active tab) -->
-			<div class="h-48 border-2 border-foreground bg-background">
+			<div class="min-h-48 max-h-96 overflow-y-auto border-2 border-foreground bg-background">
 				{#if $activeTab === 'results'}
 					<ResultsList on:placeSelected={handlePlaceSelected} />
 				{:else}

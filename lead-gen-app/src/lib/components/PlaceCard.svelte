@@ -69,7 +69,7 @@
 			<CardTitle class="text-lg">{place.displayName}</CardTitle>
 			{#if place.rating}
 				<div class="text-sm flex items-center gap-1">
-					<Star class="w-4 h-4" alt="Rating star" />
+					<Star class="w-4 h-4" />
 					{place.rating} ({place.userRatingCount || 0})
 				</div>
 			{/if}

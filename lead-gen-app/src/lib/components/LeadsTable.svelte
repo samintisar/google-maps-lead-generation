@@ -8,7 +8,7 @@
 	import CardContent from '$lib/components/ui/CardContent.svelte';
 	import { leadsStore } from '$lib/stores/leads';
 	import { convertLeadsToCSV, downloadCSV } from '$lib/utils/csv';
-	import { Trash } from 'lucide-svelte';
+	import { Trash, Phone, Star, MapPin, Globe } from 'lucide-svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -62,13 +62,13 @@
 			</div>
 		{:else}
 			<!-- Mobile/Tablet Card View -->
-			<div class="block md:hidden space-y-4">
+			<div class="block md:hidden space-y-4 p-2">
 				{#each $leadsStore as lead (lead.id)}
 					<Card>
 						<CardHeader>
 							<div class="flex justify-between items-start">
 								<CardTitle class="text-lg">{lead.displayName}</CardTitle>
-								<Button variant="destructive" class="bg-destructive text-destructive-foreground hover:bg-destructive/90 border-2 border-black min-w-[110px] gap-2 shadow-[4px_4px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1" on:click={() => handleDelete(lead.id)}>
+								<Button variant="destructive" class="bg-destructive text-destructive-foreground hover:bg-destructive/90 border-2 border-black min-w-[44px] min-h-[44px] gap-2 shadow-[4px_4px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1 px-3 py-2" on:click={() => handleDelete(lead.id)}>
 									<Trash class="w-4 h-4" />
 									Delete
 								</Button>
@@ -81,20 +81,35 @@
 						</CardHeader>
 						<CardContent>
 							<div class="space-y-2 text-sm">
-								<div><strong>Address:</strong> {lead.formattedAddress}</div>
-								<div><strong>Phone:</strong> {formatPhone(lead.internationalPhoneNumber)}</div>
-								{#if lead.websiteUri}
-									<div>
-										<strong>Website:</strong>
-										<a href={lead.websiteUri} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
-											{lead.websiteUri}
+								{#if formatPhone(lead.internationalPhoneNumber) !== '-'}
+									<div class="flex items-center gap-2">
+										<Phone class="w-4 h-4" />
+							<strong>Phone:</strong>
+										<a href="tel:{lead.internationalPhoneNumber}" class="text-primary hover:underline font-medium">
+											{formatPhone(lead.internationalPhoneNumber)}
 										</a>
 									</div>
 								{/if}
 								{#if lead.rating}
-									<div><strong>Rating:</strong> ⭐ {lead.rating} ({lead.userRatingCount || 0} reviews)</div>
+									<div class="flex items-center gap-2">
+								<Star class="w-4 h-4 fill-current text-yellow-500" />
+								<strong>Rating:</strong> {lead.rating} ({lead.userRatingCount || 0} reviews)
+							</div>
 								{/if}
-								<div><strong>Saved:</strong> {formatDate(lead.savedAt)}</div>
+								<div class="flex items-start gap-2">
+							<MapPin class="w-4 h-4 mt-0.5 flex-shrink-0" />
+							<div><strong>Address:</strong> {lead.formattedAddress}</div>
+						</div>
+								{#if lead.websiteUri}
+									<div class="flex items-center gap-2">
+										<Globe class="w-4 h-4" />
+								<strong>Website:</strong>
+										<a href={lead.websiteUri} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+											{new URL(lead.websiteUri).hostname}
+										</a>
+									</div>
+								{/if}
+								<div class="text-xs text-muted-foreground"><strong>Saved:</strong> {formatDate(lead.savedAt)}</div>
 							</div>
 						</CardContent>
 					</Card>
@@ -144,7 +159,10 @@
 								</td>
 								<td class="p-3 text-sm">
 									{#if lead.rating}
-										⭐ {lead.rating} ({lead.userRatingCount || 0})
+										<div class="flex items-center gap-1">
+											<Star class="w-4 h-4 fill-current text-yellow-500" />
+											{lead.rating} ({lead.userRatingCount || 0})
+										</div>
 									{:else}
 										-
 									{/if}
